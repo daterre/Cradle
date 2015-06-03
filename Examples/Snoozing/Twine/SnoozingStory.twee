@@ -1,0 +1,129 @@
+﻿:: Start
+<<display "alarm">>
+
+
+:: alarm
+...
+
+???
+
+My alarm clock. 
+
+[[Snooze it.|snooze]]
+[[Get up.|getUp]]
+
+
+:: getUp
+I'm out of coffee.
+
+
+:: snooze
+I can't handle this right now.
+
+[[Dream|dreaming]]
+[[Anxiety|anxiety]]
+[[Her|her]]
+
+
+
+:: sea
+i can breath
+
+i can fly
+
+i can't see the sky.
+
+it's warm
+
+just go deep
+
+i will always sleep
+
+[[continue|alarm]]
+
+
+:: her
+when
+will
+i
+see
+you
+
+[[Keep my eyes closed.|alarm]]
+
+
+:: anxiety
+<<display either("work", "relationship") >>
+
+
+:: dreaming
+<<display either("sea", "street", "machine")>>
+
+
+:: machine3
+Yeah? See? You see that?
+
+Watch and learn you fuckers.
+
+[[continue|alarm]]
+
+
+:: relationship
+She knows it. She looks at you and she knows it. She pretends not to, she smiles. She's kind. You're not. You're shit. A shitty shit.
+
+[[Keep my eyes closed.|alarm]]
+
+
+:: machine2
+Oh, those. I can fit them too.
+
+Ha! No problem.
+
+[[continue|machine3]]
+
+
+:: work
+Two days to the meeting. Two days.
+No sleep tonight. 
+Who needs this shit.
+Powerpoint. Fuck you Powerpoint.
+
+[[Keep my eyes closed.|alarm]]
+
+
+:: machine
+I can fit it.
+It fits.
+
+I'm so good.
+
+[[continue|machine2]]
+
+
+:: street
+I'm late. 
+Did I take my keys?
+Shit.
+
+
+
+[[continue|street2]]
+
+
+:: street3
+Her lips.
+
+Fucking late.
+
+[[continue|alarm]]
+
+
+:: street2
+My bag is empty. No, it's not.
+There's a half eaten sandwich. It's hers.
+
+Maybe she'll want it?
+
+[[continue|street3]]
+
+
