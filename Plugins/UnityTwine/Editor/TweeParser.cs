@@ -39,9 +39,9 @@ namespace UnityTwine.Editor
         static TweeParser()
         {
             rx_String = new Regex(
-                @"(?!(<<|\[\[))(?<=(>>|\]\]|^))(?<text>[^\n]+?)(?=(<<|\[\[|$))(?!(>>|\]\]))",
+				@"(?!(<<|\[\[))(?<=(>>|\]\]|^))(?<bol>^)?(?<text>.*?)(?<eol>$)?(?=(<<|\[\[|$))(?!(>>|\]\]))",
                 //"yield return @\"${text}\";",
-                RegexOptions.Singleline|RegexOptions.Multiline|RegexOptions.ExplicitCapture
+				RegexOptions.Singleline |RegexOptions.Multiline|RegexOptions.ExplicitCapture
             );
             rx_IfElse = new Regex(
 				@"(?:<<\s*(?<construct>if|elseif|else|endif)\b\s*(?<condition>.*?)>>)",
@@ -64,9 +64,7 @@ namespace UnityTwine.Editor
                 RegexOptions.Singleline|RegexOptions.Multiline
             );
             rx_Link  = new Regex(
-                //@"\[\[(?<title>.*?)(?:\|(?<id>.*?))?\](?:\[(?<setters>.*?)\])?\]", 
-				@"\[\[(?:(?:(?<name>[^|]+?)\s*=\s*)?(?<text>.+?)\|)?(?<passage>.+?)\](?:\[(?<setters>.*?)\])?\]",
-                //"yield return new TwineLink(\"${title}\", \"${id}\", ()=>{${setters};});", 
+				@"\[\[(?:(?:(?<name>[^|]+?)\s*=\s*)?(?<text>.*?)\|)?(?<passage>.+?)\](?:\[(?<setters>.*?)\])?\]",
                 RegexOptions.Singleline|RegexOptions.Multiline|RegexOptions.ExplicitCapture
             );
 			
@@ -186,7 +184,7 @@ public class {1}: TwineStory
 				passages[i] = new PassageData() {
 					PassageID = m.Groups["id"].Value,
 					Tags = ParseTags(m.Groups["tags"].Value),
-					Code = ParseContent(m.Groups["content"].Value, varNames)
+					Code = ParseContent(m.Groups["content"].Value.Trim(), varNames)
 				};
 
 				if (passages[i].Code == null || passages[i].Code.Trim().Length == 0)
@@ -209,9 +207,19 @@ public class {1}: TwineStory
             // Regular text
             output = rx_String.Replace(output, match=>{
                 string value = match.Groups["text"].Value;
-                return Regex.IsMatch(value, @"^\s*$") ? 
-                    value : // only whitespace so keep it intact
-					String.Format("{0}yield return new TwineText(@\"{1}\");", Regex.Match(value, @"^\s*").Value, value.Trim().Replace("\"", "\"\"")); // output a string
+				bool bol = match.Groups["bol"].Success; // beginning of line
+				bool eol = match.Groups["eol"].Success; // end of line
+                return
+					(bol && eol) || value.Trim().Length > 0 ? 
+                   
+					// output the string, even empty if its a single line
+					String.Format("yield return new TwineText(@\"{0}\");", value
+						.Replace("\"", "\"\"")
+						.Replace("\n", "\\n")
+					) :
+
+					// only beginning or end of line is whitespace, use it as C# whitespace
+					value
                 ;
             });
 
@@ -222,10 +230,10 @@ public class {1}: TwineStory
                 string statement;
 
                 switch(construct) {
-                    case "else" : return "} else {";
+                    case "else" : return "} else { ";
                     case "endif" : return "} ";
-                    case "if" : statement = "if ({0}) {{"; break;
-                    case "elseif": statement = "}} else if ({0}) {{"; break;
+                    case "if" : statement = "if ({0}) {{ "; break;
+                    case "elseif": statement = "}} else if ({0}) {{ "; break;
                     default: throw new Exception("Invalid construct " + construct);
                 }
 

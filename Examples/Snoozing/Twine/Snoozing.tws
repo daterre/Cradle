@@ -5,7 +5,7 @@ S''
 p2
 sS'saveDestination'
 p3
-VD:\u005cProjects\u005cUnityTwine\u005cgit\u005cAssets\u005cExample\u005cTwine\u005cSnoozing.tws
+S'D:\\Projects\\UnityTwine\\git\\Assets\\Examples\\Snoozing\\Twine\\Snoozing.tws'
 p4
 sS'metadata'
 p5
@@ -86,14 +86,14 @@ I00
 sg15
 (lp39
 I569
-aI18
+aI19
 asg17
 (itiddlywiki
 Tiddler
 p40
 (dp41
 g21
-V...\u000a\u000a???\u000a\u000aMy alarm clock. \u000a\u000a[[Snooze it.|snooze]]\u000a[[Get up.|getUp]]
+V<<if not $again >>\u000a<<set $wait=3>>...\u000a\u000a<<set $wait=3>>???\u000a<<set $again=true>>\u000a<<else>>\u000a<<set $wait=1>>...\u000a<<endif>>\u000a\u000a<<set $wait=1>>My alarm clock. \u000a\u000a<<set $wait=3>>[[Snooze it.|snooze]]\u000a[[Get up.|getUp]]
 p42
 sg23
 Valarm
@@ -102,12 +102,12 @@ sg25
 g26
 ((I2015
 I6
-I1
-I23
-I23
+I4
 I11
-I0
-I152
+I8
+I39
+I3
+I155
 I1
 tp44
 (dp45
@@ -143,7 +143,7 @@ Tiddler
 p55
 (dp56
 g21
-VI can't handle this right now.\u000a\u000a[[Dream|dreaming]]\u000a[[Anxiety|anxiety]]\u000a[[Her|her]]\u000a
+VI can't handle this right now.\u000a\u000a[[dream=Dream|dreaming]]\u000a[[anxiety=Anxiety|anxiety]]\u000a[[her=Her|her]]\u000a
 p57
 sg23
 Vsnooze
@@ -152,12 +152,12 @@ sg25
 g26
 ((I2015
 I6
-I2
+I4
 I10
-I39
-I8
-I1
-I153
+I52
+I13
+I3
+I155
 I1
 tp59
 (dp60
@@ -236,7 +236,7 @@ I00
 sg15
 (lp84
 F610.0
-aF525.0
+aF524.0
 asg17
 (itiddlywiki
 Tiddler
@@ -343,7 +343,7 @@ Tiddler
 p115
 (dp116
 g21
-V<<display either("sea", "street", "machine")>>
+V<<if $dream is "sea">>\u000a	<<set $dream = either("street", "machine")>>\u000a<<elseif $dream is "street">>\u000a	<<set $dream = either("sea", "machine")>>\u000a<<elseif $dream is "machine">>\u000a	<<set $dream = either("street", "sea")>>\u000a<<else>>\u000a	<<set $dream = either("sea", "street", "sea")>>\u000a<<endif>>\u000a<<display $dream>>
 p117
 sg23
 Vdreaming
@@ -351,13 +351,13 @@ p118
 sg25
 g26
 ((I2015
-I5
-I31
-I14
-I12
-I35
 I6
-I151
+I4
+I11
+I14
+I39
+I3
+I155
 I1
 tp119
 (dp120
@@ -382,7 +382,7 @@ tp126
 Rp127
 sbsa(dp128
 g14
-I00
+I01
 sg15
 (lp129
 I1440
@@ -393,7 +393,7 @@ Tiddler
 p130
 (dp131
 g21
-Vi can breath\u000a\u000ai can fly\u000a\u000ai can't see the sky.\u000a\u000ait's warm\u000a\u000ajust go deep\u000a\u000ai will always sleep\u000a\u000a[[continue|alarm]]
+Vi can breath\u000a\u000ai can fly\u000a\u000ai can't see the sky.\u000a\u000ait's warm\u000a\u000ajust go deep\u000a\u000ai will always sleep\u000a\u000a[[continue=|alarm]]
 p132
 sg23
 Vsea
@@ -402,12 +402,12 @@ sg25
 g26
 ((I2015
 I6
-I2
-I12
-I12
-I0
-I1
-I153
+I4
+I11
+I22
+I42
+I3
+I155
 I1
 tp134
 (dp135
@@ -432,7 +432,7 @@ tp141
 Rp142
 sbsa(dp143
 g14
-I01
+I00
 sg15
 (lp144
 I759
@@ -493,7 +493,7 @@ Tiddler
 p160
 (dp161
 g21
-VTwo days to the meeting. Two days.\u000aNo sleep tonight. \u000aWho needs this shit.\u000aPowerpoint. Fuck you Powerpoint.\u000a\u000a[[Keep my eyes closed.|alarm]]
+VTwo days to the meeting. Two days.\u000aNo sleep tonight. \u000aWho needs this shit.\u000aPowerpoint. Fuck you Powerpoint.\u000a\u000a[[powerpoint = Keep my eyes closed.|alarm]]
 p162
 sg23
 Vwork
@@ -502,12 +502,12 @@ sg25
 g26
 ((I2015
 I6
-I2
+I3
+I23
 I11
-I41
-I43
-I1
-I153
+I26
+I2
+I154
 I1
 tp164
 (dp165

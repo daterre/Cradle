@@ -14,7 +14,6 @@ namespace UnityTwine
 
 		public event Action<TwineStoryState> OnStateChanged;
 		public event Action<TwineOutput> OnOutput;
-		//public event Action<TwineLink> OnLink;
 		
 		public string Text { get; private set; }
 		public List<TwineLink> Links { get; private set; }
@@ -76,11 +75,7 @@ namespace UnityTwine
 			}
 
 			// invoke exit hooks
-			InvokeHooks("Exit");
-
-			TwinePassage passage = GetPassage(passageID);
-			this.PreviousPassageID = this.CurrentPassageID;
-			this.CurrentPassageID = passage.ID;
+			HooksInvoke(HooksFind("Exit", reverse: true));
 
 			this.Output.Clear();
 			this.Links.Clear();
@@ -88,13 +83,21 @@ namespace UnityTwine
 			_passageUpdateHooks = null;
 			_storyText = new System.Text.StringBuilder();
 
+			TwinePassage passage = GetPassage(passageID);
+			this.PreviousPassageID = this.CurrentPassageID;
+			this.CurrentPassageID = passage.ID;
+
 			this.State = TwineStoryState.Playing;
+			this.Output.Add(passage);
 
 			// Prepare the enumerator
 			_passageExecutor = ExecutePassage(passage).GetEnumerator();
 
-			this.Output.Add(passage);
 			SendOutput(passage);
+			HooksInvoke(HooksFind("Enter", max: 1));
+
+			// Get update hooks for calling during update
+			_passageUpdateHooks = HooksFind("Update", reverse: true, allowCoroutines: false).ToArray();
 
 			// Story was paused, wait for it to resume
 			if (this.State == TwineStoryState.Paused)
@@ -129,6 +132,7 @@ namespace UnityTwine
 						"The story is complete. Reset() must be called before it can be played again."
 					);
 			}
+			this.State = TwineStoryState.Playing;
 			Execute();
 		}
 
@@ -163,7 +167,15 @@ namespace UnityTwine
 				}
 
 				// Let the handlers and hooks kick in
-				SendOutput(output);
+				if (output is TwinePassage)
+				{
+					HooksInvoke(HooksFind("Enter", reverse: true, max: 1));
+				}
+				else
+				{
+					SendOutput(output);
+					HooksInvoke(HooksFind("Output"), output);
+				}
 
 				// Story was paused, wait for it to resume
 				if (this.State == TwineStoryState.Paused)
@@ -179,11 +191,6 @@ namespace UnityTwine
 			this.State = this.Links.Count > 0 ?
 				TwineStoryState.Idle :
 				TwineStoryState.Complete;
-
-			// Get update hooks for calling during update
-			_passageUpdateHooks = GetHooks("Update", allowCoroutine: false).ToArray();
-
-			InvokeHooks("Enter");
 		}
 
 		TwinePassage GetPassage(string passageID)
@@ -214,6 +221,7 @@ namespace UnityTwine
 		{
 			if (OnOutput != null)
 				OnOutput(output);
+
 		}
 		
 		// ---------------------------------
@@ -235,11 +243,11 @@ namespace UnityTwine
 		public void Advance(string linkName)
 		{
 			TwineLink link = this.Links
-				.Where(lnk => string.Equals(lnk.Name, name, System.StringComparison.OrdinalIgnoreCase))
+				.Where(lnk => string.Equals(lnk.Name, linkName, System.StringComparison.OrdinalIgnoreCase))
 				.FirstOrDefault();
 
 			if (link == null)
-				throw new KeyNotFoundException(string.Format("There is no available link with the name '{0}'.", name));
+				throw new KeyNotFoundException(string.Format("There is no available link with the name '{0}'.", linkName));
 
 			Advance(link);
 		}
@@ -249,47 +257,65 @@ namespace UnityTwine
 
 		void Update()
 		{
-			if (_passageUpdateHooks != null)
-			{
-				for (int i = 0; i < _passageUpdateHooks.Length; i++)
-					InvokeHookMethod(_passageUpdateHooks[i]);
-			}
+			HooksInvoke(_passageUpdateHooks);
 		}
 
-		IEnumerable<MethodInfo> GetHooks(string hookName, bool allowCoroutine = true)
-		{
-			if (this.HookScript == null)
-				yield break;
-
-			foreach (TwineOutput output in this.Output)
-			{
-				if (!(output is TwinePassage))
-					continue;
-
-				var passage = (TwinePassage)output;
-				MethodInfo hook = GetHookMethod(passage.ID + '_' + hookName, allowCoroutine);
-				if (hook != null)
-					yield return hook;
-			}
-		}
-
-		void InvokeHooks(string hookName)
+		void HooksInvoke(IEnumerable<MethodInfo> hooks, params object[] args)
 		{
 			if (this.HookScript == null)
 				return;
 
-			foreach (MethodInfo hook in GetHooks(hookName))
-				InvokeHookMethod(hook);
+			if (hooks == null)
+				return;
+
+			if (hooks is MethodInfo[])
+			{
+				var ar = (MethodInfo[]) hooks;
+				for (int i = 0; i < ar.Length; i++)
+					MethodInvoke(ar[i], args);
+			}
+			else
+			{
+				foreach (MethodInfo hook in hooks)
+					MethodInvoke(hook, args);
+			}
 		}
 
-		void InvokeHookMethod(MethodInfo hookMethod)
+		IEnumerable<MethodInfo> HooksFind(string hookName, int max = 0, bool reverse = false, bool allowCoroutines = true)
 		{
-			var result = hookMethod.Invoke(this.HookScript, null);
+			if (this.HookScript == null)
+				yield break;
+
+			int c = 0;
+			for(
+				int i = reverse ? this.Output.Count - 1 : 0;
+				reverse ? i >= 0 : i < this.Output.Count;
+				c++, i = i + (reverse ? -1 : 1)
+				)
+			{
+				if (!(this.Output[i] is TwinePassage))
+					continue;
+
+				var passage = (TwinePassage)this.Output[i];
+				MethodInfo hook = MethodFind(passage.ID + '_' + hookName, allowCoroutines);
+				if (hook != null)
+				{
+					yield return hook;
+					c++;
+					if (max > 0 && c == max)
+						yield break;
+				}
+			}
+		}
+
+		void MethodInvoke(MethodInfo method, object[] args)
+		{
+			var result = method.Invoke(this.HookScript, args);
 			if (result is IEnumerator)
 				StartCoroutine(((IEnumerator)result));
 		}
 
-		MethodInfo GetHookMethod(string methodName, bool allowCoroutine = true)
+		MethodInfo MethodFind(string methodName, bool allowCoroutines = true)
 		{
 			if (this.HookScript == null)
 				throw new UnassignedReferenceException("Can't hook because HookScript is not assigned.");
@@ -301,7 +327,7 @@ namespace UnityTwine
 
 				if (method != null)
 				{
-					if (allowCoroutine)
+					if (allowCoroutines)
 					{
 						if (method.ReturnType != typeof(void) && !typeof(IEnumerator).IsAssignableFrom(method.ReturnType))
 						{

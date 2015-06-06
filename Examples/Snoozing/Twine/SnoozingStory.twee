@@ -3,13 +3,18 @@
 
 
 :: alarm
-...
+<<if not $again >>
+<<set $wait=3>>...
 
-???
+<<set $wait=3>>???
+<<set $again=true>>
+<<else>>
+<<set $wait=1>>...
+<<endif>>
 
-My alarm clock. 
+<<set $wait=1>>My alarm clock. 
 
-[[Snooze it.|snooze]]
+<<set $wait=3>>[[Snooze it.|snooze]]
 [[Get up.|getUp]]
 
 
@@ -20,9 +25,9 @@ I'm out of coffee.
 :: snooze
 I can't handle this right now.
 
-[[Dream|dreaming]]
-[[Anxiety|anxiety]]
-[[Her|her]]
+[[dream=Dream|dreaming]]
+[[anxiety=Anxiety|anxiety]]
+[[her=Her|her]]
 
 
 
@@ -39,7 +44,7 @@ just go deep
 
 i will always sleep
 
-[[continue|alarm]]
+[[continue=|alarm]]
 
 
 :: her
@@ -57,7 +62,16 @@ you
 
 
 :: dreaming
-<<display either("sea", "street", "machine")>>
+<<if $dream is "sea">>
+	<<set $dream = either("street", "machine")>>
+<<elseif $dream is "street">>
+	<<set $dream = either("sea", "machine")>>
+<<elseif $dream is "machine">>
+	<<set $dream = either("street", "sea")>>
+<<else>>
+	<<set $dream = either("sea", "street", "sea")>>
+<<endif>>
+<<display $dream>>
 
 
 :: machine3
@@ -88,7 +102,7 @@ No sleep tonight.
 Who needs this shit.
 Powerpoint. Fuck you Powerpoint.
 
-[[Keep my eyes closed.|alarm]]
+[[powerpoint = Keep my eyes closed.|alarm]]
 
 
 :: machine

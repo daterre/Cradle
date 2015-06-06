@@ -261,8 +261,11 @@ namespace UnityTwine
 
 		public double ToDouble()
 		{
-			if (this.value is int || this.value is double) {
+			if (this.value is double) {
 				return (double) this.value;
+			}
+			else if (this.value is int) {
+				return Convert.ToDouble((int)this.value);
 			}
 			else if (this.value is string) {
 				double parsed;
