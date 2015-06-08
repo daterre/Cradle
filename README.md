@@ -121,3 +121,23 @@ Included in UnityTwine is a prefab and script that can be used to quickly displa
 Each passage in an imported Twine story becomes a function that outputs text or links. Custom scripts can listen for generated output,
 displaying it as necessary and controlling which links are used to advance the story.
 
+To understand scripting with UnityTwine it is first necessary to get to know the `TwineStory` class, from which all imported stories derive.
+
+####Story interaction
+TwineStory includes several methods that allow other scripts to play and interact with a running story.
+
+* `Begin()` - starts the story by playing the passage defined by StartPassage.
+* `Advance(string linkName)` - simulates a 'click' on the link with the specified name (see [naming links](#naming-links)), executes its setters and jumps to the linked passage
+* `Goto(string passageName)` - jumps to the specified passage and plays the story from there. (Only recommended for special cases.)
+
+####Story state
+When a story is playing, it can have one of several states. The state of the story is accessible from the TwineStory.State property.
+
+* *Idle* - the story has either not started or has completed executing a passage. Inspect the `Output`, `Links`, and `Text` properties of the story to see what was outputted, and then call `Advance()` to continue.
+* *Complete* - the story finished executing a passage, but no links were outputted, in effect ending the story.
+* *Playing* - the story is currently executing a passage; interaction methods will not work.
+* *Paused* - the story is currently executing a passage, but was paused in the middle; interaction methods will not work. Call `Resume()` to continue.
+
+####Story state
+
+
