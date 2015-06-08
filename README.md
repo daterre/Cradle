@@ -43,7 +43,6 @@ Requires the [Entweedle](http://www.maximumverbosity.net/twine/Entweedle/) story
 UnityTwine supports many Twine features, but not all (yet). Here is a list of what works and what doesn't:
 
 #####Links
-
 Links work as expected:
 
 * Simple: `[[passage]]`
@@ -51,8 +50,13 @@ Links work as expected:
 * With variable setters: `[[text|passage][$var = 123]]`
 * With expressions: `[[text|either("a", "b")]]
 
-#####Macros
+A syntax extension allows **naming** links for easy reference in Unity scripts:
+* `[[continue = Continue down the hall.|hallway]]`
 
+#####Tags
+Tags (space-delimted) work as expected, with a syntax extention allowing key-value style tags, e.g. `location:exterior weather:rainy`
+
+#####Macros
 Macros that work:
 
 * `<<if>>` .. `<<else>>` .. `<<endif>>`
@@ -76,7 +80,7 @@ Functions that work:
 * `random()`
 * `previous()`
 * `passage()`
-* `tags()`
+* `tags()` (returns a C# array, so `indexOf` and other JavaScript-specific features will not work in Unity)
 
 Functions that **don't work yet**:
 
@@ -124,20 +128,64 @@ displaying it as necessary and controlling which links are used to advance the s
 To understand scripting with UnityTwine it is first necessary to get to know the `TwineStory` class, from which all imported stories derive.
 
 ####Story interaction
-TwineStory includes several methods that allow other scripts to play and interact with a running story.
+The `TwineStory` class includes several methods that allow other scripts to play and interact with a running story.
 
 * `Begin()` - starts the story by playing the passage defined by StartPassage.
-* `Advance(string linkName)` - simulates a 'click' on the link with the specified name (see [naming links](#naming-links)), executes its setters and jumps to the linked passage
+* `Advance(string linkName)` - follows the link with the specified name (see [naming links](#links)): executes the setters, and then jumps to the linked passage
 * `Goto(string passageName)` - jumps to the specified passage and plays the story from there. (Only recommended for special cases.)
+
+
+####Passage output
+When a passage has executed, its output can be inspected.
+
+* `Output` - a list of all the output of the passage, in the order in which it was generated. Includes any output from sub-passages referenced by `<<display>>`, along with the definition of those passages.
+* `Text` - a sub-list of Output, includes only the text of the passage.
+* `Links` - a sub-list of Output, includes only the links of the passage.
+* `Tags` - a merged list of all tags encountered during passage execution, including the tags of any sub-passages referenced by `<<display>>`.
+* `CurrentPassageName` - the name of the current main passage (i.e. not sub-passage) that was executed.
+* `PreviousPassageName` - the name of the previous main passage (i.e. not sub-passage) that was executed.
+
+Passage output can also be intercepted while it is executing using [hooks](#hooks) or the `OnOutput` event:
+
+```c#
+public TwineStory story;
+
+void Start() {
+	story.OnOutput += story_OnOutput;
+	story.Begin();
+}
+
+void story_OnOutput(TwineOutput output) {
+	// Do something with the output here
+}
+
+```
 
 ####Story state
 When a story is playing, it can have one of several states. The state of the story is accessible from the TwineStory.State property.
 
-* *Idle* - the story has either not started or has completed executing a passage. Inspect the `Output`, `Links`, and `Text` properties of the story to see what was outputted, and then call `Advance()` to continue.
-* *Complete* - the story finished executing a passage, but no links were outputted, in effect ending the story.
-* *Playing* - the story is currently executing a passage; interaction methods will not work.
-* *Paused* - the story is currently executing a passage, but was paused in the middle; interaction methods will not work. Call `Resume()` to continue.
+* `Idle` - the story has either not started or has completed executing a passage. Inspect the `Output`, `Links`, and `Text` properties of the story to see what was outputted, and then call `Advance()` to continue.
+* `Complete` - the story finished executing a passage, but no links were outputted, in effect ending the story.
+* `Playing` - the story is currently executing a passage; interaction methods will not work.
+* `Paused` - the story is currently executing a passage, but was paused in the middle; interaction methods will not work. Call `Resume()` to continue.
 
-####Story state
+To detect when the state has changed, use the `OnStateChanged` event:
+```c#
+public TwineStory story;
+
+void Start() {
+	story.OnStateChanged += story_OnStateChanged;
+	story.Begin();
+}
+
+void story_OnStateChanged() {
+	if (story.State == TwineStoryState.Idle) {
+		// Interaction methods can be called now
+		story.Advance("enterTheCastle");
+	}
+}
+```
+
+####Hooks
 
 
