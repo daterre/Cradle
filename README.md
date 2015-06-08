@@ -183,6 +183,37 @@ void story_OnOutput(TwineOutput output) {
 
 ```
 
+####Variables
+Twine stories often use `<<set $ammo = 1>>` macros to store variables, reading them later in `<<if>`, `<<print>>` or `<<display>>` macros. When imported, these variables can be accessed in two ways:
+
+Using the getter or setter. Example:
+```c#
+public TwineStory story;
+
+void Update() {
+	if (story["ammo"] > 10) {
+		Debug.Log("Ammo limited to 10");
+		story["ammo"] = 10;
+	}
+}
+```
+
+Using the generated variable directly:
+```c#
+public JimsAdventure story; // generated class name from the file JimsAdventure.twee
+
+void Update() {
+	if (story.ammo > 10) {
+		Debug.Log("Ammo limited to 10");
+		story.ammo = 10;
+	}
+}
+```
+
+Notes:
+
+* Variables are all of type TwineVar, which is a dynamic value type that implicitly converts itself from string to integer to double to boolean.
+
 ####Story state
 When a story is playing, it can have one of several states. The state of the story is accessible from the TwineStory.State property.
 
@@ -208,7 +239,10 @@ void story_OnStateChanged() {
 }
 ```
 
-The story can be paused in order to do time-consuming tasks such as waiting for animations to end or for a scene to load. Example (using [hooks](#hooks)):
+#####Pause and Resume
+The story can be paused in order to do time-consuming tasks such as waiting for animations to end or for a scene to load, before further story output is generated. Pausing is only necessary when the story is in the Playing state; if it is Idle or Complete, there is nothing to pause.
+
+Example (using [hooks](#hooks)):
 ```c#
 public TwineStory story;
 public Sprite blackOverlay;
@@ -235,7 +269,7 @@ IEnumerator castle_Enter() {
 
 
 ####Hooks
-UnityTwine includes a powerful hook system that allows scripts to easily run on conjuction with the current passage.
+UnityTwine includes a powerful hook system that allows scripts to easily run in conjuction with the current passage.
 
 #####Simple example
 
@@ -299,7 +333,4 @@ IEnumerator spaceship_Enter() {
 Notes:
 
 * All hooks can be coroutines except the Update hook, which must always return void.
-* After the first yield, the story will be Idle and all the the passage output will be available. This is because the passage continues execution after calling the hook, so by the time the coroutine has done waiting, the passage is complete. To pause execution until the coroutine ends, use `Pause()` and `Resume()` ([example](#story-state))
-
-
-
+* After the first yield, the story will be Idle and all the the passage output will be available. This is because the passage continues execution after calling the hook, so by the time the coroutine has done waiting, the passage is complete. To pause execution until the coroutine ends, use `Pause()` and `Resume()` ([example](#pause-and-resume))
