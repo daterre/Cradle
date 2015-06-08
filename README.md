@@ -12,6 +12,18 @@ programmers and artists can develop the interaction and presentation without wor
 3. Add the generated script to your scene
 4. Use [hooks](#hooks) to script story interaction, or use the included [TwineTextPlayer](#twinetextplayer)
 
+####Examples
+(link to Snoozing)
+
+
+
+##Documentation
+
+###Importing
+The UnityTwine asset importer listens for any new .twee files dropped into the project directory, and proceeds to import them.
+
+The asset importer treats Twee code as logic, translating it into a C# script with a similar structure (and file name).
+A story can be reimported over and over again as necessary; the C# script will be refreshed.
 
 ####Exporting .twee files from Twine
 #####For Twine 1:
@@ -26,14 +38,6 @@ Requires the [Entweedle](http://www.maximumverbosity.net/twine/Entweedle/) story
 2. In your story, select Entweedle as your story format.
 3. Press 'Play'
 4. Copy and paste the resulting text into an empty text file with the .twee extension. Put this file in your Unity project.
-
-##Documentation
-
-###Importing
-The UnityTwine asset importer listens for any new .twee files dropped into the project directory, and proceeds to import them.
-
-The asset importer treats Twee code as logic, translating it into a C# script with a similar structure (and file name).
-A story can be reimported over and over again as necessary; the C# script will be refreshed.
 
 ####Supported syntax
 UnityTwine supports many Twine features, but not all (yet). Here is a list of what works and what doesn't:
@@ -89,6 +93,8 @@ Functions that **don't work yet**:
 * For usage with hooks, passage names should not begin with a number or include non-alphanumeric characters.
 * Twine 1 presentation features such as Stylesheet, Script, Image and Annotation are not supported.
 
+
+
 ###Playback
 Once a story is imported and a story script is generated, this script can be added to a game object in the scene like any normal script.
 
@@ -108,6 +114,8 @@ Included in UnityTwine is a prefab and script that can be used to quickly displa
 4. Drag the TwineTextPlayer prefab into the scene
 5. On the TwineTextPlayer object, drag the 'TwineStory' game object into the 'Story' proprety
 6. Play your scene
+
+
 
 ###Scripting
 Each passage in an imported Twine story becomes a function that outputs text or links. Custom scripts can listen for generated output,
