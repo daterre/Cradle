@@ -12,20 +12,21 @@ programmers and artists can develop the interaction and presentation without wor
 3. Add the generated script to your scene
 4. Use [hooks](#hooks) to script story interaction, or use the included [TwineTextPlayer](#textplayer)
 
-####Exporting .twee files from Twine
+#####Exporting .twee files from Twine
 **Twine 1:**
 1. File > Export > Twee Source Code...
 2. Save to a location inside your Unity project.
 
 **Twine 2:**
 Requires the [Entweedle](http://www.maximumverbosity.net/twine/Entweedle/) story format.
+
 1. Click the "Formats" link in Twine, then "Add a New Format" and enter this URL: `http://www.maximumverbosity.net/twine/Entweedle/format.js`
 2. In your story, select Entweedle as your story format.
 3. Press 'Play'
 4. Copy and paste the resulting text into an empty text file with the .twee extension. Put this file in your Unity project.
 
 ###Documentation
-####How it works
+#####How it works
 1. The UnityTwine asset importer translates the Twee content and logic into a C# script, preserving the structure of every passage.
 2. Once added to the scene, the generated script plays each passage and provides a list of 
 
