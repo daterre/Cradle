@@ -6,12 +6,12 @@ namespace UnityTwine
 {
     public class TwineDisplay:TwineOutput
     {
-        public string PassageID;
+        public string PassageName;
 		public TwineVar[] Parameters;
 
         public TwineDisplay(string passageID, params TwineVar[] parameters)
         {
-            this.PassageID = passageID;
+            this.PassageName = passageID;
 			this.Parameters = parameters;
         }
     }

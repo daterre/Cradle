@@ -8,9 +8,7 @@ namespace UnityTwine
 {
     public class TwineLink: TwineOutput
     {
-		public string Name;
-        public string Text;
-        public string PassageID;
+        public string PassageName;
         public Action Setters;
 		string _settersHash;
 
@@ -18,7 +16,7 @@ namespace UnityTwine
         {
 			this.Name = name;
             this.Text = text;
-            this.PassageID = passageID;
+            this.PassageName = passageID;
             this.Setters = setters;
 			_settersHash = settersHash;
         }
@@ -33,7 +31,7 @@ namespace UnityTwine
 			if ((anull && !bnull) || (!anull && bnull))
 				return false;
 
-			return a.Text == b.Text && a.PassageID == b.PassageID && a._settersHash == b._settersHash;
+			return a.Text == b.Text && a.PassageName == b.PassageName && a._settersHash == b._settersHash;
 		}
 
 		public static bool operator!=(TwineLink a, TwineLink b)

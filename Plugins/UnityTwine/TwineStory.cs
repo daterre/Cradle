@@ -15,27 +15,27 @@ namespace UnityTwine
 		public event Action<TwineStoryState> OnStateChanged;
 		public event Action<TwineOutput> OnOutput;
 		
-		public string Text { get; private set; }
+		public List<TwineText> Text { get; private set; }
 		public List<TwineLink> Links { get; private set; }
 		public List<TwineOutput> Output { get; private set; }
 		public Dictionary<string, string> Tags { get; private set; }
-		public string CurrentPassageID { get; private set; }
-		public string PreviousPassageID { get; private set; }
+		public string CurrentPassageName { get; private set; }
+		public string PreviousPassageName { get; private set; }
 
 		protected Dictionary<string, TwinePassage> Passages { get; private set; }
 		TwineStoryState _state = TwineStoryState.Idle;
 		IEnumerator<TwineOutput> _passageExecutor = null;
 		MethodInfo[] _passageUpdateHooks = null;
-		System.Text.StringBuilder _storyText = null;
 		Dictionary<string, MethodInfo> _hookCache = new Dictionary<string, MethodInfo>();
 
 		protected void Init()
 		{
 			this.Output = new List<TwineOutput>();
+			this.Text = new List<TwineText>();
 			this.Links = new List<TwineLink>();
 			this.Tags = new Dictionary<string, string>();
 			this.Passages = new Dictionary<string, TwinePassage>();
-			PreviousPassageID = null;
+			PreviousPassageName = null;
 		}
 
 		// ---------------------------------
@@ -58,7 +58,7 @@ namespace UnityTwine
 			GoTo(StartPassage);
 		}
 
-		public void GoTo(string passageID)
+		public void GoTo(string passageName)
 		{
 			if (this.State != TwineStoryState.Idle)
 			{
@@ -78,14 +78,14 @@ namespace UnityTwine
 			HooksInvoke(HooksFind("Exit", reverse: true));
 
 			this.Output.Clear();
+			this.Text.Clear();
 			this.Links.Clear();
 			this.Tags.Clear();
 			_passageUpdateHooks = null;
-			_storyText = new System.Text.StringBuilder();
 
-			TwinePassage passage = GetPassage(passageID);
-			this.PreviousPassageID = this.CurrentPassageID;
-			this.CurrentPassageID = passage.ID;
+			TwinePassage passage = GetPassage(passageName);
+			this.PreviousPassageName = this.CurrentPassageName;
+			this.CurrentPassageName = passage.Name;
 
 			this.State = TwineStoryState.Playing;
 			this.Output.Add(passage);
@@ -97,7 +97,7 @@ namespace UnityTwine
 			HooksInvoke(HooksFind("Enter", max: 1));
 
 			// Get update hooks for calling during update
-			_passageUpdateHooks = HooksFind("Update", reverse: true, allowCoroutines: false).ToArray();
+			_passageUpdateHooks = HooksFind("Update", reverse: false, allowCoroutines: false).ToArray();
 
 			// Story was paused, wait for it to resume
 			if (this.State == TwineStoryState.Paused)
@@ -163,13 +163,16 @@ namespace UnityTwine
 				{
 					// Add all text to the Text property for easy access
 					var text = (TwineText)output;
-					_storyText.AppendLine(text.String);
+					this.Text.Add(text);
 				}
 
 				// Let the handlers and hooks kick in
 				if (output is TwinePassage)
 				{
 					HooksInvoke(HooksFind("Enter", reverse: true, max: 1));
+
+					// Refresh the update hooks
+					_passageUpdateHooks = HooksFind("Update", reverse: false, allowCoroutines: false).ToArray();
 				}
 				else
 				{
@@ -185,17 +188,14 @@ namespace UnityTwine
 			_passageExecutor.Dispose();
 			_passageExecutor = null;
 
-			this.Text = _storyText.ToString();
-			_storyText = null;
-
 			this.State = this.Links.Count > 0 ?
 				TwineStoryState.Idle :
 				TwineStoryState.Complete;
 		}
 
-		TwinePassage GetPassage(string passageID)
+		TwinePassage GetPassage(string passageName)
 		{
-			string pid = passageID;
+			string pid = passageName;
 			TwinePassage passage;
 			if (!Passages.TryGetValue(pid, out passage))
 				throw new Exception(String.Format("Passage '{0}' does not exist.", pid));
@@ -207,7 +207,7 @@ namespace UnityTwine
 			foreach(TwineOutput output in passage.Execute()) {
                 if (output is TwineDisplay) {
                     var display = (TwineDisplay) output;
-					TwinePassage displayPassage = GetPassage(display.PassageID);
+					TwinePassage displayPassage = GetPassage(display.PassageName);
 					yield return displayPassage;
 					foreach(TwineOutput innerOutput in ExecutePassage(displayPassage))
                         yield return innerOutput;
@@ -232,14 +232,14 @@ namespace UnityTwine
 			if (link.Setters != null)
 				link.Setters.Invoke();
 
-			GoTo(link.PassageID);
+			GoTo(link.PassageName);
 		}
 
 		public void Advance(int linkIndex)
 		{
 			Advance(this.Links[linkIndex]);
 		}
-
+		
 		public void Advance(string linkName)
 		{
 			TwineLink link = this.Links
@@ -251,6 +251,16 @@ namespace UnityTwine
 
 			Advance(link);
 		}
+
+		public bool HasLink(string linkName)
+		{
+			TwineLink link = this.Links
+				.Where(lnk => string.Equals(lnk.Name, linkName, System.StringComparison.OrdinalIgnoreCase))
+				.FirstOrDefault();
+
+			return link != null;
+		}
+
 
 		// ---------------------------------
 		// Hooks
@@ -297,7 +307,7 @@ namespace UnityTwine
 					continue;
 
 				var passage = (TwinePassage)this.Output[i];
-				MethodInfo hook = MethodFind(passage.ID + '_' + hookName, allowCoroutines);
+				MethodInfo hook = MethodFind(passage.Name + '_' + hookName, allowCoroutines);
 				if (hook != null)
 				{
 					yield return hook;
@@ -380,21 +390,21 @@ namespace UnityTwine
 
 		protected string passage()
 		{
-			return this.CurrentPassageID;
+			return this.CurrentPassageName;
 		}
 
 		protected string previous()
 		{
-			return this.PreviousPassageID;
+			return this.PreviousPassageName;
 		}
 
-		protected int visited(params string[] passageIDs)
+		protected int visited(params string[] passageNames)
 		{
 			// TODO: add passage counters
 			throw new NotImplementedException();
 		}
 
-		protected int visitedTag(params string[] passageIDs)
+		protected int visitedTag(params string[] passageNames)
 		{
 			// TODO: add tag counters
 			throw new NotImplementedException();

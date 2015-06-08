@@ -82,7 +82,7 @@ tp36
 Rp37
 sbsa(dp38
 g14
-I00
+I01
 sg15
 (lp39
 I569
@@ -93,7 +93,7 @@ Tiddler
 p40
 (dp41
 g21
-V<<if not $again >>\u000a<<set $wait=3>>...\u000a\u000a<<set $wait=3>>???\u000a<<set $again=true>>\u000a<<else>>\u000a<<set $wait=1>>...\u000a<<endif>>\u000a\u000a<<set $wait=1>>My alarm clock. \u000a\u000a<<set $wait=3>>[[Snooze it.|snooze]]\u000a[[Get up.|getUp]]
+V<<set $wait = 1>>\u000a...\u000a\u000a<<if not $again >>\u000a<<set $wait = 2>>\u000a? ?\u000a<<set $wait = 0.5>>\u000aMy alarm clock.\u000a\u000a<<endif>>\u000a<<set $click = true>>\u000a[[Snooze it.|snooze]]\u000a<<set $click = false>>\u000a<<if $again>>\u000a<<set $wait = 0.5f>>\u000a[[Get up.|getUp]]\u000a<<endif>>\u000a<<set $again=true>>
 p42
 sg23
 Valarm
@@ -102,12 +102,12 @@ sg25
 g26
 ((I2015
 I6
-I4
-I11
-I8
-I39
-I3
-I155
+I7
+I19
+I58
+I35
+I6
+I158
 I1
 tp44
 (dp45
@@ -143,7 +143,7 @@ Tiddler
 p55
 (dp56
 g21
-VI can't handle this right now.\u000a\u000a[[dream=Dream|dreaming]]\u000a[[anxiety=Anxiety|anxiety]]\u000a[[her=Her|her]]\u000a
+V<<set $wait = 1>>\u000a<<set $rand = either(1,2)>>\u000a<<if $rand is 1>>\u000aI can't handle this right now.\u000a<<else>>\u000aKeep my eyes closed.\u000a<<endif>>\u000a[[dream=Dream|dreaming]]\u000a[[anxiety=Anxiety|anxiety]]\u000a[[her=Her|her]]\u000a
 p57
 sg23
 Vsnooze
@@ -152,12 +152,12 @@ sg25
 g26
 ((I2015
 I6
-I4
-I10
-I52
-I13
-I3
-I155
+I7
+I0
+I45
+I26
+I6
+I158
 I1
 tp59
 (dp60
@@ -193,7 +193,7 @@ Tiddler
 p70
 (dp71
 g21
-VI'm out of coffee.
+V<<set $wait = 1f>>\u000a...coffee...
 p72
 sg23
 VgetUp
@@ -201,13 +201,13 @@ p73
 sg25
 g26
 ((I2015
-I5
-I31
-I13
-I49
-I38
 I6
-I151
+I6
+I21
+I18
+I28
+I5
+I157
 I1
 tp74
 (dp75
@@ -285,15 +285,15 @@ g14
 I00
 sg15
 (lp99
-F926.0
-aF503.0
+F922.0
+aF508.0
 asg17
 (itiddlywiki
 Tiddler
 p100
 (dp101
 g21
-Vwhen\u000awill\u000ai\u000asee\u000ayou\u000a\u000a[[Keep my eyes closed.|alarm]]
+Vwhen\u000awill\u000ai\u000afeel\u000ayou\u000a[[continue|alarm]]
 p102
 sg23
 Vher
@@ -302,12 +302,12 @@ sg25
 g26
 ((I2015
 I6
-I2
-I11
-I40
-I45
-I1
-I153
+I7
+I14
+I9
+I4
+I6
+I158
 I1
 tp104
 (dp105
@@ -336,7 +336,7 @@ I00
 sg15
 (lp114
 F766.0
-aF536.0
+aF537.0
 asg17
 (itiddlywiki
 Tiddler
@@ -382,7 +382,7 @@ tp126
 Rp127
 sbsa(dp128
 g14
-I01
+I00
 sg15
 (lp129
 I1440
@@ -393,7 +393,7 @@ Tiddler
 p130
 (dp131
 g21
-Vi can breath\u000a\u000ai can fly\u000a\u000ai can't see the sky.\u000a\u000ait's warm\u000a\u000ajust go deep\u000a\u000ai will always sleep\u000a\u000a[[continue=|alarm]]
+V<<set $click = true>>\u000ai can breath\u000a\u000ai can fly\u000a\u000ai can't see the sky.\u000a\u000ait's warm\u000a\u000ajust go deep\u000a\u000ai will always sleep\u000a<<set $click = false>>\u000a[[continue=|alarm]]
 p132
 sg23
 Vsea
@@ -402,12 +402,12 @@ sg25
 g26
 ((I2015
 I6
-I4
-I11
+I7
+I13
+I21
 I22
-I42
-I3
-I155
+I6
+I158
 I1
 tp134
 (dp135
@@ -435,7 +435,7 @@ g14
 I00
 sg15
 (lp144
-I759
+I760
 aI856
 asg17
 (itiddlywiki
@@ -443,7 +443,7 @@ Tiddler
 p145
 (dp146
 g21
-VI'm late. \u000aDid I take my keys?\u000aShit.\u000a\u000a\u000a\u000a[[continue|street2]]
+V<<set $wait = 1>>\u000aI'm late. \u000aWhere are my keys?\u000aShit.\u000a[[continue=|street2]]
 p147
 sg23
 Vstreet
@@ -452,12 +452,12 @@ sg25
 g26
 ((I2015
 I6
-I2
-I12
-I35
+I7
+I16
+I50
+I31
 I6
-I1
-I153
+I158
 I1
 tp149
 (dp150
@@ -493,7 +493,7 @@ Tiddler
 p160
 (dp161
 g21
-VTwo days to the meeting. Two days.\u000aNo sleep tonight. \u000aWho needs this shit.\u000aPowerpoint. Fuck you Powerpoint.\u000a\u000a[[powerpoint = Keep my eyes closed.|alarm]]
+VTwo days to the meeting.\u000aTwo days.\u000aNo sleep tonight. \u000aWho needs this shit.\u000a\u000aPowerpoint.\u000aFuck you, Powerpoint.\u000a\u000a[[continue=|alarm]]
 p162
 sg23
 Vwork
@@ -502,12 +502,12 @@ sg25
 g26
 ((I2015
 I6
-I3
-I23
-I11
-I26
-I2
-I154
+I7
+I14
+I16
+I14
+I6
+I158
 I1
 tp164
 (dp165
@@ -543,7 +543,7 @@ Tiddler
 p175
 (dp176
 g21
-VShe knows it. She looks at you and she knows it. She pretends not to, she smiles. She's kind. You're not. You're shit. A shitty shit.\u000a\u000a[[Keep my eyes closed.|alarm]]
+VShe knows it.\u000a<<set $click = true>>\u000aShe looks at you,\u000aand she knows it.\u000aPretends not to.\u000aShe smiles.\u000aShe's kind.\u000aYou're not.\u000aYou're shit.\u000aA little shit,\u000a<<set $click = false>>\u000a[[continue=|alarm]]
 p177
 sg23
 Vrelationship
@@ -552,12 +552,12 @@ sg25
 g26
 ((I2015
 I6
-I2
-I12
-I40
-I59
-I1
-I153
+I7
+I17
+I7
+I49
+I6
+I158
 I1
 tp179
 (dp180
@@ -593,7 +593,7 @@ Tiddler
 p190
 (dp191
 g21
-VI can fit it.\u000aIt fits.\u000a\u000aI'm so good.\u000a\u000a[[continue|machine2]]
+VI can fit it.\u000aIt fits.\u000aI'm so good.\u000a\u000a[[continue=|machine2]]
 p192
 sg23
 Vmachine
@@ -602,12 +602,12 @@ sg25
 g26
 ((I2015
 I6
+I7
+I14
+I10
 I2
-I12
-I36
-I37
-I1
-I153
+I6
+I158
 I1
 tp194
 (dp195
@@ -643,7 +643,7 @@ Tiddler
 p205
 (dp206
 g21
-VMy bag is empty. No, it's not.\u000aThere's a half eaten sandwich. It's hers.\u000a\u000aMaybe she'll want it?\u000a\u000a[[continue|street3]]
+V<<set $wait = 1>>\u000aMy bag is empty.\u000a\u000aNo, it's not.\u000a\u000aThere's a half-eaten sandwich.\u000aIt's hers.\u000a\u000a[[continue=|street3]]
 p207
 sg23
 Vstreet2
@@ -652,12 +652,12 @@ sg25
 g26
 ((I2015
 I6
-I2
+I7
+I18
 I12
-I35
-I29
-I1
-I153
+I52
+I6
+I158
 I1
 tp209
 (dp210
@@ -693,7 +693,7 @@ Tiddler
 p220
 (dp221
 g21
-VHer lips.\u000a\u000aFucking late.\u000a\u000a[[continue|alarm]]
+V<<set $wait = 1>>\u000aMaybe she'll want it?\u000a\u000aHer lips\u000a\u000a[[continue=|alarm]]
 p222
 sg23
 Vstreet3
@@ -702,12 +702,12 @@ sg25
 g26
 ((I2015
 I6
-I2
-I12
-I35
-I42
-I1
-I153
+I7
+I18
+I15
+I3
+I6
+I158
 I1
 tp224
 (dp225
@@ -743,7 +743,7 @@ Tiddler
 p235
 (dp236
 g21
-VOh, those. I can fit them too.\u000a\u000aHa! No problem.\u000a\u000a[[continue|machine3]]
+VOh, those.\u000aI can fit them too.\u000aHa! No problem.\u000a\u000a[[continue=|machine3]]
 p237
 sg23
 Vmachine2
@@ -752,12 +752,12 @@ sg25
 g26
 ((I2015
 I6
-I2
-I12
-I36
-I50
-I1
-I153
+I7
+I14
+I9
+I51
+I6
+I158
 I1
 tp239
 (dp240
@@ -793,7 +793,7 @@ Tiddler
 p250
 (dp251
 g21
-VYeah? See? You see that?\u000a\u000aWatch and learn you fuckers.\u000a\u000a[[continue|alarm]]
+VYeah?\u000aSee?\u000aYou see that?\u000a\u000aWatch and learn you fuckers.\u000a\u000a[[continue=|alarm]]
 p252
 sg23
 Vmachine3
@@ -802,12 +802,12 @@ sg25
 g26
 ((I2015
 I6
-I2
-I12
-I37
-I5
-I1
-I153
+I7
+I14
+I9
+I28
+I6
+I158
 I1
 tp254
 (dp255

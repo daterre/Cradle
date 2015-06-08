@@ -3,28 +3,39 @@
 
 
 :: alarm
+<<set $wait = 1>>
+...
+
 <<if not $again >>
-<<set $wait=3>>...
+<<set $wait = 2>>
+? ?
+<<set $wait = 0.5>>
+My alarm clock.
 
-<<set $wait=3>>???
-<<set $again=true>>
-<<else>>
-<<set $wait=1>>...
 <<endif>>
-
-<<set $wait=1>>My alarm clock. 
-
-<<set $wait=3>>[[Snooze it.|snooze]]
+<<set $click = true>>
+[[Snooze it.|snooze]]
+<<set $click = false>>
+<<if $again>>
+<<set $wait = 0.5f>>
 [[Get up.|getUp]]
+<<endif>>
+<<set $again=true>>
 
 
 :: getUp
-I'm out of coffee.
+<<set $wait = 1f>>
+...coffee...
 
 
 :: snooze
+<<set $wait = 1>>
+<<set $rand = either(1,2)>>
+<<if $rand is 1>>
 I can't handle this right now.
-
+<<else>>
+Keep my eyes closed.
+<<endif>>
 [[dream=Dream|dreaming]]
 [[anxiety=Anxiety|anxiety]]
 [[her=Her|her]]
@@ -32,6 +43,7 @@ I can't handle this right now.
 
 
 :: sea
+<<set $click = true>>
 i can breath
 
 i can fly
@@ -43,7 +55,7 @@ it's warm
 just go deep
 
 i will always sleep
-
+<<set $click = false>>
 [[continue=|alarm]]
 
 
@@ -51,10 +63,9 @@ i will always sleep
 when
 will
 i
-see
+feel
 you
-
-[[Keep my eyes closed.|alarm]]
+[[continue|alarm]]
 
 
 :: anxiety
@@ -75,69 +86,84 @@ you
 
 
 :: machine3
-Yeah? See? You see that?
+Yeah?
+See?
+You see that?
 
 Watch and learn you fuckers.
 
-[[continue|alarm]]
+[[continue=|alarm]]
 
 
 :: relationship
-She knows it. She looks at you and she knows it. She pretends not to, she smiles. She's kind. You're not. You're shit. A shitty shit.
-
-[[Keep my eyes closed.|alarm]]
+She knows it.
+<<set $click = true>>
+She looks at you,
+and she knows it.
+Pretends not to.
+She smiles.
+She's kind.
+You're not.
+You're shit.
+A little shit,
+<<set $click = false>>
+[[continue=|alarm]]
 
 
 :: machine2
-Oh, those. I can fit them too.
-
+Oh, those.
+I can fit them too.
 Ha! No problem.
 
-[[continue|machine3]]
+[[continue=|machine3]]
 
 
 :: work
-Two days to the meeting. Two days.
+Two days to the meeting.
+Two days.
 No sleep tonight. 
 Who needs this shit.
-Powerpoint. Fuck you Powerpoint.
 
-[[powerpoint = Keep my eyes closed.|alarm]]
+Powerpoint.
+Fuck you, Powerpoint.
+
+[[continue=|alarm]]
 
 
 :: machine
 I can fit it.
 It fits.
-
 I'm so good.
 
-[[continue|machine2]]
+[[continue=|machine2]]
 
 
 :: street
+<<set $wait = 1>>
 I'm late. 
-Did I take my keys?
+Where are my keys?
 Shit.
-
-
-
-[[continue|street2]]
+[[continue=|street2]]
 
 
 :: street3
-Her lips.
+<<set $wait = 1>>
+Maybe she'll want it?
 
-Fucking late.
+Her lips
 
-[[continue|alarm]]
+[[continue=|alarm]]
 
 
 :: street2
-My bag is empty. No, it's not.
-There's a half eaten sandwich. It's hers.
+<<set $wait = 1>>
+My bag is empty.
 
-Maybe she'll want it?
+No, it's not.
 
-[[continue|street3]]
+There's a half-eaten sandwich.
+It's hers.
+
+[[continue=|street3]]
 
 
