@@ -48,7 +48,7 @@ Links work as expected:
 * Simple: `[[passage]]`
 * With link text: `[[text|passage]]`
 * With variable setters: `[[text|passage][$var = 123]]`
-* With expressions: `[[text|either("a", "b")]]
+* With expressions: `[[text|either("a", "b")]]`
 
 A syntax extension allows **naming** links for easy reference in Unity scripts:
 * `[[continue = Continue down the hall.|hallway]]`
@@ -134,6 +134,21 @@ The `TwineStory` class includes several methods that allow other scripts to play
 * `Advance(string linkName)` - follows the link with the specified name (see [naming links](#links)): executes the setters, and then jumps to the linked passage
 * `Goto(string passageName)` - jumps to the specified passage and plays the story from there. (Only recommended for special cases.)
 
+Example:
+
+```c#
+public TwineStory story;
+
+void Start() {
+	story.Begin();
+}
+
+void Update() {
+	if (Input.GetMouseButtonDown(0))
+		story.Advance("myLink");
+}
+
+```
 
 ####Passage output
 When a passage has executed, its output can be inspected.
@@ -145,7 +160,7 @@ When a passage has executed, its output can be inspected.
 * `CurrentPassageName` - the name of the current main passage (i.e. not sub-passage) that was executed.
 * `PreviousPassageName` - the name of the previous main passage (i.e. not sub-passage) that was executed.
 
-Passage output can also be intercepted while it is executing using [hooks](#hooks) or the `OnOutput` event:
+Passage output can also be intercepted while it is executing using [hooks](#hooks) or with the `OnOutput` event:
 
 ```c#
 public TwineStory story;
@@ -157,6 +172,7 @@ void Start() {
 
 void story_OnOutput(TwineOutput output) {
 	// Do something with the output here
+	Debug.Log(output.Text);
 }
 
 ```
@@ -186,6 +202,96 @@ void story_OnStateChanged() {
 }
 ```
 
+The story can be paused in order to do time-consuming tasks such as waiting for animations to end or for a scene to load. Example (using [hooks](#hooks)):
+```c#
+public TwineStory story;
+public Sprite blackOverlay;
+
+const float fadeInTime = 2f;
+
+IEnumerator castle_Enter() {
+	story.Pause();
+
+	blackOverlay.color = new Color(0f, 0f, 0f, 1f);
+
+	for (float t = 0; t <= fadeInTime; t+=Time.deltaTime) {
+		// Update the alpha of the sprite
+		blackOverlay.color = new Color(0f, 0f, 0f, 1f - t);
+
+		// Wait a frame
+		yield return null;
+	}
+
+	story.Resume();
+}
+```
+
+
 ####Hooks
+UnityTwine includes a powerful hook system that allows scripts to easily run according to the current passage.
+
+#####Simple example
+
+Let's say your story includes 2 passages named "Attack" and "Defend".
+
+```c#
+bool shieldsUp;
+
+void Attack_Enter()
+{
+	Camera.main.backgroundColor = Color.blue;
+}
+
+void Defend_Enter()
+{
+	Camera.main.backgroundColor = Color.red;
+	shieldsUp = true;
+}
+
+void Defend_Update()
+{
+	// Runs every frame like a normal Update method, but only when the current passage is Defend
+}
+
+void Defend_Exit()
+{
+	shieldsUp = false;
+}
+```
+
+#####Setting up a hook script
+Before you can get your hooks to work you have to tell the TwineStory where to look for them. (This step is required at the moment but will hopefully be removed in the next version.)
+
+1. Create a new script (recommended C#, but UnityScript should work)
+2. Add it to any game object in your scene
+3. Drag the object onto your TwineStory component's `HookScript` property
+
+
+#####Hook types
+The following hook types are supported (replace 'passage' with the name of a passage):
+
+* `passage_Enter()` - called immediately when a passage is entered. This means after Begin, Advance or GoTo are called (for the main passage) and whenever a `<<display>>` macro is encountered (for sub-passages).
+* `passage_Exit()` - called on the current passages just before a new main passage is entered via Advance or GoTo. (A sub-passage's exit hook is called before the passage's that referenced it, in a last-in-first-out order.)
+* `passage_Idle()` - called when the passage is done executing and the story has entered the Idle state. All [passage output](#passage-output) is available.
+* `passage_Update()` - when the story is in the Idle state, this hook is called once per frame.
+* `passage_Output(TwineOutput output)` - whenever a passage generates output (text, link, or sub-passage), this hook receives it. 
+
+
+#####Coroutine hooks
+If a hook is an enumeration function (returns IEnumerator in C# or issues a yield in UnityScript) it is used to start a coroutine. Coroutine hooks behave just like normal Unity coroutines.
+
+```c#
+IEnumerator spaceship_Enter() {
+	Debug.Log("Wait for it...");
+	yield return new WaitForSeconds(3f);
+	Debug.Log("Go!")
+}
+```
+
+Notes:
+
+* All hooks can be coroutines except the Update hook, which must always return void.
+* After the first yield, the story will be Idle and all the the passage output will be available. This is because the passage continues execution after calling the hook, so by the time the coroutine has done waiting, the passage is complete. To pause execution until the coroutine ends, use `Pause()` and `Resume()` ([example](#story-state))
+
 
 
