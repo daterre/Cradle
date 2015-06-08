@@ -1116,7 +1116,7 @@ MonoBehaviour:
   Container: {fileID: 1993187156}
   LinkTemplate: {fileID: 2083667177}
   TextTemplate: {fileID: 2142375312}
-  Auto: 1
+  AutoDisplay: 1
   ShowEmptyLines: 1
   ShowNamedLinks: 0
 --- !u!1 &1810022883
@@ -1757,6 +1757,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94d7fc3e3a31f8a4e93e293ed2cc3aa7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AutoPlay: 0
   StartPassage: alarm
   HookScript: {fileID: 2092883616}
   again:

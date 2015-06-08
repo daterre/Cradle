@@ -25,7 +25,8 @@ namespace UnityTwine.Editor
         static Regex rx_Operator;
         static Regex rx_Setter;
         static Regex rx_Link;
-        static Regex rx_Display;
+		static Regex rx_Display;
+		static Regex rx_Print;
 
 		static MD5 _md5 = MD5.Create();
 
@@ -74,6 +75,12 @@ namespace UnityTwine.Editor
                 //"yield return new TwineSubPassage(\"$1\");",
                 RegexOptions.Singleline|RegexOptions.Multiline
             );
+
+			rx_Print = new Regex(
+				@"<<\s*print\s*(.*?)\s*>>",
+				//"yield return new TwineSubPassage(\"$1\");",
+				RegexOptions.Singleline | RegexOptions.Multiline
+			);
         }
 
         public static void ParseToStream(string name, string tweeSource, StreamWriter output)
@@ -276,6 +283,11 @@ public class {1}: TwineStory
             // <<display ... >
 			output = rx_Display.Replace(output, match =>
 				string.Format("yield return new TwineDisplay({0});", ParseVars(match.Groups[1].Value, vars))
+			);
+
+			// <<print ... >
+			output = rx_Print.Replace(output, match =>
+				string.Format("yield return new TwineText({0});", ParseVars(match.Groups[1].Value, vars))
 			);
 
             return output;

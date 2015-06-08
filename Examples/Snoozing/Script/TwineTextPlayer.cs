@@ -10,7 +10,7 @@ public class TwineTextPlayer : MonoBehaviour {
 	public RectTransform Container;
 	public Button LinkTemplate;
 	public Text TextTemplate;
-	public bool Auto = true;
+	public bool AutoDisplay = true;
 	public bool ShowEmptyLines = false;
 	public bool ShowNamedLinks = true;
 
@@ -26,6 +26,15 @@ public class TwineTextPlayer : MonoBehaviour {
 		this.Story.OnStateChanged += Story_OnStateChanged;
 		this.Story.OnOutput += Story_OnOutput;
 		this.Story.Begin();
+	}
+
+	void OnDestroy()
+	{
+		if (this.Story != null)
+		{
+			this.Story.OnStateChanged -= Story_OnStateChanged;
+			this.Story.OnOutput -= Story_OnOutput;
+		}
 	}
 
 	// .....................
@@ -61,7 +70,7 @@ public class TwineTextPlayer : MonoBehaviour {
 
 	void Story_OnOutput(TwineOutput output)
 	{
-		if (!this.Auto)
+		if (!this.AutoDisplay)
 			return;
 
 		// Check if a wait is needed

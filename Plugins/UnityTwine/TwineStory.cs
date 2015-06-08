@@ -9,6 +9,7 @@ namespace UnityTwine
 {
     public abstract class TwineStory: MonoBehaviour
     {
+		public bool AutoPlay = true;
         public string StartPassage = "Start";
 		public MonoBehaviour HookScript = null;
 
@@ -36,6 +37,12 @@ namespace UnityTwine
 			this.Tags = new Dictionary<string, string>();
 			this.Passages = new Dictionary<string, TwinePassage>();
 			PreviousPassageName = null;
+		}
+
+		void Start()
+		{
+			if (AutoPlay)
+				this.Begin();
 		}
 
 		// ---------------------------------
@@ -191,6 +198,8 @@ namespace UnityTwine
 			this.State = this.Links.Count > 0 ?
 				TwineStoryState.Idle :
 				TwineStoryState.Complete;
+
+			HooksInvoke(HooksFind("Done"));
 		}
 
 		TwinePassage GetPassage(string passageName)

@@ -122,7 +122,7 @@ public class SnoozingHooks : MonoBehaviour {
 	{
 		uiImage.sprite = her_image;
 		uiImage.color = new Color(1f, 1f, 1f, 0f);
-		uiTextPlayer.Auto = false;
+		uiTextPlayer.AutoDisplay = false;
 		her_outputIndex = 0;
 		her_lineTriggered = false;
 		her_done = false;
@@ -213,7 +213,7 @@ public class SnoozingHooks : MonoBehaviour {
 	void her_Exit()
 	{
 		FadeImage(uiImage, 1f, 0f, 0.1f);
-		uiTextPlayer.Auto = true;
+		uiTextPlayer.AutoDisplay = true;
 	}
 
 	// ...........................
@@ -287,7 +287,7 @@ public class SnoozingHooks : MonoBehaviour {
 	IEnumerator work_Enter()
 	{
 		StartCoroutine(SnoozeFadeOut(2f, noise: 1f, underwater: 0f));
-		uiTextPlayer.Auto = false;
+		uiTextPlayer.AutoDisplay = false;
 		work_ppCursor.gameObject.SetActive(true);
 		Screen.showCursor = false;
 
@@ -343,7 +343,7 @@ public class SnoozingHooks : MonoBehaviour {
 	{
 		work_ppCursor.gameObject.SetActive(false);
 		Screen.showCursor = true;
-		uiTextPlayer.Auto = true;
+		uiTextPlayer.AutoDisplay = true;
 		return SnoozeFadeOut(alarmWakeUpDelay);
 	}
 
