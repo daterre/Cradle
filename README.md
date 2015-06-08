@@ -13,7 +13,12 @@ programmers and artists can develop the interaction and presentation without wor
 4. Use [hooks](#hooks) to script story interaction, or use the included [TwineTextPlayer](#twinetextplayer)
 
 ####Examples
-(link to Snoozing)
+[Snoozing](http://daterre.com/projects/snoozing) is a small game created with UnityTwine. The entire source code is included here on GitHub and in the Unity asset store bundle.
+
+####Contribute
+UnityTwine is in active development. It is currently being used for the development of the puzzle-adventure game [Clastic Morning](http://daterre.com/works/clastic/), as well as other smaller projects. Hopefully it will be useful to anyone looking to create narrative-based games in Unity.
+
+If you use UnityTwine in your project or game jam and find bugs, develop extra features, or even just have general feedback, please contribute by submitting to this GitHub page. Thank you!
 
 
 
@@ -144,6 +149,7 @@ void Start() {
 }
 
 void Update() {
+	// You'd want your script to check a few things before doing this, but hey this is an example
 	if (Input.GetMouseButtonDown(0))
 		story.Advance("myLink");
 }
@@ -151,7 +157,7 @@ void Update() {
 ```
 
 ####Passage output
-When a passage has executed, its output can be inspected.
+When a passage has executed, its output can be inspected on your `TwineStory` script.
 
 * `Output` - a list of all the output of the passage, in the order in which it was generated. Includes any output from sub-passages referenced by `<<display>>`, along with the definition of those passages.
 * `Text` - a sub-list of Output, includes only the text of the passage.
@@ -216,7 +222,8 @@ IEnumerator castle_Enter() {
 
 	for (float t = 0; t <= fadeInTime; t+=Time.deltaTime) {
 		// Update the alpha of the sprite
-		blackOverlay.color = new Color(0f, 0f, 0f, 1f - t);
+		float alpha = 1f - Mathf.Clamp(t/fadeInTime, 0f, 1f);
+		blackOverlay.color = new Color(0f, 0f, 0f, alpha);
 
 		// Wait a frame
 		yield return null;
@@ -228,11 +235,11 @@ IEnumerator castle_Enter() {
 
 
 ####Hooks
-UnityTwine includes a powerful hook system that allows scripts to easily run according to the current passage.
+UnityTwine includes a powerful hook system that allows scripts to easily run on conjuction with the current passage.
 
 #####Simple example
 
-Let's say your story includes 2 passages named "Attack" and "Defend".
+Let's say your story includes 2 passages named "Attack" and "Defend". Here's a script with hooks to change camera background color according to the passage.
 
 ```c#
 bool shieldsUp;
@@ -250,7 +257,8 @@ void Defend_Enter()
 
 void Defend_Update()
 {
-	// Runs every frame like a normal Update method, but only when the current passage is Defend
+	// Runs every frame like a normal Update method,
+	// but only when the current passage is Defend
 }
 
 void Defend_Exit()
@@ -272,13 +280,13 @@ The following hook types are supported (replace 'passage' with the name of a pas
 
 * `passage_Enter()` - called immediately when a passage is entered. This means after Begin, Advance or GoTo are called (for the main passage) and whenever a `<<display>>` macro is encountered (for sub-passages).
 * `passage_Exit()` - called on the current passages just before a new main passage is entered via Advance or GoTo. (A sub-passage's exit hook is called before the passage's that referenced it, in a last-in-first-out order.)
-* `passage_Idle()` - called when the passage is done executing and the story has entered the Idle state. All [passage output](#passage-output) is available.
+* `passage_Done()` - called when the passage is done executing and the story has entered the Idle state. All [passage output](#passage-output) is available.
 * `passage_Update()` - when the story is in the Idle state, this hook is called once per frame.
 * `passage_Output(TwineOutput output)` - whenever a passage generates output (text, link, or sub-passage), this hook receives it. 
 
 
 #####Coroutine hooks
-If a hook is an enumeration function (returns IEnumerator in C# or issues a yield in UnityScript) it is used to start a coroutine. Coroutine hooks behave just like normal Unity coroutines.
+If a hook is an enumeration function (returns `IEnumerator` in C# or includes a `yield` statement in UnityScript) it is used to start a coroutine. Coroutine hooks behave just like normal Unity coroutines.
 
 ```c#
 IEnumerator spaceship_Enter() {
