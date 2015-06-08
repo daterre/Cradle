@@ -13,13 +13,13 @@ programmers and artists can develop the interaction and presentation without wor
 4. Use [hooks](#hooks) to script story interaction, or use the included [TwineTextPlayer](#twinetextplayer)
 
 
-#####Exporting .twee files from Twine
-######For Twine 1:
+####Exporting .twee files from Twine
+#####For Twine 1:
 
 1. File > Export > Twee Source Code...
 2. Save to a location inside your Unity project.
 
-######For Twine 2:
+#####For Twine 2:
 Requires the [Entweedle](http://www.maximumverbosity.net/twine/Entweedle/) story format.
 
 1. Click the "Formats" link in Twine, then "Add a New Format" and enter this URL: `http://www.maximumverbosity.net/twine/Entweedle/format.js`
@@ -30,15 +30,18 @@ Requires the [Entweedle](http://www.maximumverbosity.net/twine/Entweedle/) story
 ##Documentation
 
 ###Importing
-* The UnityTwine asset importer listens for any new .twee files dropped into the project directory, and proceeds to import them.
-* The asset importer treats Twee code as logic, translating it into a C# script with a similar structure (and the same file name).
+The UnityTwine asset importer listens for any new .twee files dropped into the project directory, and proceeds to import them.
+
+The asset importer treats Twee code as logic, translating it into a C# script with a similar structure (and file name).
 A story can be reimported over and over again as necessary; the C# script will be refreshed.
-* The generated script can be added to an object in the scene like a normal Unity script.
 
 ####Supported syntax
 UnityTwine supports many Twine features, but not all (yet). Here is a list of what works and what doesn't:
 
 #####Links
+
+Links work as expected:
+
 * Simple: `[[passage]]`
 * With link text: `[[text|passage]]`
 * With variable setters: `[[text|passage][$var = 123]]`
@@ -61,25 +64,42 @@ Macros that **don't work yet**:
 * `<<nobr>>`
 * HTML stuff: `<<textinput>>`, `<<radio>`,`<<checkbox>>`, `<<button>>`
 
+#####Functions
+
+Functions that work:
+
+* `either()`
+* `random()`
+* `previous()`
+* `passage()`
+* `tags()`
+
+Functions that **don't work yet**:
+
+* `visited()`
+* `visitedTag()`
+* `turns()`
+* `parameter()`
+* `rot13()`
+* HTML stuff: `confirm()`, `prompt()`, `alert()`, `open()`
+
 #####General
 
 * Strings should use `"double quotes"`, not `'single quotes'`.
 * For usage with hooks, passage names should not begin with a number or include non-alphanumeric characters.
-
-
+* Twine 1 presentation features such as Stylesheet, Script, Image and Annotation are not supported.
 
 ###Playback
-Each passage in an imported Twine story becomes a function that outputs text or links. Custom scripts can listen for generated output,
-displaying it as necessary and controlling which links are used to advance the story.
+Once a story is imported and a story script is generated, this script can be added to a game object in the scene like any normal script.
 
-All imported stories include the following editor properties:
+All story scripts include the following editor properties:
 
 * `AutoPlay`: when true, begins playing the story immediately when the game starts.
 * `StartPassage`: indicates which passasge to start playback from (default is `Start`)
 * `HookScript`: a Unity script which provides story hooks (see the [hooks](#hooks) section for more info)
 * A list of Twine variables used in the story, useful for debugging purposes.
 
-#####TwineTextPlayer
+####TwineTextPlayer
 Included in UnityTwine is a prefab and script that can be used to quickly display and interact with a story in a text-only fashion. The prefab is built with Unity UI components (4.6+) to handle text and layout. **To use:**
 
 1. Create a new scene
@@ -90,6 +110,6 @@ Included in UnityTwine is a prefab and script that can be used to quickly displa
 6. Play your scene
 
 ###Scripting
-
-
+Each passage in an imported Twine story becomes a function that outputs text or links. Custom scripts can listen for generated output,
+displaying it as necessary and controlling which links are used to advance the story.
 
