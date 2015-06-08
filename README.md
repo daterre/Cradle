@@ -24,6 +24,31 @@ If you use UnityTwine in your project or game jam and find bugs, develop extra f
 
 ##Documentation
 
+**Table of contents**
+- [Importing](#)
+	- [Exporting .twee files from Twine](#)
+		- [For Twine 1](#)
+		- [For Twine 2](#)
+	- [Supported syntax](#)
+		- [Links](#)
+		- [Tags](#)
+		- [Macros](#)
+		- [Functions](#)
+		- [General](#)
+- [Playback](#)
+	- [TwineTextPlayer](#)
+- [Scripting](#)
+	- [Story interaction](#)
+	- [Passage output](#)
+	- [Variables](#)
+	- [Story state](#)
+		- [Pause and Resume](#)
+	- [Hooks](#)
+		- [Simple example](#)
+		- [Setting up a hook script](#)
+		- [Hook types](#)
+		- [Coroutine hooks](#)
+
 ###Importing
 The UnityTwine asset importer listens for any new .twee files dropped into the project directory, and proceeds to import them.
 
@@ -31,12 +56,12 @@ The asset importer treats Twee code as logic, translating it into a C# script wi
 A story can be reimported over and over again as necessary; the C# script will be refreshed.
 
 ####Exporting .twee files from Twine
-#####For Twine 1:
+#####For Twine 1
 
 1. File > Export > Twee Source Code...
 2. Save to a location inside your Unity project.
 
-#####For Twine 2:
+#####For Twine 2
 Requires the [Entweedle](http://www.maximumverbosity.net/twine/Entweedle/) story format.
 
 1. Click the "Formats" link in Twine, then "Add a New Format" and enter this URL: `http://www.maximumverbosity.net/twine/Entweedle/format.js`
