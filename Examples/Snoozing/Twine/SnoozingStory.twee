@@ -9,33 +9,27 @@
 <<if not $again >>
 <<set $wait = 2>>
 ? ?
-<<set $wait = 0.5>>
-My alarm clock.
 
 <<endif>>
-<<set $click = true>>
-[[Snooze it.|snooze]]
-<<set $click = false>>
-<<if $again>>
-<<set $wait = 0.5f>>
-[[Get up.|getUp]]
-<<endif>>
+<<set $wait = 1.5>>
+My alarm clock.
+<<set $wait = 1.5>>
+[[Time to get up.|getUp]]
+[[snooze=|snooze]]
 <<set $again=true>>
 
 
 :: getUp
-<<set $wait = 1f>>
-...coffee...
+<<print either("here it goes again", "out of coffee", "i can't breath", "must leave at 7:00")>>
+
+
+<<set $wait = 4>>
+THE END
 
 
 :: snooze
 <<set $wait = 1>>
-<<set $rand = either(1,2)>>
-<<if $rand is 1>>
-I can't handle this right now.
-<<else>>
-Keep my eyes closed.
-<<endif>>
+<<print either("I can't handle this right now.", "Keep my eyes closed.")>>
 [[dream=Dream|dreaming]]
 [[anxiety=Anxiety|anxiety]]
 [[her=Her|her]]
@@ -69,18 +63,23 @@ you
 
 
 :: anxiety
-<<display either("work", "relationship") >>
+<<if $anxiety is "work">>
+	<<set $anxiety = "relationship">>
+<<elseif $anxiety is "relationship">>
+	<<set $anxiety = "work">>
+<<else>>
+	<<set $anxiety = either("work", "relationship")>>
+<<endif>>
+<<display $anxiety>>
 
 
 :: dreaming
 <<if $dream is "sea">>
-	<<set $dream = either("street", "machine")>>
+	<<set $dream = "street">>
 <<elseif $dream is "street">>
-	<<set $dream = either("sea", "machine")>>
-<<elseif $dream is "machine">>
-	<<set $dream = either("street", "sea")>>
+	<<set $dream = "sea">>
 <<else>>
-	<<set $dream = either("sea", "street", "sea")>>
+	<<set $dream = either("sea", "street")>>
 <<endif>>
 <<display $dream>>
 
@@ -92,7 +91,7 @@ You see that?
 
 Watch and learn you fuckers.
 
-[[continue=|alarm]]
+[[continue|alarm]]
 
 
 :: relationship
@@ -115,18 +114,16 @@ Oh, those.
 I can fit them too.
 Ha! No problem.
 
-[[continue=|machine3]]
+[[continue|machine3]]
 
 
 :: work
-Two days to the meeting.
+Two days till the meeting.
 Two days.
-No sleep tonight. 
-Who needs this shit.
-
-Powerpoint.
-Fuck you, Powerpoint.
-
+Everyone is going to
+hate me.
+Who needs this. Why
+me
 [[continue=|alarm]]
 
 
@@ -135,7 +132,7 @@ I can fit it.
 It fits.
 I'm so good.
 
-[[continue=|machine2]]
+[[continue|machine2]]
 
 
 :: street
@@ -149,8 +146,7 @@ Shit.
 :: street3
 <<set $wait = 1>>
 Maybe she'll want it?
-
-Her lips
+Her lips touched it
 
 [[continue=|alarm]]
 
@@ -158,12 +154,9 @@ Her lips
 :: street2
 <<set $wait = 1>>
 My bag is empty.
-
 No, it's not.
-
 There's a half-eaten sandwich.
 It's hers.
-
 [[continue=|street3]]
 
 

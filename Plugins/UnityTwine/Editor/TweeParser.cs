@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections;
@@ -305,3 +306,4 @@ public class {1}: TwineStory
             
     }
 }
+#endif

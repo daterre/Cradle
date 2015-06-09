@@ -14,7 +14,7 @@ namespace UnityTwine
 		}
 		public string AsString;
 		#else
-		public object value;
+		private object value;
 		#endif
 
 		public Type GetInnerType()

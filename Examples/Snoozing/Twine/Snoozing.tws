@@ -82,18 +82,18 @@ tp36
 Rp37
 sbsa(dp38
 g14
-I01
+I00
 sg15
 (lp39
 I569
-aI19
+aI20
 asg17
 (itiddlywiki
 Tiddler
 p40
 (dp41
 g21
-V<<set $wait = 1>>\u000a...\u000a\u000a<<if not $again >>\u000a<<set $wait = 2>>\u000a? ?\u000a<<set $wait = 0.5>>\u000aMy alarm clock.\u000a\u000a<<endif>>\u000a<<set $click = true>>\u000a[[Snooze it.|snooze]]\u000a<<set $click = false>>\u000a<<if $again>>\u000a<<set $wait = 0.5f>>\u000a[[Get up.|getUp]]\u000a<<endif>>\u000a<<set $again=true>>
+V<<set $wait = 1>>\u000a...\u000a\u000a<<if not $again >>\u000a<<set $wait = 2>>\u000a? ?\u000a\u000a<<endif>>\u000a<<set $wait = 1.5>>\u000aMy alarm clock.\u000a<<set $wait = 1.5>>\u000a[[Time to get up.|getUp]]\u000a[[snooze=|snooze]]\u000a<<set $again=true>>
 p42
 sg23
 Valarm
@@ -102,12 +102,12 @@ sg25
 g26
 ((I2015
 I6
-I7
-I19
-I58
-I35
-I6
-I158
+I9
+I13
+I47
+I17
+I1
+I160
 I1
 tp44
 (dp45
@@ -143,7 +143,7 @@ Tiddler
 p55
 (dp56
 g21
-V<<set $wait = 1>>\u000a<<set $rand = either(1,2)>>\u000a<<if $rand is 1>>\u000aI can't handle this right now.\u000a<<else>>\u000aKeep my eyes closed.\u000a<<endif>>\u000a[[dream=Dream|dreaming]]\u000a[[anxiety=Anxiety|anxiety]]\u000a[[her=Her|her]]\u000a
+V<<set $wait = 1>>\u000a<<print either("I can't handle this right now.", "Keep my eyes closed.")>>\u000a[[dream=Dream|dreaming]]\u000a[[anxiety=Anxiety|anxiety]]\u000a[[her=Her|her]]\u000a
 p57
 sg23
 Vsnooze
@@ -152,12 +152,12 @@ sg25
 g26
 ((I2015
 I6
-I7
-I0
+I9
+I15
+I23
 I45
-I26
-I6
-I158
+I1
+I160
 I1
 tp59
 (dp60
@@ -182,7 +182,7 @@ tp66
 Rp67
 sbsa(dp68
 g14
-I00
+I01
 sg15
 (lp69
 F1073.0
@@ -193,7 +193,7 @@ Tiddler
 p70
 (dp71
 g21
-V<<set $wait = 1f>>\u000a...coffee...
+V<<print either("here it goes again", "out of coffee", "i can't breath", "must leave at 7:00")>>\u000a\u000a\u000a<<set $wait = 4>>\u000aTHE END
 p72
 sg23
 VgetUp
@@ -202,12 +202,12 @@ sg25
 g26
 ((I2015
 I6
-I6
-I21
-I18
-I28
-I5
-I157
+I9
+I20
+I54
+I51
+I1
+I160
 I1
 tp74
 (dp75
@@ -243,7 +243,7 @@ Tiddler
 p85
 (dp86
 g21
-V<<display either("work", "relationship") >>
+V<<if $anxiety is "work">>\u000a	<<set $anxiety = "relationship">>\u000a<<elseif $anxiety is "relationship">>\u000a	<<set $anxiety = "work">>\u000a<<else>>\u000a	<<set $anxiety = either("work", "relationship")>>\u000a<<endif>>\u000a<<display $anxiety>>
 p87
 sg23
 Vanxiety
@@ -251,13 +251,13 @@ p88
 sg25
 g26
 ((I2015
-I5
-I31
-I13
-I50
-I51
 I6
-I151
+I9
+I17
+I2
+I11
+I1
+I160
 I1
 tp89
 (dp90
@@ -343,7 +343,7 @@ Tiddler
 p115
 (dp116
 g21
-V<<if $dream is "sea">>\u000a	<<set $dream = either("street", "machine")>>\u000a<<elseif $dream is "street">>\u000a	<<set $dream = either("sea", "machine")>>\u000a<<elseif $dream is "machine">>\u000a	<<set $dream = either("street", "sea")>>\u000a<<else>>\u000a	<<set $dream = either("sea", "street", "sea")>>\u000a<<endif>>\u000a<<display $dream>>
+V<<if $dream is "sea">>\u000a	<<set $dream = "street">>\u000a<<elseif $dream is "street">>\u000a	<<set $dream = "sea">>\u000a<<else>>\u000a	<<set $dream = either("sea", "street")>>\u000a<<endif>>\u000a<<display $dream>>
 p117
 sg23
 Vdreaming
@@ -352,12 +352,12 @@ sg25
 g26
 ((I2015
 I6
-I4
-I11
-I14
-I39
-I3
-I155
+I9
+I17
+I2
+I29
+I1
+I160
 I1
 tp119
 (dp120
@@ -493,7 +493,7 @@ Tiddler
 p160
 (dp161
 g21
-VTwo days to the meeting.\u000aTwo days.\u000aNo sleep tonight. \u000aWho needs this shit.\u000a\u000aPowerpoint.\u000aFuck you, Powerpoint.\u000a\u000a[[continue=|alarm]]
+VTwo days till the meeting.\u000aTwo days.\u000aEveryone is going to\u000ahate me.\u000aWho needs this. Why\u000ame\u000a[[continue=|alarm]]
 p162
 sg23
 Vwork
@@ -502,12 +502,12 @@ sg25
 g26
 ((I2015
 I6
-I7
+I9
+I15
+I43
 I14
-I16
-I14
-I6
-I158
+I1
+I160
 I1
 tp164
 (dp165
@@ -593,7 +593,7 @@ Tiddler
 p190
 (dp191
 g21
-VI can fit it.\u000aIt fits.\u000aI'm so good.\u000a\u000a[[continue=|machine2]]
+VI can fit it.\u000aIt fits.\u000aI'm so good.\u000a\u000a[[continue|machine2]]
 p192
 sg23
 Vmachine
@@ -602,12 +602,12 @@ sg25
 g26
 ((I2015
 I6
-I7
-I14
-I10
-I2
-I6
-I158
+I8
+I22
+I22
+I33
+I0
+I159
 I1
 tp194
 (dp195
@@ -643,7 +643,7 @@ Tiddler
 p205
 (dp206
 g21
-V<<set $wait = 1>>\u000aMy bag is empty.\u000a\u000aNo, it's not.\u000a\u000aThere's a half-eaten sandwich.\u000aIt's hers.\u000a\u000a[[continue=|street3]]
+V<<set $wait = 1>>\u000aMy bag is empty.\u000aNo, it's not.\u000aThere's a half-eaten sandwich.\u000aIt's hers.\u000a[[continue=|street3]]
 p207
 sg23
 Vstreet2
@@ -652,12 +652,12 @@ sg25
 g26
 ((I2015
 I6
-I7
-I18
-I12
-I52
-I6
-I158
+I9
+I17
+I0
+I24
+I1
+I160
 I1
 tp209
 (dp210
@@ -693,7 +693,7 @@ Tiddler
 p220
 (dp221
 g21
-V<<set $wait = 1>>\u000aMaybe she'll want it?\u000a\u000aHer lips\u000a\u000a[[continue=|alarm]]
+V<<set $wait = 1>>\u000aMaybe she'll want it?\u000aHer lips touched it\u000a\u000a[[continue=|alarm]]
 p222
 sg23
 Vstreet3
@@ -702,12 +702,12 @@ sg25
 g26
 ((I2015
 I6
-I7
-I18
-I15
+I9
+I17
 I3
-I6
-I158
+I32
+I1
+I160
 I1
 tp224
 (dp225
@@ -743,7 +743,7 @@ Tiddler
 p235
 (dp236
 g21
-VOh, those.\u000aI can fit them too.\u000aHa! No problem.\u000a\u000a[[continue=|machine3]]
+VOh, those.\u000aI can fit them too.\u000aHa! No problem.\u000a\u000a[[continue|machine3]]
 p237
 sg23
 Vmachine2
@@ -752,12 +752,12 @@ sg25
 g26
 ((I2015
 I6
-I7
-I14
-I9
-I51
-I6
-I158
+I8
+I22
+I22
+I28
+I0
+I159
 I1
 tp239
 (dp240
@@ -793,7 +793,7 @@ Tiddler
 p250
 (dp251
 g21
-VYeah?\u000aSee?\u000aYou see that?\u000a\u000aWatch and learn you fuckers.\u000a\u000a[[continue=|alarm]]
+VYeah?\u000aSee?\u000aYou see that?\u000a\u000aWatch and learn you fuckers.\u000a\u000a[[continue|alarm]]
 p252
 sg23
 Vmachine3
@@ -802,12 +802,12 @@ sg25
 g26
 ((I2015
 I6
-I7
-I14
-I9
-I28
-I6
-I158
+I8
+I22
+I22
+I25
+I0
+I159
 I1
 tp254
 (dp255

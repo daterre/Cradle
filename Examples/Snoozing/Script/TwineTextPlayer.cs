@@ -10,6 +10,7 @@ public class TwineTextPlayer : MonoBehaviour {
 	public RectTransform Container;
 	public Button LinkTemplate;
 	public Text TextTemplate;
+	public bool StartStory = true;
 	public bool AutoDisplay = true;
 	public bool ShowEmptyLines = false;
 	public bool ShowNamedLinks = true;
@@ -25,7 +26,9 @@ public class TwineTextPlayer : MonoBehaviour {
 
 		this.Story.OnStateChanged += Story_OnStateChanged;
 		this.Story.OnOutput += Story_OnOutput;
-		this.Story.Begin();
+
+		if (StartStory)
+			this.Story.Begin();
 	}
 
 	void OnDestroy()
@@ -53,18 +56,21 @@ public class TwineTextPlayer : MonoBehaviour {
 	public bool WasClicked()
 	{
 		bool clicked = _clicked;
-		//if (consume)
-			//_clicked = false;
 		return clicked;
+	}
+
+	public void Clear()
+	{
+		for (int i = 0; i < Container.childCount; i++)
+			GameObject.Destroy(Container.GetChild(i).gameObject);
 	}
 
 	void Story_OnStateChanged(TwineStoryState state)
 	{
-		if (state == TwineStoryState.Playing && this.Story.Output.Count == 0)
+		if (state == TwineStoryState.Playing && this.Story.Output.Count == 1)
 		{
 			// Clear previous output
-			for (int i = 0; i < Container.childCount; i++)
-				GameObject.Destroy(Container.GetChild(i).gameObject);
+			Clear();
 		}
 	}
 
@@ -115,6 +121,7 @@ public class TwineTextPlayer : MonoBehaviour {
 
 	public void DisplayOutput(TwineOutput output)
 	{
+		const int maxNameLength = 30;
 		RectTransform child = null;
 		if (output is TwineText)
 		{
@@ -125,6 +132,10 @@ public class TwineTextPlayer : MonoBehaviour {
 			Text uiText = (Text)Instantiate(TextTemplate);
 			uiText.gameObject.SetActive(true);
 			uiText.text = text.Text;
+			uiText.name =
+				text.Text.Length > maxNameLength-3 ? text.Text.Substring(0,27) + "..." :
+				text.Text.Trim().Length == 0 ? "(empty line)" :
+				text.Text;
 			child = uiText.rectTransform;
 		}
 		else if (output is TwineLink)
@@ -135,6 +146,8 @@ public class TwineTextPlayer : MonoBehaviour {
 
 			Button uiLink = (Button)Instantiate(LinkTemplate);
 			uiLink.gameObject.SetActive(true);
+			uiLink.name = "[[" + (link.Name.Length > maxNameLength - 3 ? link.Name.Substring(0, 27) + "..." : link.Name) + "]]";
+
 			Text uiLinkText = uiLink.GetComponentInChildren<Text>();
 			uiLinkText.text = link.Text;
 			uiLink.onClick.AddListener(() => this.Story.Advance(link));

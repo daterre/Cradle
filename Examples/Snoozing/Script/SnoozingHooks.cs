@@ -8,34 +8,102 @@ public class SnoozingHooks : MonoBehaviour {
 
 	public TwineTextPlayer uiTextPlayer;
 	public Image uiImage;
-	public float alarmWakeUpDelay = 0.3f;
+	public Animator uiTitleScreen;
+	const float alarmWakeUpDelay = 0.3f;
+	Coroutine _beginStory = null;
 	
 	SnoozingStory story;
 
 	void Awake()
 	{
 		this.story = GetComponent<SnoozingStory>();
+		alarm_sfxVolume = alarm_sfx.volume;
+	}
+
+	public void PlayStory()
+	{
+		if (_beginStory != null)
+			return;
+
+		uiTextPlayer.Clear();
+		uiTitleScreen.SetTrigger("play");
+		_beginStory = StartCoroutine(BeginStory());
+	}
+
+	IEnumerator BeginStory()
+	{
+		yield return new WaitForSeconds(2f);
+		uiTitleScreen.gameObject.SetActive(false);
+		
+		this.story.Reset();
+		this.story.Begin();
+		_beginStory = null;
+	}
+
+	void EndStory()
+	{
+		uiTitleScreen.gameObject.SetActive(true);
+		uiTitleScreen.SetTrigger("end");
 	}
 
 	// ...........................
 	// alarm
 
 	public AudioSource alarm_sfx;
-	public Sprite alarm_image;
+	public Sprite alarm_imgPhone;
+	public Animator alarm_buttonAnimator;
+	public Button alarm_buttonObject;
+	public CanvasGroup alarm_buttonGroup;
+	bool alarm_buttonClicked = false;
+	float alarm_sfxVolume;
 
 	IEnumerator alarm_Enter()
 	{
+		alarm_buttonClicked = false;
+		alarm_buttonGroup.alpha = 0f;
+		alarm_buttonObject.gameObject.SetActive(false);
+
 		yield return new WaitForSeconds(1f);
+		
 		SoundAlarm();
 
-		uiImage.sprite = alarm_image;
-		FadeImage(uiImage, 0f, 1f, story.again ? 2f : 8f);
+		float textDelay = story.again ? 1.5f : 4.5f;
+		yield return new WaitForSeconds(textDelay);
+
+		uiImage.sprite = alarm_imgPhone;
+		ImageFade.Start(uiImage, 0f, 1f, 4f);
+
+		alarm_buttonAnimator.gameObject.SetActive(true);
+		alarm_buttonObject.gameObject.SetActive(true);
+		alarm_buttonAnimator.SetBool("alarm", true);
+		ImageFade.Start(alarm_buttonGroup, this, 0f, 1f, 0.2f);
 	}
+
+	void alarm_Update()
+	{
+		// Wait for snooze button to be pressed
+		if (story.State == TwineStoryState.Idle && alarm_buttonClicked)
+			story.Advance("snooze");
+	}
+
+	public void alarm_RegisterClick()
+	{
+		if (story.State == TwineStoryState.Idle)
+			alarm_buttonClicked = true;
+	}
+
 
 	void alarm_Exit()
 	{
 		alarm_sfx.loop = false;
-		FadeImage(uiImage, 1f, 0f, 0f);
+
+		ImageFade.Start(uiImage, 1f, 0f, 0f);
+
+		alarm_buttonObject.gameObject.SetActive(true);
+		alarm_buttonAnimator.SetBool("alarm", false);
+		alarm_buttonAnimator.gameObject.SetActive(false);
+		ImageFade.Start(alarm_buttonGroup, this, 1f, 0f, 0f);
+		
 	}
 
 	// ...........................
@@ -43,44 +111,90 @@ public class SnoozingHooks : MonoBehaviour {
 
 	public AudioSource snooze_sfxNoise;
 	public AudioSource snooze_sfxUnderwater;
+	public Image snooze_imgAnxietyEye;
+	public Image snooze_imgAnxietyHalo;
+	public Image snooze_imgDreamEye;
+	public Image snooze_imgDreamHalo;
+	public AnimationCurve snooze_xCurve;
+	public AnimationCurve snooze_yCurve;
+
+	const float snooze_fadeIn = 4f;
+	const float snooze_fadeOut = 2f; 
 
 	IEnumerator snooze_Enter()
 	{
+		// Fade out alarm
+		const float fadeOutTime = 0.1f;
+		for (float fade = 0; fade <= fadeOutTime; fade += Time.deltaTime)
+		{
+			alarm_sfx.volume = Mathf.Lerp(alarm_sfxVolume, 0f, fade / fadeOutTime);
+			yield return null;
+		}
+
+		alarm_sfx.Stop();
+
+		yield return new WaitForSeconds(2f);
+
 		snooze_sfxNoise.volume = 0f;
 		snooze_sfxUnderwater.volume = 0f;
 		snooze_sfxNoise.Play();
 		snooze_sfxUnderwater.Play();
+
+		snooze_imgAnxietyEye.gameObject.SetActive(true);
+		snooze_imgAnxietyHalo.gameObject.SetActive(true);
+		snooze_imgDreamEye.gameObject.SetActive(true);
+		snooze_imgDreamHalo.gameObject.SetActive(true);
+
+		Color colorAnxiety = new Color(1f, 1f, 1f, 0f);
+		Color colorDream = new Color(1f, 1f, 1f, 0f);
+		snooze_imgAnxietyEye.color = colorAnxiety;
+		snooze_imgAnxietyHalo.color = colorAnxiety;
+		snooze_imgDreamEye.color = colorDream;
+		snooze_imgDreamHalo.color = colorDream;
 
 		float t = 0;
 		while (true)
 		{
 			yield return null;
 			t += Time.deltaTime;
-			const float audioFadeIn = 1f; // 1 second fade in
-			float fadeIn = Mathf.Clamp(t / audioFadeIn, 0f, 1f);
-			float anxiety = Input.mousePosition.y / Screen.height;
+			
+			float fadeIn = Mathf.Clamp(t / snooze_fadeIn, 0f, 1f);
+			float anxiety = snooze_yCurve.Evaluate(Input.mousePosition.y / Screen.height);
 			float dreaming = 1f - anxiety;
-			float boost = Input.mousePosition.x / Screen.width;
+			float boost = snooze_xCurve.Evaluate(Input.mousePosition.x / Screen.width);
 
 			snooze_sfxNoise.volume = anxiety * boost * fadeIn;
 			snooze_sfxUnderwater.volume = dreaming * boost * fadeIn;
 
-			if (story.State == TwineStoryState.Idle && uiTextPlayer.WasClicked())
+			colorAnxiety.a = anxiety * boost * fadeIn;
+			colorDream.a = dreaming * boost * fadeIn;
+			snooze_imgAnxietyEye.color = colorAnxiety;
+			snooze_imgAnxietyHalo.color = colorAnxiety;
+			snooze_imgDreamEye.color = colorDream;
+			snooze_imgDreamHalo.color = colorDream;
+
+			if (story.State == TwineStoryState.Idle && fadeIn == 1f && uiTextPlayer.WasClicked())
 			{
 				yield return null;
-				if (boost < 0.2f)
-				{
+
+				const float imgFadeOutTime = 0.3f;
+				ImageFade.Start(snooze_imgDreamEye, 1f, 0f, imgFadeOutTime);
+				ImageFade.Start(snooze_imgDreamHalo, 1f, 0f, imgFadeOutTime);
+				ImageFade.Start(snooze_imgAnxietyEye, 1f, 0f, imgFadeOutTime);
+				ImageFade.Start(snooze_imgAnxietyHalo, 1f, 0f, imgFadeOutTime);
+
+				const float herTrigger = 0.3f;
+				if (boost < herTrigger) {
 					story.Advance("her");
-					StartCoroutine(SnoozeFadeOut(2f));
+					StartCoroutine(SnoozeFadeOut(snooze_fadeOut));
 				}
-				else if (anxiety > dreaming)
-				{
+				else if (anxiety > dreaming) {
 					story.Advance("anxiety");
 				}
-				else
-				{
+				else {
 					story.Advance("dream");
 				}
+
 				yield break;
 			}
 		}
@@ -100,7 +214,6 @@ public class SnoozingHooks : MonoBehaviour {
 			snooze_sfxNoise.Stop();
 		if (underwater == 0f)
 			snooze_sfxUnderwater.Stop();
-
 	}
 
 	// ...........................
@@ -108,10 +221,12 @@ public class SnoozingHooks : MonoBehaviour {
 
 	public Sprite her_image;
 	public float her_minScreenMove = 0.01f;
+	public float her_maxScreenMove = 0.01f;
 	public float her_alphaFactor = 4f;
 	public float her_alphaLineTriggerUp = 0.9f;
 	public float her_alphaLineTriggerDown = 0.4f;
-	public float her_alphaFadeoutTime = 3f;
+	public float her_minFadeoutTime = 3f;
+	public float her_maxFadeoutTime = 1f;
 	public AudioSource her_sfxBreathing;
 	int her_outputIndex = 0;
 	bool her_lineTriggered = false;
@@ -149,16 +264,12 @@ public class SnoozingHooks : MonoBehaviour {
 		Color color = uiImage.color;
 		if (move < her_minScreenMove)
 		{
-			if (_fadeCurrent == null && color.a > 0f)
-				FadeImage(uiImage, 1f, 0f, her_alphaFadeoutTime);
+			if (!ImageFade.IsInProgress(uiImage) && color.a > 0f)
+				ImageFade.Start(uiImage, 1f, 0f, move < her_minScreenMove ? her_minFadeoutTime : her_maxFadeoutTime);
 		}
 		else if (!her_lineTriggered)
 		{
-			if (_fadeCurrent != null)
-			{
-				StopCoroutine(_fadeCurrent);
-				_fadeCurrent = null;
-			}
+			ImageFade.Stop(uiImage);
 			
 			color.a = Mathf.Clamp(color.a + move * her_alphaFactor, 0f, 1f);
 			uiImage.color = color;
@@ -212,7 +323,7 @@ public class SnoozingHooks : MonoBehaviour {
 
 	void her_Exit()
 	{
-		FadeImage(uiImage, 1f, 0f, 0.1f);
+		ImageFade.Start(uiImage, 1f, 0f, 0.1f);
 		uiTextPlayer.AutoDisplay = true;
 	}
 
@@ -225,7 +336,7 @@ public class SnoozingHooks : MonoBehaviour {
 	void sea_Enter()
 	{
 		uiImage.sprite = sea_image;
-		FadeImage(uiImage, 0f, 1f, 8f);
+		ImageFade.Start(uiImage, 0f, 1f, 8f);
 		StartCoroutine(SnoozeFadeOut(2f, noise: 0f, underwater: 1f));
 	}
 
@@ -239,7 +350,7 @@ public class SnoozingHooks : MonoBehaviour {
 
 	void sea_Exit()
 	{
-		FadeImage(uiImage, 1f, 0f, 0f);
+		ImageFade.Start(uiImage, 1f, 0f, 0f);
 	}
 
 	IEnumerator anxiety_Exit()
@@ -281,8 +392,8 @@ public class SnoozingHooks : MonoBehaviour {
 	public Image work_ppCursor;
 	public Image work_ppTemplate;
 	public Sprite[] work_ppImages;
-	const int work_minShapes = 3;
-	const int work_maxShapes = 12;
+	const int work_minShapes = 2;
+	const int work_maxShapes = 8;
 
 	IEnumerator work_Enter()
 	{
@@ -295,6 +406,7 @@ public class SnoozingHooks : MonoBehaviour {
 		yield return null;
 
 		var shapes = new List<GameObject>();
+		bool[] shown = new bool[work_ppImages.Length];
 
 		for (int i = 0; i <= story.Text.Count; i++)
 		{
@@ -310,9 +422,22 @@ public class SnoozingHooks : MonoBehaviour {
 				shape.SetActive(true);
 				shapes.Add(shape);
 
+				// every third click, show a shape we haven't shown it yet
+				int imgIndex = -1;
+				if (count % 3 == 0) {
+					for (int s = 0; s < shown.Length; s++) { 
+						if (!shown[s]) {
+							imgIndex = s;
+						}
+					}
+				}
+				if (imgIndex < 0)
+					imgIndex = Random.Range(0, work_ppImages.Length);
+				shown[imgIndex] = true;
+
 				var img = shape.GetComponent<Image>();
 				img.rectTransform.SetParent(work_ppTemplate.rectTransform.parent);
-				img.sprite = work_ppImages[Random.Range(0, work_ppImages.Length)];
+				img.sprite = work_ppImages[imgIndex];
 				img.transform.position = Input.mousePosition;
 				yield return null;
 			}
@@ -358,28 +483,31 @@ public class SnoozingHooks : MonoBehaviour {
 	float street_lastClickTime;
 	float street_lastClickSpeed;
 	float street_lastStepTime;
-	bool street_acceptFootsteps;
+	bool street_FootstepsPaused;
 	bool street_lastIsLeft = false;
 	float street_walkTime = 0f;
-	const float street_speedBoost = 0.5f;
+	const float street_speedBoost = 1f;
 	const float street_minSpeed = 0f;
 	const float street_maxSpeed = 6f;
-	const float street_slowTime = 3f;
-	const float street_walkTimeTarget = 0.6f;
-	const float street_walkTimeSpeed = 4f;
+	const float street_slowTime = 2.5f;
+	const float street_walkTimeTarget = 0.1f;
+	const float street_walkTimeSpeed = 5f;
+	int street_currentLine = 0;
 
 	IEnumerator street_Enter()
 	{
-		StartCoroutine(SnoozeFadeOut(2f));
+		uiTextPlayer.AutoDisplay = false;
+		StartCoroutine(SnoozeFadeOut(snooze_fadeOut));
 		uiImage.sprite = street_image;
-		FadeImage(uiImage, 0f, 1f, 3f);
+		ImageFade.Start(uiImage, 0f, 1f, 3f);
 
 		street_lastStepTime = 0f;
 		street_lastClickTime = 0f;
 		street_lastClickSpeed = 0f;
 		street_speed = street_minSpeed;
-		street_acceptFootsteps = false;
+		street_FootstepsPaused = false;
 		street_walkTime = 0f;
+		street_currentLine = 0;
 
 		street_sfxStreet.time = 0f;
 		street_sfxStreet.Play();
@@ -393,7 +521,7 @@ public class SnoozingHooks : MonoBehaviour {
 
 	void street_Update()
 	{
-		if (!street_acceptFootsteps && uiTextPlayer.WasClicked())
+		if (!street_FootstepsPaused && uiTextPlayer.WasClicked())
 		{
 			// Boost the street speed
 			street_speed = Mathf.Clamp(street_speed + street_speedBoost, 1f, street_maxSpeed);
@@ -418,7 +546,7 @@ public class SnoozingHooks : MonoBehaviour {
 			street_lastIsLeft = !street_lastIsLeft;
 		}
 
-		if (street_acceptFootsteps)
+		if (street_FootstepsPaused)
 			return;
 
 		if (street_speed >= street_walkTimeSpeed)
@@ -428,26 +556,40 @@ public class SnoozingHooks : MonoBehaviour {
 
 		if (street_walkTime >= street_walkTimeTarget)
 		{
-			street_acceptFootsteps = true;
 			street_walkTime = 0f;
 
-			if (story.CurrentPassageName == "street3")
-				StartCoroutine(street_alarm());
+			if (street_currentLine >= story.Text.Count - 1)
+			{
+				if (story.CurrentPassageName == "street3")
+					StartCoroutine(street_alarm());
+				else
+					story.Advance("continue");
+			}
 			else
-				story.Advance("continue");
+			{
+				uiTextPlayer.DisplayOutput(story.Text[street_currentLine]);
+				street_currentLine++;
+				StartCoroutine(street_PauseFootSteps());
+			}
 		}
-		
 	}
+	IEnumerator street_PauseFootSteps()
+	{
+		street_FootstepsPaused = true;
+		yield return new WaitForSeconds(1f);
+		street_FootstepsPaused = false;
+	}
+
 	IEnumerator street2_Enter()
 	{
-		yield return new WaitForSeconds(1f);
-		street_acceptFootsteps = false;
+		yield return StartCoroutine(street_PauseFootSteps());
+		street_currentLine = 0;
 	}
 
 	IEnumerator street3_Enter()
 	{
-		yield return new WaitForSeconds(1f);
-		street_acceptFootsteps = false;
+		yield return StartCoroutine(street_PauseFootSteps());
+		street_currentLine = 0;
 	}
 
 	void street2_Update()
@@ -461,6 +603,7 @@ public class SnoozingHooks : MonoBehaviour {
 	
 	IEnumerator street_alarm()
 	{
+		street_FootstepsPaused = true;
 		SoundAlarm();
 		for (float t = 0; t <= alarmWakeUpDelay; t += Time.deltaTime)
 		{
@@ -473,7 +616,8 @@ public class SnoozingHooks : MonoBehaviour {
 
 	void street3_Exit()
 	{
-		FadeImage(uiImage, 1f, 0f, 0.1f);
+		ImageFade.Start(uiImage, 1f, 0f, 0.1f);
+		uiTextPlayer.AutoDisplay = true;
 	}
 
 	//IEnumerator street3_alarm(TwineLink continueLink)
@@ -494,11 +638,9 @@ public class SnoozingHooks : MonoBehaviour {
 	public Image getUp_EndImage;
 	public AnimationCurve getUp_EndEase;
 
-	IEnumerator getUp_Enter()
+	void getUp_Enter()
 	{
-		yield return new WaitForSeconds(1f);
-		getUp_EndImage.gameObject.SetActive(true);
-		FadeImage(getUp_EndImage, 0f, 1f, 5f);
+		EndStory();
 	}
 
 	// ======================================
@@ -512,6 +654,7 @@ public class SnoozingHooks : MonoBehaviour {
 		if (alarm_sfx.isPlaying)
 			return;
 
+		alarm_sfx.volume = alarm_sfxVolume;
 		alarm_sfx.loop = true;
 		alarm_sfx.time = 0f;
 		alarm_sfx.Play();
@@ -526,50 +669,5 @@ public class SnoozingHooks : MonoBehaviour {
 		yield return new WaitForSeconds(alarmWakeUpDelay);
 		story.Advance(continueLink);
 	}
-
-	// .............
-	// Image fading
-
-	Coroutine _fadeCurrent = null;
 	
-	void FadeImage(Image img, float from, float to, float time, float flickerMin = 0f, float flickerMax = 0f)
-	{
-		if (_fadeCurrent != null)
-			StopCoroutine(_fadeCurrent);
-
-		_fadeCurrent = StartCoroutine(FadeImageAnim(img, from, to, time, flickerMin, flickerMax));
-
-	}
-
-	IEnumerator FadeImageAnim(Image img, float from, float to, float time,
-		float flickerFreqMin = 0,
-		float flickerFreqMax = 0,
-		float flickerMin = 0f,
-		float flickerMax = 0f
-		)
-	{
-		Color color = img.color;
-		float state = (color.a - from) / (to - from);
-		//float flickerTarget = -1f;
-
-		for (float t = state*time; t <= time; t += Time.deltaTime)
-		{
-			color = img.color;
-			
-			//if (flickerFreqMin > 0f) {
-			//	if (flickerTarget < 0f) {
-			//		flickerTarget = 
-			//	}
-			//}
-
-			color.a = Mathf.Lerp(from, to, t/time);
-			img.color = color;
-			yield return null;
-		}
-
-		color = img.color;
-		color.a = to;
-		uiImage.color = color;
-		_fadeCurrent = null;
-	}
 }

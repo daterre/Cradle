@@ -27,16 +27,24 @@ namespace UnityTwine
 		TwineStoryState _state = TwineStoryState.Idle;
 		IEnumerator<TwineOutput> _passageExecutor = null;
 		MethodInfo[] _passageUpdateHooks = null;
+		string _passageWaitingToEnter = null;
 		Dictionary<string, MethodInfo> _hookCache = new Dictionary<string, MethodInfo>();
+
+		public TwineStory()
+		{
+			this.Passages = new Dictionary<string, TwinePassage>();
+		}
 
 		protected void Init()
 		{
+			_state = TwineStoryState.Idle;
 			this.Output = new List<TwineOutput>();
 			this.Text = new List<TwineText>();
 			this.Links = new List<TwineLink>();
 			this.Tags = new Dictionary<string, string>();
-			this.Passages = new Dictionary<string, TwinePassage>();
+			
 			PreviousPassageName = null;
+			CurrentPassageName = null;
 		}
 
 		void Start()
@@ -60,6 +68,21 @@ namespace UnityTwine
 			}
 		}
 
+		public void Reset()
+		{
+			if (this.State != TwineStoryState.Idle && this.State != TwineStoryState.Complete)
+				throw new InvalidOperationException("Can only reset a story that is Idle or Complete.");
+
+			// Reset twine vars
+			// TODO: don't use reflection, dummy. We need to code generate a dictionary of variables and use that
+			FieldInfo[] fields = this.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+			for (int i = 0; i < fields.Length; i++)
+				if (fields[i].FieldType == typeof(TwineVar))
+					fields[i].SetValue(this, default(TwineVar));
+
+			this.Init();
+		}
+
 		public void Begin()
 		{
 			GoTo(StartPassage);
@@ -74,15 +97,31 @@ namespace UnityTwine
 					this.State == TwineStoryState.Paused ?
 						"The story is currently paused. Resume() must be called before advancing to a different passage." :
 					// Playing
-					this.State == TwineStoryState.Playing ?
-						"The story cannot be advanced while a passage is playing." :
+					this.State == TwineStoryState.Playing || this.State == TwineStoryState.Exiting ?
+						"The story can only be advanced when it is in the Idle state." :
 					// Complete
 						"The story is complete. Reset() must be called before it can be played again."
 					);
 			}
+			
+			// Indicate specified passage as next
+			_passageWaitingToEnter = passageName;
 
-			// invoke exit hooks
-			HooksInvoke(HooksFind("Exit", reverse: true));
+			if (CurrentPassageName != null)
+			{
+				this.State = TwineStoryState.Exiting;
+
+				// invoke exit hooks
+				HooksInvoke(HooksFind("Exit", reverse: true));
+			}
+
+			if (this.State != TwineStoryState.Paused)
+				Enter(passageName);
+		}
+
+		void Enter(string passageName)
+		{
+			_passageWaitingToEnter = null;
 
 			this.Output.Clear();
 			this.Text.Clear();
@@ -94,17 +133,17 @@ namespace UnityTwine
 			this.PreviousPassageName = this.CurrentPassageName;
 			this.CurrentPassageName = passage.Name;
 
-			this.State = TwineStoryState.Playing;
 			this.Output.Add(passage);
 
 			// Prepare the enumerator
 			_passageExecutor = ExecutePassage(passage).GetEnumerator();
-
-			SendOutput(passage);
-			HooksInvoke(HooksFind("Enter", max: 1));
-
+			
 			// Get update hooks for calling during update
 			_passageUpdateHooks = HooksFind("Update", reverse: false, allowCoroutines: false).ToArray();
+
+			this.State = TwineStoryState.Playing;
+			SendOutput(passage);
+			HooksInvoke(HooksFind("Enter", max: 1));
 
 			// Story was paused, wait for it to resume
 			if (this.State == TwineStoryState.Paused)
@@ -118,8 +157,8 @@ namespace UnityTwine
 		/// </summary>
 		public void Pause()
 		{
-			if (this.State != TwineStoryState.Playing)
-				throw new InvalidOperationException("Pause can only be called while a passage is playing.");
+			if (this.State != TwineStoryState.Playing && this.State != TwineStoryState.Exiting)
+				throw new InvalidOperationException("Pause can only be called while a passage is playing or exiting.");
 
 			this.State = TwineStoryState.Paused;
 		}
@@ -133,14 +172,21 @@ namespace UnityTwine
 					this.State == TwineStoryState.Idle ?
 						"The story is currently idle. Call Begin, Advance or GoTo to play." :
 					// Playing
-					this.State == TwineStoryState.Playing ?
+					this.State == TwineStoryState.Playing || this.State == TwineStoryState.Exiting?
 						"Resume() should be called only when the story is paused." :
 					// Complete
 						"The story is complete. Reset() must be called before it can be played again."
 					);
 			}
-			this.State = TwineStoryState.Playing;
-			Execute();
+						
+			// Either enter the next passage, or Execute if it was already entered
+			if (_passageWaitingToEnter != null) {
+				Enter(_passageWaitingToEnter);
+			}
+			else {
+				this.State = TwineStoryState.Playing;
+				Execute();
+			}
 		}
 
 		/// <summary>

@@ -13,7 +13,7 @@ programmers and artists can develop the interaction and presentation without wor
 4. Use [hooks](#hooks) to script story interaction, or use the included [TwineTextPlayer](#twinetextplayer)
 
 ####Examples
-[Snoozing](http://daterre.com/projects/snoozing) is a small game created with UnityTwine. The entire source code is included here on GitHub and in the Unity asset store bundle.
+[Snoozing](http://daterre.com/projects/snoozing) is a short interactive story created with UnityTwine. The entire source code is included here on GitHub (in the Examples folder) and in the Unity asset store package.
 
 ####Contribute
 UnityTwine is in active development. It is currently being used for the development of the puzzle-adventure game [Clastic Morning](http://daterre.com/works/clastic/), as well as other smaller projects. Hopefully it will be useful to anyone looking to create narrative-based games in Unity.
@@ -162,7 +162,7 @@ The `TwineStory` class includes several methods that allow other scripts to play
 
 * `Begin()` - starts the story by playing the passage defined by StartPassage.
 * `Advance(string linkName)` - follows the link with the specified name (see [naming links](#links)): executes the setters, and then jumps to the linked passage
-* `Goto(string passageName)` - jumps to the specified passage and plays the story from there. (Only recommended for special cases.)
+* `GoTo(string passageName)` - jumps to the specified passage and plays the story from there. (Only recommended for special cases.)
 
 Example:
 
