@@ -1,19 +1,21 @@
 # UnityTwine
 **Play Twine stories in Unity.**
 
+UnityTwine is a plugin for Unity that imports Twine stories, plays them and makes it easy to add custom interactivity via scripting.
+
 [Twine](http://twinery.org) is an extremely simple and flexible tool for writing interactive stories. [Unity](http://unity3d.com) is a powerful and feature-rich engine for building games and interactive experiences. [UnityTwine](http://github.com/daterre/UnityTwine) brings the two worlds together.
 
 Writers can independently design and test their stories as they would a normal Twine story;
 programmers and artists can develop the interaction and presentation without worrying about flow control. When imported to Unity, UnityTwine kicks in and bridges the gap. 
 
 ####Getting started
-1. [Download the latest UnityTwine release](https://github.com/daterre/UnityTwine/tree/master/Assets/Plugins/UnityTwine).
-2. Export .twee files from Twine 1 or 2 ([instructions](#exporting-twee-files-from-twine)) and drag into Unity
-3. Add the generated script to your scene
-4. Use [hooks](#hooks) to script story interaction, or use the included [TwineTextPlayer](#twinetextplayer)
+1. [Download the latest UnityTwine release](https://github.com/daterre/UnityTwine/releases) and unzip to your Unity project's Assets folder.
+2. Export .twee files from Twine 1 or 2 ([instructions](#exporting-twee-files-from-twine)) and drag into Unity.
+3. Add the generated script to your scene.
+4. Use [hooks](#hooks) to script story interaction, or use the included [TwineTextPlayer](#twinetextplayer).
 
 ####Examples
-[Snoozing](http://daterre.com/projects/snoozing) is a short interactive story created with UnityTwine. The entire source code is included here on GitHub (in the Examples folder) and in the Unity asset store package.
+[Snoozing](http://daterre.com/projects/snoozing/) is a short interactive story created with UnityTwine. The entire source code is included here on GitHub (in the Examples folder) and in the Unity asset store package.
 
 ####Contribute
 UnityTwine is in active development. It is currently being used for the development of the puzzle-adventure game [Clastic Morning](http://daterre.com/works/clastic/), as well as other smaller projects. Hopefully it will be useful to anyone looking to create narrative-based games in Unity.
