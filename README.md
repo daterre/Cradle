@@ -27,6 +27,7 @@ If you use UnityTwine in your project or game jam and find bugs, develop extra f
 ##Documentation
 
 **Table of Contents**
+- [Installing](#installing)
 - [Importing](#importing)
 	- [Exporting .twee files from Twine](#exporting-twee-files-from-twine)
 		- [For Twine 1](#for-twine-1)
@@ -50,6 +51,13 @@ If you use UnityTwine in your project or game jam and find bugs, develop extra f
 		- [Setting up a hook script](#setting-up-a-hook-script)
 		- [Hook types](#hook-types)
 		- [Coroutine hooks](#coroutine-hooks)
+
+###Installing
+[Download the latest release](https://github.com/daterre/UnityTwine/releases) and unzip to your Unity project's Assets folder.
+-OR-
+[Grab a snapshot](https://github.com/daterre/UnityTwine/archive/master.zip) of the entire repository and place it in your project's Assets folder under Plugins/UnityTwine
+
+It is recommended to restart Unity after installation in order to make sure that the importer registers correctly.
 
 ###Importing
 The UnityTwine asset importer listens for any new .twee files dropped into the project directory, and proceeds to import them.
