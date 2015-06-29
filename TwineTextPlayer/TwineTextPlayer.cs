@@ -24,6 +24,14 @@ public class TwineTextPlayer : MonoBehaviour {
 		((RectTransform)LinkTemplate.transform).SetParent(null);
 		TextTemplate.rectTransform.SetParent(null);
 
+		if (this.Story == null)
+			this.Story = this.GetComponent<TwineStory>();
+		if (this.Story == null)
+		{
+			Debug.LogError("Text player does not have a story to play. Add a story script to the text player game object, or assign the Story variable of the text player.");
+			return;
+		}
+
 		this.Story.OnStateChanged += Story_OnStateChanged;
 		this.Story.OnOutput += Story_OnOutput;
 

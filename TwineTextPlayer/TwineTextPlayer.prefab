@@ -247,7 +247,7 @@ MonoBehaviour:
   Container: {fileID: 22453726}
   LinkTemplate: {fileID: 11453726}
   TextTemplate: {fileID: 11453730}
-  StartStory: 1
+  StartStory: 0
   AutoDisplay: 1
   ShowEmptyLines: 1
   ShowNamedLinks: 1

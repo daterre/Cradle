@@ -9,9 +9,9 @@ namespace UnityTwine
         public string PassageName;
 		public TwineVar[] Parameters;
 
-        public TwineDisplay(string passageID, params TwineVar[] parameters)
+        public TwineDisplay(string passageName, params TwineVar[] parameters)
         {
-            this.PassageName = passageID;
+            this.PassageName = passageName;
 			this.Parameters = parameters;
         }
     }

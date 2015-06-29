@@ -14,17 +14,21 @@ namespace UnityTwine.Editor
             string[] movedAssets,
             string[] movedFromAssetPaths)
         {
-            foreach(string deleted in deletedAssets) {
+            foreach(string deleted in deletedAssets)
+			{
                 if (Path.GetExtension(deleted) == "twee") {
                     //AssetDatabase.DeleteAsset(Path.GetFileNameWithoutExtension(deleted) + ".twee.cs");
                    // Debug.Log(deleted);
                 }
             }
 
-            foreach(string imported in importedAssets) {
+            foreach(string imported in importedAssets)
+			{
                 string ext = Path.GetExtension(imported);
-                if (ext == ".twee") {
-                    try {
+                if (ext == ".twee")
+				{
+                    try
+					{
 						string tweeSource = File.ReadAllText(imported);
 
 						// Remove carriage returns, messes with regex newlines
@@ -37,7 +41,7 @@ namespace UnityTwine.Editor
 						{
 							using (StreamWriter writer = new StreamWriter(file))
 							{
-								TweeParser.ParseToStream(Path.GetFileNameWithoutExtension(imported), tweeSource, writer);
+								new TweeParser().ParseToStream(Path.GetFileNameWithoutExtension(imported), tweeSource, writer);
 							}
 						}
 						// Need to do it twice - on the second time it compiles the script

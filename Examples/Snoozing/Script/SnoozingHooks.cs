@@ -12,11 +12,11 @@ public class SnoozingHooks : MonoBehaviour {
 	const float alarmWakeUpDelay = 0.3f;
 	Coroutine _beginStory = null;
 	
-	SnoozingStory story;
+	TwineStory story;
 
 	void Awake()
 	{
-		this.story = GetComponent<SnoozingStory>();
+		this.story = GetComponent<TwineStory>();
 		alarm_sfxVolume = alarm_sfx.volume;
 	}
 
@@ -77,7 +77,7 @@ public class SnoozingHooks : MonoBehaviour {
 		
 		SoundAlarm();
 
-		float textDelay = story.again ? 1.5f : 4.5f;
+		float textDelay = story["again"] ? 1.5f : 4.5f;
 		yield return new WaitForSeconds(textDelay);
 
 		uiImage.sprite = alarm_imgPhone;

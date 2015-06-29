@@ -6,10 +6,10 @@ namespace UnityTwine
 {
     public class TwinePassage: TwineOutput
     {
-        public Dictionary<string,string> Tags;
+        public string[] Tags;
 		internal Func<IEnumerable<TwineOutput>> Execute;
 
-		public TwinePassage(string name, Dictionary<string,string> tags, Func<IEnumerable<TwineOutput>> execute)
+		public TwinePassage(string name, string[] tags, Func<IEnumerable<TwineOutput>> execute)
         {
             this.Name = name;
             this.Tags = tags;

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace UnityTwine
 {
@@ -11,7 +12,7 @@ namespace UnityTwine
     {
 		public bool AutoPlay = true;
         public string StartPassage = "Start";
-		public MonoBehaviour HookScript = null;
+		public GameObject[] AdditionalHooks;
 
 		public event Action<TwineStoryState> OnStateChanged;
 		public event Action<TwineOutput> OnOutput;
@@ -19,16 +20,28 @@ namespace UnityTwine
 		public List<TwineText> Text { get; private set; }
 		public List<TwineLink> Links { get; private set; }
 		public List<TwineOutput> Output { get; private set; }
-		public Dictionary<string, string> Tags { get; private set; }
+		public TwineVar[] PassageParameters { get; private set; }
+		public string[] Tags { get; private set; }
 		public string CurrentPassageName { get; private set; }
 		public string PreviousPassageName { get; private set; }
 
 		protected Dictionary<string, TwinePassage> Passages { get; private set; }
 		TwineStoryState _state = TwineStoryState.Idle;
 		IEnumerator<TwineOutput> _passageExecutor = null;
-		MethodInfo[] _passageUpdateHooks = null;
+		Hook[] _passageUpdateHooks = null;
 		string _passageWaitingToEnter = null;
-		Dictionary<string, MethodInfo> _hookCache = new Dictionary<string, MethodInfo>();
+		Dictionary<string, List<Hook>> _hookCache = new Dictionary<string, List<Hook>>();
+		MonoBehaviour[] _hookTargets = null;
+
+		int _turns;
+		Dictionary<string, int> _visitedCountPassages = new Dictionary<string,int>();
+		Dictionary<string, int> _visitedCountTags = new Dictionary<string,int>();
+
+		private class Hook
+		{
+			public MonoBehaviour target;
+			public MethodInfo method;
+		}
 
 		public TwineStory()
 		{
@@ -41,7 +54,12 @@ namespace UnityTwine
 			this.Output = new List<TwineOutput>();
 			this.Text = new List<TwineText>();
 			this.Links = new List<TwineLink>();
-			this.Tags = new Dictionary<string, string>();
+			this.Tags = new string[0];
+			this.PassageParameters = null;
+
+			_turns = 0;
+			_visitedCountPassages.Clear();
+			_visitedCountTags.Clear();
 			
 			PreviousPassageName = null;
 			CurrentPassageName = null;
@@ -126,13 +144,30 @@ namespace UnityTwine
 			this.Output.Clear();
 			this.Text.Clear();
 			this.Links.Clear();
-			this.Tags.Clear();
+			this.PassageParameters = null;
 			_passageUpdateHooks = null;
 
 			TwinePassage passage = GetPassage(passageName);
+			this.Tags = (string[]) passage.Tags.Clone();
 			this.PreviousPassageName = this.CurrentPassageName;
 			this.CurrentPassageName = passage.Name;
+			
+			// Update visited counters for passages and tags
+			int visitedPassage;
+			if (!_visitedCountPassages.TryGetValue(passageName, out visitedPassage))
+				visitedPassage = 0;
+			_visitedCountPassages[passageName] = visitedPassage+1;
 
+			for (int i = 0; i < passage.Tags.Length; i++)
+			{
+				string tag = passage.Tags[i];
+				int visitedTag;
+				if (!_visitedCountTags.TryGetValue(tag, out visitedTag))
+					visitedTag = 0;
+				_visitedCountTags[tag] = visitedTag+1;
+			}
+
+			// Add output (and trigger hooks)
 			this.Output.Add(passage);
 
 			// Prepare the enumerator
@@ -143,7 +178,7 @@ namespace UnityTwine
 
 			this.State = TwineStoryState.Playing;
 			SendOutput(passage);
-			HooksInvoke(HooksFind("Enter", max: 1));
+			HooksInvoke(HooksFind("Enter", maxLevels: 1));
 
 			// Story was paused, wait for it to resume
 			if (this.State == TwineStoryState.Paused)
@@ -199,14 +234,7 @@ namespace UnityTwine
 				TwineOutput output = _passageExecutor.Current;
 				this.Output.Add(output);
 
-				if (output is TwinePassage)
-				{
-					// Merge tags with existing passages
-					var passage = (TwinePassage)output;
-					foreach (var tag in passage.Tags)
-						this.Tags[tag.Key] = tag.Value;
-				}
-				else if (output is TwineLink)
+				if (output is TwineLink)
 				{
 					// Add links to dedicated list
 					var link = (TwineLink)output;
@@ -222,7 +250,7 @@ namespace UnityTwine
 				// Let the handlers and hooks kick in
 				if (output is TwinePassage)
 				{
-					HooksInvoke(HooksFind("Enter", reverse: true, max: 1));
+					HooksInvoke(HooksFind("Enter", reverse: true, maxLevels: 1));
 
 					// Refresh the update hooks
 					_passageUpdateHooks = HooksFind("Update", reverse: false, allowCoroutines: false).ToArray();
@@ -262,10 +290,17 @@ namespace UnityTwine
 			foreach(TwineOutput output in passage.Execute()) {
                 if (output is TwineDisplay) {
                     var display = (TwineDisplay) output;
+					var displayParams = (TwineVar[])display.Parameters.Clone();
+					this.PassageParameters = displayParams;
+					
 					TwinePassage displayPassage = GetPassage(display.PassageName);
 					yield return displayPassage;
-					foreach(TwineOutput innerOutput in ExecutePassage(displayPassage))
-                        yield return innerOutput;
+					foreach (TwineOutput innerOutput in ExecutePassage(displayPassage))
+					{
+						yield return innerOutput;
+						this.PassageParameters = displayParams; // do this again because inner display macros can override this
+					}
+					PassageParameters = null;
                 }
                 else
                     yield return output;
@@ -286,6 +321,8 @@ namespace UnityTwine
 		{
 			if (link.Setters != null)
 				link.Setters.Invoke();
+
+			_turns++;
 
 			GoTo(link.PassageName);
 		}
@@ -320,37 +357,33 @@ namespace UnityTwine
 		// ---------------------------------
 		// Hooks
 
+		static Regex _validPassageNameRegex = new Regex("^[a-z_][a-z0-9]*$", RegexOptions.IgnoreCase);
+
 		void Update()
 		{
 			HooksInvoke(_passageUpdateHooks);
 		}
 
-		void HooksInvoke(IEnumerable<MethodInfo> hooks, params object[] args)
+		void HooksInvoke(IEnumerable<Hook> hooks, params object[] args)
 		{
-			if (this.HookScript == null)
-				return;
-
 			if (hooks == null)
 				return;
 
-			if (hooks is MethodInfo[])
+			if (hooks is Hook[])
 			{
-				var ar = (MethodInfo[]) hooks;
+				var ar = (Hook[]) hooks;
 				for (int i = 0; i < ar.Length; i++)
-					MethodInvoke(ar[i], args);
+					HookInvoke(ar[i], args);
 			}
 			else
 			{
-				foreach (MethodInfo hook in hooks)
-					MethodInvoke(hook, args);
+				foreach (Hook hook in hooks)
+					HookInvoke(hook, args);
 			}
 		}
 
-		IEnumerable<MethodInfo> HooksFind(string hookName, int max = 0, bool reverse = false, bool allowCoroutines = true)
+		IEnumerable<Hook> HooksFind(string hookName, int maxLevels = 0, bool reverse = false, bool allowCoroutines = true)
 		{
-			if (this.HookScript == null)
-				yield break;
-
 			int c = 0;
 			for(
 				int i = reverse ? this.Output.Count - 1 : 0;
@@ -362,41 +395,81 @@ namespace UnityTwine
 					continue;
 
 				var passage = (TwinePassage)this.Output[i];
-				MethodInfo hook = MethodFind(passage.Name + '_' + hookName, allowCoroutines);
-				if (hook != null)
+				
+				// Ensure hookable passage
+				if (!_validPassageNameRegex.IsMatch(passage.Name))
 				{
-					yield return hook;
+					//Debug.LogWarning(string.Format("Passage \"{0}\" is not hookable because it does not follow C# variable naming rules.", passage.Name));
+					continue;
+				}
+
+				List<Hook> hooks = HookGetMethods(passage.Name + '_' + hookName, allowCoroutines);
+				if (hooks != null)
+				{
+					for (int h = 0; h < hooks.Count; h++)
+						yield return hooks[i];
 					c++;
-					if (max > 0 && c == max)
+					if (maxLevels > 0 && c == maxLevels)
 						yield break;
 				}
 			}
 		}
 
-		void MethodInvoke(MethodInfo method, object[] args)
+		void HookInvoke(Hook hook, object[] args)
 		{
-			var result = method.Invoke(this.HookScript, args);
+			var result = hook.method.Invoke(hook.target, args);
 			if (result is IEnumerator)
 				StartCoroutine(((IEnumerator)result));
 		}
 
-		MethodInfo MethodFind(string methodName, bool allowCoroutines = true)
+		MonoBehaviour[] HookGetTargets()
 		{
-			if (this.HookScript == null)
-				throw new UnassignedReferenceException("Can't hook because HookScript is not assigned.");
-
-			MethodInfo method = null;
-			if (!_hookCache.TryGetValue(methodName, out method))
+			if (_hookTargets == null)
 			{
-				method = this.HookScript.GetType().GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
-
-				if (method != null)
+				// ...................
+				// Get all hook targets
+				GameObject[] hookTargets;
+				if (this.AdditionalHooks != null)
 				{
+					hookTargets = new GameObject[this.AdditionalHooks.Length + 1];
+					hookTargets[0] = this.gameObject;
+					this.AdditionalHooks.CopyTo(hookTargets, 1);
+				}
+				else
+					hookTargets = new GameObject[] { this.gameObject };
+
+				// Get all types
+				var sources = new List<MonoBehaviour>();
+				for (int i = 0; i < hookTargets.Length; i++)
+					sources.AddRange(hookTargets[i].GetComponents<MonoBehaviour>());
+
+				_hookTargets = sources.ToArray();
+			}
+
+			return _hookTargets;
+		}
+
+		List<Hook> HookGetMethods(string methodName, bool allowCoroutines = true)
+		{
+			List<Hook> hooks = null;
+			if (!_hookCache.TryGetValue(methodName, out hooks))
+			{
+				MonoBehaviour[] targets = HookGetTargets();
+				for (int i = 0; i < targets.Length; i++)
+				{
+					Type targetType = targets[i].GetType();
+					MethodInfo method = targetType.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+					// No method found on this source type
+					if (method == null)
+						continue;
+					
+					// Validate the found method
 					if (allowCoroutines)
 					{
 						if (method.ReturnType != typeof(void) && !typeof(IEnumerator).IsAssignableFrom(method.ReturnType))
 						{
-							Debug.LogError(methodName + " must return void or IEnumerator in order to hook this story event.");
+							Debug.LogError(targetType.Name + "." + methodName + " must return void or IEnumerator in order to hook this story event.");
 							method = null;
 						}
 					}
@@ -404,20 +477,27 @@ namespace UnityTwine
 					{
 						if (method.ReturnType != typeof(void))
 						{
-							Debug.LogError(methodName + " must return void in order to hook to this story event.");
+							Debug.LogError(targetType.Name + "." + methodName + " must return void in order to hook to this story event.");
 							method = null;
 						}
 					}
+
+					// The found method wasn't valid
+					if (method == null)
+						continue;
+
+					// Init the method list
+					if (hooks == null)
+						hooks = new List<Hook>();
+
+					hooks.Add(new Hook() { method = method, target = targets[i] } );
 				}
 
-				// Cache it even if it's null so we don't look for it again later
-				_hookCache.Add(methodName, method);
-
-				//if (method != null)
-				//	Debug.Log("Hooking to " + method.Name);
+				// Cache the method list even if it's null so we don't do another lookup next time around (lazy load)
+				_hookCache.Add(methodName, hooks);
 			}
 
-			return method;
+			return hooks;
 		}
 
 		// ---------------------------------
@@ -432,7 +512,6 @@ namespace UnityTwine
 		// ---------------------------------
 		// Functions
 
-		// TODO: You plunge into the [[glowing vortex|either("12000 BC","The Future","2AM Yesterday")]].
 		protected TwineVar either(params TwineVar[] vars)
 		{
 			return vars[UnityEngine.Random.Range(0, vars.Length)];
@@ -453,34 +532,65 @@ namespace UnityTwine
 			return this.PreviousPassageName;
 		}
 
-		protected int visited(params string[] passageNames)
+		protected TwineVar visited(params string[] passageNames)
 		{
-			// TODO: add passage counters
-			throw new NotImplementedException();
+			if (passageNames == null || passageNames.Length == 0)
+				passageNames = new string[] { this.CurrentPassageName };
+
+			int min = int.MaxValue;
+			for(int i = 0; i < passageNames.Length; i++)
+			{
+				string passage = passageNames[i];
+				int count;
+				if (!_visitedCountPassages.TryGetValue(passage, out count))
+					count = 0;
+
+				if (count < min)
+					min = count;
+			}
+
+			if (min == int.MaxValue)
+				min = 0;
+
+			return min;
 		}
 
-		protected int visitedTag(params string[] passageNames)
+		protected TwineVar visitedTag(params string[] tags)
 		{
-			// TODO: add tag counters
-			throw new NotImplementedException();
+			if (tags == null || tags.Length == 0)
+				return 0;
+
+			int min = int.MaxValue;
+			for (int i = 0; i < tags.Length; i++)
+			{
+				string tag = tags[i];
+				int count;
+				if (!_visitedCountTags.TryGetValue(tag, out count))
+					count = 0;
+
+				if (count < min)
+					min = count;
+			}
+
+			if (min == int.MaxValue)
+				min = 0;
+
+			return min;
 		}
 
 		protected int turns()
 		{
-			// TODO: return total link follow counter
-			throw new NotImplementedException();
+			return _turns;
 		}
 		
 		protected string[] tags()
 		{
-			return this.Tags.Keys.ToArray();
+			return this.Tags;
 		}
 
-		protected TwineVar paramater(int index)
+		protected TwineVar parameter(int index)
 		{
-			// TODO: add parameters to passage execution
-			throw new NotImplementedException();
-			//return this.Paramaters[index];
+			return this.PassageParameters == null || this.PassageParameters.Length-1 < index ? new TwineVar(index) : this.PassageParameters[index];
 		}
 		
 	}

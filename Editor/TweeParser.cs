@@ -13,27 +13,25 @@ using System.Security.Cryptography;
 
 namespace UnityTwine.Editor
 {
-    public static class TweeParser
+    public class TweeParser
     {
-		static Regex rx_Passages = new Regex(@"^::\s(?<id>[a-zA-Z0-9_]+)(\s*\[(?<tags>[^\n]+)\])?\n(?<content>.*?)(?=\n::|\Z)",
+		public static Dictionary<string, TweeMacroParser> MacroParsers = new Dictionary<string, TweeMacroParser>(StringComparer.OrdinalIgnoreCase);
+
+		static Regex rx_Passages = new Regex(@"^::\s(?<name>[^\]\|\n]+)(\s+\[(?<tags>[^\]]+)\])?\n(?<content>.*?)(?=\n::|\Z)",
             RegexOptions.Singleline | RegexOptions.Multiline | RegexOptions.ExplicitCapture);
 
-		static Regex rx_Tags = new Regex(@"\b(?<key>[a-zA-Z_][a-zA-Z0-9_]*)(:(?<value>[^\s]*))?", RegexOptions.ExplicitCapture);
+		static Regex rx_Tags = new Regex(@"([^\s]+)");
 
         static Regex rx_String;
-        static Regex rx_IfElse;
         static Regex rx_Vars;
-        static Regex rx_Operator;
-        static Regex rx_Setter;
         static Regex rx_Link;
-		static Regex rx_Display;
-		static Regex rx_Print;
+        static Regex rx_Macro;
 
 		static MD5 _md5 = MD5.Create();
 
 		class PassageData
 		{
-			public string PassageID;
+			public string Name;
 			public string Tags;
 			public string Code;
 		}
@@ -42,52 +40,63 @@ namespace UnityTwine.Editor
         {
             rx_String = new Regex(
 				@"(?!(<<|\[\[))(?<=(>>|\]\]|^))(?<bol>^)?(?<text>.*?)(?<eol>$)?(?=(<<|\[\[|$))(?!(>>|\]\]))",
-                //"yield return @\"${text}\";",
-				RegexOptions.Singleline |RegexOptions.Multiline|RegexOptions.ExplicitCapture
-            );
-            rx_IfElse = new Regex(
-				@"(?:<<\s*(?<construct>if|elseif|else|endif)\b\s*(?<condition>.*?)>>)",
-                //"if ($1) {",
-                RegexOptions.Singleline|RegexOptions.Multiline|RegexOptions.ExplicitCapture
+				RegexOptions.Singleline |RegexOptions.Multiline|RegexOptions.ExplicitCapture|RegexOptions.IgnoreCase
             );
             rx_Vars = new Regex(
                 @"\$([a-zA-Z_][a-zA-Z0-9_]*)",
-                //var$2[“$1”],
-                RegexOptions.Singleline|RegexOptions.Multiline
-            );
-            rx_Operator = new Regex(
-                @"\b(and|or|is|to|not)\b(?=([^""]*""[^""]*"")*[^""]*$)",
-                //"OPERATOR",
-                RegexOptions.Singleline|RegexOptions.Multiline
-            );
-            rx_Setter = new Regex(
-                @"<<\s*set\s+(.*?)\s*>>",
-                //"$1",
                 RegexOptions.Singleline|RegexOptions.Multiline
             );
             rx_Link  = new Regex(
 				@"\[\[(?:(?:(?<name>[^|]+?)\s*=\s*)?(?<text>.*?)\|)?(?<passage>.+?)\](?:\[(?<setters>.*?)\])?\]",
                 RegexOptions.Singleline|RegexOptions.Multiline|RegexOptions.ExplicitCapture
             );
-			
-			// TODO: shorthand code with parameters
-            rx_Display = new Regex(
-                @"<<\s*display\s*(.*?)\s*>>",
-                //"yield return new TwineSubPassage(\"$1\");",
-                RegexOptions.Singleline|RegexOptions.Multiline
-            );
 
-			rx_Print = new Regex(
-				@"<<\s*print\s*(.*?)\s*>>",
-				//"yield return new TwineSubPassage(\"$1\");",
-				RegexOptions.Singleline | RegexOptions.Multiline
+			rx_Macro = new Regex(
+				@"<<\s*(?<macro>[a-z_]+[a-z0-9_]*)(\s+(?<argument>.*?))?\s*>>",
+				RegexOptions.Singleline | RegexOptions.Multiline| RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase
 			);
+
+			MacroParsers["display"] = TweeBuiltinMacroParsers.Display;
+			MacroParsers["set"] = TweeBuiltinMacroParsers.Set;
+			MacroParsers["print"] = TweeBuiltinMacroParsers.Print;
+			MacroParsers["if"] = TweeBuiltinMacroParsers.IfElse;
+			MacroParsers["elseif"] = TweeBuiltinMacroParsers.IfElse;
+			MacroParsers["else"] = TweeBuiltinMacroParsers.IfElse;
+			MacroParsers["endif"] = TweeBuiltinMacroParsers.IfElse;
         }
 
-        public static void ParseToStream(string name, string tweeSource, StreamWriter output)
+
+		// Instance vars
+		Dictionary<string, string> _vars;
+		PassageData[] _passages;
+
+        public void ParseToStream(string name, string tweeSource, StreamWriter output)
         {
-			string[] vars;
-			PassageData[] passages = ParseFile(tweeSource, out vars);
+			// ------------------------------------
+			// Step 1: do the parsing
+
+			MatchCollection matches = rx_Passages.Matches(tweeSource);
+			_vars = new Dictionary<string, string>();
+			_passages = new PassageData[matches.Count];
+
+			for (int i = 0; i < matches.Count; i++)
+			{
+				Match m = matches[i];
+
+				_passages[i] = new PassageData()
+				{
+					Name = m.Groups["name"].Value,
+					Tags = ParseTags(m.Groups["tags"].Value),
+					Code = ParseContent(m.Groups["content"].Value.Trim())
+				};
+
+				if (_passages[i].Code == null || _passages[i].Code.Trim().Length == 0)
+					_passages[i].Code = "yield break;";
+			}
+			string[] vars = _vars.Keys.ToArray();
+
+			// ------------------------------------
+			// Step 2: generate the code
 
             output.Write(
 @"/*
@@ -144,7 +153,7 @@ public class {1}: TwineStory
 	void Awake() {
 		base.Init();"
 			);
-            for (int i = 0; i < passages.Length; i++)
+            for (int i = 0; i < _passages.Length; i++)
                 output.Write(@"
 		passageInit_{0}();"
                     , i); 
@@ -152,9 +161,9 @@ public class {1}: TwineStory
     		output.Write(@"
 	}");
 
-			for (int i = 0; i < passages.Length; i++)
+			for (int i = 0; i < _passages.Length; i++)
 			{
-				PassageData passage = passages[i];
+				PassageData passage = _passages[i];
 				output.Write(@"
     
 	// .............
@@ -162,14 +171,14 @@ public class {1}: TwineStory
 
 	void passageInit_{0}()
 	{{
-		this.Passages[""{1}""] = new TwinePassage(""{1}"", new Dictionary<string,string>(){{ {2} }}, passageExecute_{0});
+		this.Passages[""{1}""] = new TwinePassage(""{1}"", new string[]{{ {2} }}, passageExecute_{0});
 	}}
 
 	IEnumerable<TwineOutput> passageExecute_{0}()
 	{{
 		{3}	
 	}}"
-				, i, passage.PassageID, passage.Tags, passage.Code.Replace("\n", "\n\t\t"));
+				, i, passage.Name, passage.Tags, passage.Code.Replace("\n", "\n\t\t"));
 			}
 
 			output.Write(@"
@@ -177,38 +186,13 @@ public class {1}: TwineStory
 }"
 				);
 		}
-			
-
-		static PassageData[] ParseFile(string tweeSource, out string[] vars)
-        {
-            MatchCollection matches = rx_Passages.Matches(tweeSource);
-			var passages = new PassageData[matches.Count];
-			var varNames = new Dictionary<string,string>();
-
-            for (int i = 0; i < matches.Count; i++)
-            {
-                Match m = matches[i];
-
-				passages[i] = new PassageData() {
-					PassageID = m.Groups["id"].Value,
-					Tags = ParseTags(m.Groups["tags"].Value),
-					Code = ParseContent(m.Groups["content"].Value.Trim(), varNames)
-				};
-
-				if (passages[i].Code == null || passages[i].Code.Trim().Length == 0)
-					passages[i].Code = "yield break;";
-            }
-
-			vars = varNames.Keys.ToArray();
-            return passages;
-        }
 
 		static string ParseTags(string tweeTags)
         {
-			return rx_Tags.Replace(tweeTags, "{\"${key}\", \"${value}\"},");
+			return rx_Tags.Replace(tweeTags, "\"$&\",");
         }
 
-		static string ParseContent(string tweeCode, Dictionary<string,string> vars)
+		string ParseContent(string tweeCode)
         {
             string output = tweeCode;
 
@@ -231,37 +215,18 @@ public class {1}: TwineStory
                 ;
             });
 
-            // <<if ... >>
-            output = rx_IfElse.Replace(output, match => {
+			output = rx_Macro.Replace(output, match => {
+				string macro = match.Groups["macro"].Value;
+				TweeMacroParser parse;
+				if (!MacroParsers.TryGetValue(macro, out parse))
+					parse = TweeBuiltinMacroParsers.DisplayShorthand;
 
-                string construct = match.Groups["construct"].Value;
-                string statement;
-
-                switch(construct) {
-                    case "else" : return "} else { ";
-                    case "endif" : return "} ";
-                    case "if" : statement = "if ({0}) {{ "; break;
-                    case "elseif": statement = "}} else if ({0}) {{ "; break;
-                    default: throw new Exception("Invalid construct " + construct);
-                }
-
-                string condition = ParseVars(match.Groups["condition"].Value, vars);
-                condition = rx_Operator.Replace(condition, op => {
-                    switch (op.Value) {
-                        case "and": return "&&" ;
-                        case "or" : return "||";
-                        case "is" : return "==";
-                        case "to" : return "=";
-                        case "not" : return "!";
-                    };
-					return string.Empty;
-                });
-
-                return String.Format(statement, condition);
-            });
-
-            // <<set ... >>
-            output = rx_Setter.Replace(output, match => string.Format("{0};", ParseVars(match.Groups[1].Value, vars)));
+				return parse( this, macro,
+					match.Groups["argument"].Success ?
+						match.Groups["argument"].Value :
+						null
+				);
+			});
 
             // [[kiss = Kiss the girl|scene1_kiss][$girl = 'kissed';]]
             output = rx_Link.Replace(output, match => {
@@ -269,7 +234,7 @@ public class {1}: TwineStory
 				string text = match.Groups["text"].Success ? match.Groups["text"].Value : passage;
 				string name = match.Groups["name"].Success ? match.Groups["name"].Value : text;
                 string setters = match.Groups["setters"].Length > 0 ?
-					string.Format("() =>{{ {0}; }}", ParseVars(match.Groups["setters"].Value, vars)) : // stick the setter into a lambda
+					string.Format("() =>{{ {0}; }}", ParseVars(match.Groups["setters"].Value)) : // stick the setter into a lambda
                     null;
 				string settersHash = setters == null ? null : Convert.ToBase64String(_md5.ComputeHash(Encoding.UTF8.GetBytes(setters)));
 				return string.Format("yield return new TwineLink(@\"{0}\", @\"{1}\", {2}, {3}, {4});",
@@ -281,25 +246,15 @@ public class {1}: TwineStory
 				);
             });
 
-            // <<display ... >
-			output = rx_Display.Replace(output, match =>
-				string.Format("yield return new TwineDisplay({0});", ParseVars(match.Groups[1].Value, vars))
-			);
-
-			// <<print ... >
-			output = rx_Print.Replace(output, match =>
-				string.Format("yield return new TwineText({0});", ParseVars(match.Groups[1].Value, vars))
-			);
-
             return output;
         }
 
-		static string ParseVars(string expression, Dictionary<string, string> vars)
+		internal string ParseVars(string expression)
 		{
 			return rx_Vars.Replace(expression, varName =>
 			{
 				string val = varName.Groups[1].Value;
-				vars[val] = null;
+				_vars[val] = null; // null because we don't need any value here, just using a dictionary as a lookup
 				return val;
 			});
 		}

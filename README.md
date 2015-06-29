@@ -95,13 +95,13 @@ A syntax extension allows **naming** links for easy reference in Unity scripts:
 * `[[continue = Continue down the hall.|hallway]]`
 
 #####Tags
-Tags (space-delimted) work as expected, with a syntax extention allowing key-value style tags, e.g. `location:exterior weather:rainy`
+Tags (space-delimted) work as expected.
 
 #####Macros
 Macros that work:
 
 * `<<if>>` .. `<<else>>` .. `<<endif>>`
-* `<<display>>` (but **not** shorthand form)
+* `<<display>>` including shorthand syntax
 * `<<print>>`
 * `<<set>>` (both single and multiple variables)
 
@@ -122,13 +122,13 @@ Functions that work:
 * `previous()`
 * `passage()`
 * `tags()` (returns a C# array, so `indexOf` and other JavaScript-specific features will not work in Unity)
-
-Functions that **don't work yet**:
-
 * `visited()`
 * `visitedTag()`
 * `turns()`
 * `parameter()`
+
+Functions that **don't work yet**:
+
 * `rot13()`
 * HTML stuff: `confirm()`, `prompt()`, `alert()`, `open()`
 
@@ -147,18 +147,16 @@ All story scripts include the following editor properties:
 
 * `AutoPlay`: when true, begins playing the story immediately when the game starts.
 * `StartPassage`: indicates which passasge to start playback from (default is `Start`)
-* `HookScript`: a Unity script which provides story hooks (see the [hooks](#hooks) section for more info)
+* `AdditionalHooks`: additional game objects on which to search for hooks (see the [hooks](#hooks) section for more info)
 * A list of Twine variables used in the story, useful for debugging purposes.
 
 ####TwineTextPlayer
 Included in UnityTwine is a prefab and script that can be used to quickly display and interact with a story in a text-only fashion. The prefab is built with Unity UI components (4.6+) to handle text and layout. **To use:**
 
 1. Create a new scene
-2. Create an empty game object, call it 'TwineStory'
-3. Import your Twine story and drag the generated C# script onto the 'TwineStory' game object
-4. Drag the TwineTextPlayer prefab into the scene
-5. On the TwineTextPlayer object, drag the 'TwineStory' game object into the 'Story' proprety
-6. Play your scene
+2. Drag the TwineTextPlayer prefab into the scene
+3. Import your Twine story and drag the generated C# script onto the TwineTextPlayer object
+4. Play your scene
 
 
 
@@ -198,7 +196,7 @@ When a passage has executed, its output can be inspected on your `TwineStory` sc
 * `Output` - a list of all the output of the passage, in the order in which it was generated. Includes any output from sub-passages referenced by `<<display>>`, along with the definition of those passages.
 * `Text` - a sub-list of Output, includes only the text of the passage.
 * `Links` - a sub-list of Output, includes only the links of the passage.
-* `Tags` - a merged list of all tags encountered during passage execution, including the tags of any sub-passages referenced by `<<display>>`.
+* `Tags` - the tags of the current main passage (but not of the sub-passages)
 * `CurrentPassageName` - the name of the current main passage (i.e. not sub-passage) that was executed.
 * `PreviousPassageName` - the name of the previous main passage (i.e. not sub-passage) that was executed.
 
@@ -338,11 +336,11 @@ void Defend_Exit()
 ```
 
 #####Setting up a hook script
-Before you can get your hooks to work you have to tell the TwineStory where to look for them. (This step is required at the moment but will hopefully be removed in the next version.)
 
 1. Create a new script (recommended C#, but UnityScript should work)
-2. Add it to any game object in your scene
-3. Drag the object onto your TwineStory component's `HookScript` property
+
+2. Either add it to the same game object that contains your story script, or...
+3. ...add it to any game object in your scene and add that game object to the AdditionalHooks list
 
 
 #####Hook types
