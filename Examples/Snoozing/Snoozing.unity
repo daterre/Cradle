@@ -3055,10 +3055,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AutoPlay: 0
   StartPassage: alarm
-  HookScript: {fileID: 2092883616}
-  again:
-    AsString: 
+  AdditionalHooks: []
   wait:
+    AsString: 
+  again:
     AsString: 
   click:
     AsString: 

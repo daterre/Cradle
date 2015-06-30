@@ -407,7 +407,7 @@ namespace UnityTwine
 				if (hooks != null)
 				{
 					for (int h = 0; h < hooks.Count; h++)
-						yield return hooks[i];
+						yield return hooks[h];
 					c++;
 					if (maxLevels > 0 && c == maxLevels)
 						yield break;
