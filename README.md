@@ -373,8 +373,7 @@ Notes:
 
 ###Change log
 
-**Version 1.1**
-
+#####Version 1.1
 First full release:
 
 * Parser now supports any valid Twine passage name
@@ -384,6 +383,5 @@ First full release:
 * Tags are now simple string arrays like the original Twine
 * Simplified hook setup
 
-**Version 1.0 beta 1**
-
+#####Version 1.0 beta 1
 Pre-release.
