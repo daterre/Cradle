@@ -51,6 +51,7 @@ If you use UnityTwine in your project or game jam and find bugs, develop extra f
 		- [Setting up a hook script](#setting-up-a-hook-script)
 		- [Hook types](#hook-types)
 		- [Coroutine hooks](#coroutine-hooks)
+- [Change log](#change-log)
 
 ###Installing
 Two ways to install:
@@ -368,3 +369,19 @@ Notes:
 
 * All hooks can be coroutines except the Update hook, which must always return void.
 * After the first yield, the story will be Idle and all the the passage output will be available. This is because the passage continues execution after calling the hook, so by the time the coroutine has done waiting, the passage is complete. To pause execution until the coroutine ends, use `Pause()` and `Resume()` ([example](#pause-and-resume))
+
+
+###Change log
+
+**Version 1.1
+First full release:
+
+* Parser now supports any valid Twine passage name
+* Added extensible macro system
+* Shorthand display syntax support (with parameters)
+* Visited, visitedTag, turns, parameter functions
+* Tags are now simple string arrays like the original Twine
+* Simplified hook setup
+
+**Version 1.0 beta 1**
+Pre-release.
