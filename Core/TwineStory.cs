@@ -246,20 +246,18 @@ namespace UnityTwine
 					var text = (TwineText)output;
 					this.Text.Add(text);
 				}
-
 				// Let the handlers and hooks kick in
-				if (output is TwinePassage)
+				else if (output is TwinePassage)
 				{
 					HooksInvoke(HooksFind("Enter", reverse: true, maxLevels: 1));
 
 					// Refresh the update hooks
 					_passageUpdateHooks = HooksFind("Update", reverse: false, allowCoroutines: false).ToArray();
 				}
-				else
-				{
-					SendOutput(output);
-					HooksInvoke(HooksFind("Output"), output);
-				}
+
+				// Send output
+				SendOutput(output);
+				HooksInvoke(HooksFind("Output"), output);
 
 				// Story was paused, wait for it to resume
 				if (this.State == TwineStoryState.Paused)
@@ -287,8 +285,11 @@ namespace UnityTwine
 			
 		IEnumerable<TwineOutput> ExecutePassage(TwinePassage passage)
         {
-			foreach(TwineOutput output in passage.Execute()) {
-                if (output is TwineDisplay) {
+			foreach(TwineOutput output in passage.Execute())
+			{
+                if (output is TwineDisplay)
+				{
+					yield return output;
                     var display = (TwineDisplay) output;
 					var displayParams = (TwineVar[])display.Parameters.Clone();
 					this.PassageParameters = displayParams;
@@ -357,7 +358,7 @@ namespace UnityTwine
 		// ---------------------------------
 		// Hooks
 
-		static Regex _validPassageNameRegex = new Regex("^[a-z_][a-z0-9]*$", RegexOptions.IgnoreCase);
+		static Regex _validPassageNameRegex = new Regex("^[a-z_][a-z0-9_]*$", RegexOptions.IgnoreCase);
 
 		void Update()
 		{
@@ -399,7 +400,7 @@ namespace UnityTwine
 				// Ensure hookable passage
 				if (!_validPassageNameRegex.IsMatch(passage.Name))
 				{
-					//Debug.LogWarning(string.Format("Passage \"{0}\" is not hookable because it does not follow C# variable naming rules.", passage.Name));
+					Debug.LogWarning(string.Format("Passage \"{0}\" is not hookable because it does not follow C# variable naming rules.", passage.Name));
 					continue;
 				}
 
@@ -408,8 +409,8 @@ namespace UnityTwine
 				{
 					for (int h = 0; h < hooks.Count; h++)
 						yield return hooks[h];
-					c++;
-					if (maxLevels > 0 && c == maxLevels)
+					
+					if (maxLevels > 0 && c == maxLevels-1)
 						yield break;
 				}
 			}
@@ -498,6 +499,12 @@ namespace UnityTwine
 			}
 
 			return hooks;
+		}
+
+		public void HooksClear()
+		{
+			_hookCache.Clear();
+			_hookTargets = null;
 		}
 
 		// ---------------------------------
