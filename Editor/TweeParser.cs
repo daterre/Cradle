@@ -52,7 +52,7 @@ namespace UnityTwine.Editor
             );
 
 			rx_Macro = new Regex(
-				@"<<\s*(?<macro>[a-z_]+[a-z0-9_]*)(\s+(?<argument>.*?))?\s*>>",
+				@"(?<!\[\[[^\n]*)<<\s*((?<macro>[a-z_][a-z0-9_]*)\s*)?(?<argument>.*?)?\s*>>",
 				RegexOptions.Singleline | RegexOptions.Multiline| RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase
 			);
 
@@ -70,7 +70,7 @@ namespace UnityTwine.Editor
 		Dictionary<string, string> _vars;
 		PassageData[] _passages;
 
-        public void ParseToStream(string name, string tweeSource, StreamWriter output)
+        public void ParseToStream(string name, string tweeSource, TextWriter output)
         {
 			// ------------------------------------
 			// Step 1: do the parsing
@@ -82,6 +82,8 @@ namespace UnityTwine.Editor
 			for (int i = 0; i < matches.Count; i++)
 			{
 				Match m = matches[i];
+
+				//if (m.Groups["tags"].Value 
 
 				_passages[i] = new PassageData()
 				{
@@ -215,13 +217,22 @@ public class {1}: TwineStory
                 ;
             });
 
-			output = rx_Macro.Replace(output, match => {
-				string macro = match.Groups["macro"].Value;
+			output = rx_Macro.Replace(output, match =>
+			{
+				string macro = null;
 				TweeMacroParser parse;
-				if (!MacroParsers.TryGetValue(macro, out parse))
-					parse = TweeBuiltinMacroParsers.DisplayShorthand;
+				if (match.Groups["macro"].Success)
+				{
+					macro = match.Groups["macro"].Value;
+					if (!MacroParsers.TryGetValue(macro, out parse))
+						parse = TweeBuiltinMacroParsers.DisplayShorthand;
+				}
+				else
+				{
+					parse = TweeBuiltinMacroParsers.Print;
+				}
 
-				return parse( this, macro,
+				return parse(this, macro,
 					match.Groups["argument"].Success ?
 						match.Groups["argument"].Value :
 						null
@@ -231,7 +242,23 @@ public class {1}: TwineStory
             // [[kiss = Kiss the girl|scene1_kiss][$girl = 'kissed';]]
             output = rx_Link.Replace(output, match => {
 				string passage = match.Groups["passage"].Value;
-				string text = match.Groups["text"].Success ? match.Groups["text"].Value : passage;
+
+				bool hasText = match.Groups["text"].Success;
+				string text = hasText ? match.Groups["text"].Value : passage;
+				if (hasText)
+				{
+					text = rx_Macro.Replace(text, m =>
+					{
+						if (m.Groups["macro"].Success)
+							return null;
+						else
+						{
+							Debug.Log(m.Groups["argument"].Value);
+							return "\" + " + ParseVars(m.Groups["argument"].Value) + " + \"";
+						}
+					});
+				}
+				
 				string name = match.Groups["name"].Success ? match.Groups["name"].Value : text;
                 string setters = match.Groups["setters"].Length > 0 ?
 					string.Format("() =>{{ {0}; }}", ParseVars(match.Groups["setters"].Value)) : // stick the setter into a lambda
