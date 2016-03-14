@@ -410,7 +410,7 @@ public class SnoozingHooks : MonoBehaviour {
 		StartCoroutine(SnoozeFadeOut(2f, noise: 1f, underwater: 0f));
 		uiTextPlayer.AutoDisplay = false;
 		work_ppCursor.gameObject.SetActive(true);
-		Screen.showCursor = false;
+		Cursor.visible = false;
 
 		// Wait a frame for all Twine output from this passage
 		yield return null;
@@ -477,7 +477,7 @@ public class SnoozingHooks : MonoBehaviour {
 	IEnumerator work_Exit()
 	{
 		work_ppCursor.gameObject.SetActive(false);
-		Screen.showCursor = true;
+		Cursor.visible = true;
 		uiTextPlayer.AutoDisplay = true;
 		return SnoozeFadeOut(alarmWakeUpDelay);
 	}

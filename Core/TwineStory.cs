@@ -516,6 +516,11 @@ namespace UnityTwine
 			set;
 		}
 
+		public abstract string[] VarNames
+		{
+			get;
+		}
+
 		// ---------------------------------
 		// Functions
 
