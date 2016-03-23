@@ -75,6 +75,10 @@ namespace UnityTwine.Editor
 				// ======================================
 				// STEP 4: Compile
 
+				#if UNITY_EDITOR_OSX
+				Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ":/Applications/Unity/Unity.app/Contents/Frameworks/Mono/bin");
+				#endif
+
 				// Detect syntax errors
 				try
 				{

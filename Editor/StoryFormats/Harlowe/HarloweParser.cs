@@ -22,7 +22,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		public override void Init()
 		{
 			// Run the story file in PhantomJS, inject the bridge script that invokes the Harlowe lexer and deserialize the JSON output
-			PhantomOutput<HarlowePassageData[]> output = PhantomJS.Analyze<HarlowePassageData[]>(
+			PhantomOutput<HarlowePassageData[]> output = PhantomJS.Run<HarlowePassageData[]>(
 				new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
 				new System.Uri(Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/Harlowe/.js/harlowe.bridge.js").AbsolutePath
 			);
@@ -68,7 +68,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 						break;
 					case "twineLink":
 						outputBuffer
-							.AppendFormat(@"yield return new TwineLink(@""{0}"", @""{1}"", @""{2}"", null, null);",
+							.AppendFormat(@"yield return new TwineLink(@""{0}"", @""{1}"", @""{2}"", null);",
 								token.innerText, token.innerText, token.passage
 							)
 							.AppendLine();

@@ -9,15 +9,27 @@ namespace UnityTwine.Editor.Utils
 {
 	public static class PhantomJS
 	{
-		public static PhantomOutput<ResultT> Analyze<ResultT>(string storyFileUri, string bridgeScriptPath, bool throwExOnError = true)
+		static string BinPath =
+			#if UNITY_EDITOR_OSX
+			"/Plugins/UnityTwine/Editor/ThirdParty/PhantomJS/bin/osx/phantomjs";
+			#elif UNITY_EDITOR_WIN
+			"/Plugins/UnityTwine/Editor/ThirdParty/PhantomJS/bin/win/phantomjs.exe";
+			#else
+			null;
+			#endif
+
+		public static PhantomOutput<ResultT> Run<ResultT>(string storyFileUri, string bridgeScriptPath, bool throwExOnError = true)
 		{
+			if (BinPath == null)
+				throw new NotSupportedException ("Editor platform not supported.");
+
 			// Run the HTML in PhantomJS
 			var phantomJS = new System.Diagnostics.Process();
 			phantomJS.StartInfo.UseShellExecute = false;
 			phantomJS.StartInfo.CreateNoWindow = true;
 			phantomJS.StartInfo.RedirectStandardOutput = true;
 			phantomJS.StartInfo.WorkingDirectory = Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/.js";
-			phantomJS.StartInfo.FileName = Application.dataPath + "/Plugins/UnityTwine/Editor/ThirdParty/PhantomJS/bin/phantomjs.exe";
+			phantomJS.StartInfo.FileName = Application.dataPath + BinPath;
 			phantomJS.StartInfo.Arguments = string.Format("\"{0}\" \"{1}\" \"{2}\"",
 				"phantom.js",
 				storyFileUri,

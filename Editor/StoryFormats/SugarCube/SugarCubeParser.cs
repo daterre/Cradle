@@ -187,13 +187,12 @@ namespace UnityTwine.Editor.StoryFormats
 					string setters = match.Groups["linkSetter"].Length > 0 ?
 						string.Format("() =>{{ {0}; }}", ParseVars(match.Groups["linkSetter"].Value)) : // stick the setter into a lambda
 						null;
-					string settersHash = setters == null ? null : Convert.ToBase64String(_md5.ComputeHash(Encoding.UTF8.GetBytes(setters)));
-					OutputAppend(outputBuffer, "yield return new TwineLink(@\"{0}\", @\"{1}\", {2}, {3}, {4});",
+					
+					OutputAppend(outputBuffer, "yield return new TwineLink(@\"{0}\", @\"{1}\", {2}, {3};",
 						name.Replace("\"", "\"\""),
 						text.Replace("\"", "\"\""),
 						linkTarget.IndexOf('(') >= 1 ? linkTarget : string.Format("@\"{0}\"", linkTarget.Replace("\"", "\"\"")), // if a peren is present, treat as a function
-						setters == null ? "null" : setters,
-						setters == null ? "null" : '"' + settersHash + '"'
+						setters == null ? "null" : setters
 					);
 				}
 				else if (match.Groups["nakedVar"].Success)

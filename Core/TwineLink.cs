@@ -9,16 +9,20 @@ namespace UnityTwine
     public class TwineLink: TwineOutput
     {
         public string PassageName;
-        public Action Setters;
-		string _settersHash;
+        public Action Action;
 
-		public TwineLink(string name, string text, string passageID, Action setters, string settersHash)
+		[System.Obsolete]
+		public TwineLink(string name, string text, string passageID, Action action, string unused):
+			this(name,text, passageID, action)
+		{
+		}
+
+		public TwineLink(string name, string text, string passageID, Action action)
         {
 			this.Name = name;
             this.Text = text;
             this.PassageName = passageID;
-            this.Setters = setters;
-			_settersHash = settersHash;
+			this.Action = action;
         }
 
 		public static bool operator==(TwineLink a, TwineLink b)
@@ -31,7 +35,7 @@ namespace UnityTwine
 			if ((anull && !bnull) || (!anull && bnull))
 				return false;
 
-			return a.Text == b.Text && a.PassageName == b.PassageName && a._settersHash == b._settersHash;
+			return a.Text == b.Text && a.PassageName == b.PassageName && a.Action == b.Action;
 		}
 
 		public static bool operator!=(TwineLink a, TwineLink b)

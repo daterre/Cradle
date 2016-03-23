@@ -318,22 +318,41 @@ namespace UnityTwine
 		// ---------------------------------
 		// Links
 
+		[Obsolete("Use DoLink instead.")]
 		public void Advance(TwineLink link)
 		{
-			if (link.Setters != null)
-				link.Setters.Invoke();
+			DoLink (link);
+		}
+
+		public void DoLink(TwineLink link)
+		{
+			if (link.Action != null)
+				link.Action.Invoke();
 
 			_turns++;
 
-			GoTo(link.PassageName);
+			if (link.PassageName != null)
+				GoTo(link.PassageName);
 		}
 
+		[Obsolete("Use DoLink instead.")]
 		public void Advance(int linkIndex)
 		{
-			Advance(this.Links[linkIndex]);
+			DoLink (linkIndex);
 		}
-		
+
+		public void DoLink(int linkIndex)
+		{
+			DoLink(this.Links[linkIndex]);
+		}
+
+		[Obsolete("Use DoLink instead.")]
 		public void Advance(string linkName)
+		{
+			DoLink (linkName);
+		}
+
+		public void DoLink(string linkName)
 		{
 			TwineLink link = this.Links
 				.Where(lnk => string.Equals(lnk.Name, linkName, System.StringComparison.OrdinalIgnoreCase))
@@ -342,7 +361,7 @@ namespace UnityTwine
 			if (link == null)
 				throw new KeyNotFoundException(string.Format("There is no available link with the name '{0}'.", linkName));
 
-			Advance(link);
+			DoLink(link);
 		}
 
 		public bool HasLink(string linkName)
