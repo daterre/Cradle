@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
-using UnityTwine.Editor.Parsers;
+using UnityTwine.Editor.StoryFormats;
 
 namespace UnityTwine.Editor.Importers
 {
@@ -34,18 +34,16 @@ namespace UnityTwine.Editor.Importers
 				if (m.Groups["tags"].Success && m.Groups["tags"].Value == "Twine.image")
 					continue;
 
-				this.Passages.Add(new PassageData()
+				this.Passages.Add(new TwinePassageData()
 				{
-					ID = i,
+					Pid = i.ToString(),
 					Name = m.Groups["name"].Value,
 					Tags = m.Groups["tags"].Value,
 					Body = m.Groups["body"].Value.Trim()
 				});
 			}
-		}
 
-		public override void Prepare()
-		{
+			// TODO: sniff story format
 			this.Parser = new SugarCubeParser(this);
 		}
 	}

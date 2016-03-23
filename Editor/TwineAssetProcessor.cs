@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,6 +15,8 @@ namespace UnityTwine.Editor
 {
     public class TwineAssetProcessor: AssetPostprocessor
     {
+		static Regex NameSanitizer = new Regex(@"([^a-z0-9_]|^[0-9])", RegexOptions.IgnoreCase);
+
         static void OnPostprocessAllAssets (
             string[] importedAssets,
             string[] deletedAssets,
@@ -31,16 +34,26 @@ namespace UnityTwine.Editor
 
 				if (ext == ".twee")
 					importer = new Importers.TweeImporter(assetPath);
-				//else if (ext == ".html")
-					//importer = new Importers.HtmlImporter(assetPath);
+				else if (ext == ".html")
+					importer = new Importers.PublishedHtmlImporter(assetPath);
 				else
 					return;
+
+				if (!importer.Validate())
+					return;
+
+				string fileName = Path.GetFileNameWithoutExtension(assetPath);
+				string storyName = NameSanitizer.Replace(fileName, string.Empty);
+				if (storyName != fileName)
+				{
+					Debug.LogErrorFormat("UnityTwine cannot import the story because \"{0}\" is not a valid Unity script name.", fileName);
+					return;
+				}
 
 				// ======================================
 				// STEP 2: Load and parse
 
 				importer.Load();
-				importer.Prepare();
 				importer.Parse();
 
 				// ======================================
@@ -48,11 +61,11 @@ namespace UnityTwine.Editor
 
 				// Get template file from this editor script's directory
 				string output = Nustache.Core.Render.FileToString(
-					Path.Combine(Application.dataPath, "Plugins/UnityTwine/Editor/TwineStory.template"),
+					Path.Combine(Application.dataPath, "Plugins/UnityTwine/Editor/Templates/TwineStory.template"),
 					new Dictionary<string, object>()
 					{
 						{"originalFile", Path.GetFileName(assetPath)},
-						{"storyName", Path.GetFileNameWithoutExtension(assetPath)}, // TODO: only alphanumeric characters
+						{"storyName", storyName},
 						{"timestamp", DateTime.Now.ToString("G")},
 						{"vars", importer.Vars.Keys},
 						{"passages", importer.Passages}
@@ -103,7 +116,7 @@ namespace UnityTwine.Editor
 								Path.GetFileName(assetPath),
 								errors
 							);
-							//Debug.LogError(output);
+							Debug.LogError(output);
 							return;
 						}
 					};
