@@ -1,10 +1,13 @@
-require(['markup'], function(TwineMarkup){
+require(['markup', 'utils'], function(TwineMarkup, utils){
 	"use strict";
 
 	function simplify(tokens) {
 		var result = [];
 		for (var i = 0; i < tokens.length; i++) {
 			var complex = tokens[i];
+			//if (complex.type === "whitespace")
+			//	continue;
+
 			var simple = {type: complex.type};
 
 			if (complex.children && complex.children.length && complex.type !== 'string')
@@ -18,9 +21,11 @@ require(['markup'], function(TwineMarkup){
 			if (complex.passage)
 				simple.passage = complex.passage;
 			if (complex.name)
-				simple.name = complex.name;
+				simple.name = complex.type === "macro" ?
+					utils.insensitiveName(complex.name) :
+					complex.name;
 
-			result[i] = simple;
+			result.push(simple);
 		}
 		return result;
 	}

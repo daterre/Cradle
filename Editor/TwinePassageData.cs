@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace UnityTwine.Editor
 {
@@ -10,6 +11,14 @@ namespace UnityTwine.Editor
 		public string Name;
 		public string Tags;
 		public string Body;
-		public string[] Code;
+
+		[System.NonSerialized]
+		public TwinePassageCode Code;
+	}
+
+	public class TwinePassageCode
+	{
+		public string Main;
+		public List<string> Fragments = new List<string>();
 	}
 }

@@ -3,27 +3,48 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutput>;
 
 namespace UnityTwine
 {
     public class TwineLink: TwineOutput
     {
         public string PassageName;
-        public Action Action;
+		public Func<ITwineThread> Action;
 
 		[System.Obsolete]
-		public TwineLink(string name, string text, string passageID, Action action, string unused):
+		public TwineLink(string name, string text, string passageID, Func<ITwineThread> action, string unused) :
 			this(name,text, passageID, action)
 		{
 		}
 
-		public TwineLink(string name, string text, string passageID, Action action)
+		public TwineLink(string name, string text, string passageID, Func<ITwineThread> action)
         {
 			this.Name = name;
             this.Text = text;
             this.PassageName = passageID;
 			this.Action = action;
         }
+
+		public TwineLink(string name, string text, string passageID):
+			this(name, text, passageID, null)
+		{
+		}
+
+		public TwineLink(string text, string passageID) :
+			this(text, text, passageID, null)
+		{
+		}
+
+		public TwineLink(string name, string text, Func<ITwineThread> action) :
+			this (name, text, null, action)
+		{
+		}
+
+		public TwineLink(string text, Func<ITwineThread> action) :
+			this(text, text, null, action)
+		{
+		}
 
 		public static bool operator==(TwineLink a, TwineLink b)
 		{

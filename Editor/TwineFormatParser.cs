@@ -14,6 +14,6 @@ namespace UnityTwine.Editor
 		}
 
 		public virtual void Init() { }
-		public abstract string PassageToCode(TwinePassageData passage);
+		public abstract TwinePassageCode PassageToCode(TwinePassageData passage);
 	}
 }

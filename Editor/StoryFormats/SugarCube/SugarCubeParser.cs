@@ -98,7 +98,7 @@ namespace UnityTwine.Editor.StoryFormats
 		// Instance vars
 		int _indent = 0;
 
-		public override string PassageToCode(TwinePassageData passage)
+		public override TwinePassageCode PassageToCode(TwinePassageData passage)
 		{
 			this._indent = 0;
 
@@ -185,7 +185,7 @@ namespace UnityTwine.Editor.StoryFormats
 
 					string name = match.Groups["linkName"].Success ? match.Groups["linkName"].Value : text;
 					string setters = match.Groups["linkSetter"].Length > 0 ?
-						string.Format("() =>{{ {0}; }}", ParseVars(match.Groups["linkSetter"].Value)) : // stick the setter into a lambda
+						string.Format("() =>{{ {0}; return null; }}", ParseVars(match.Groups["linkSetter"].Value)) : // stick the setter into a lambda
 						null;
 					
 					OutputAppend(outputBuffer, "yield return new TwineLink(@\"{0}\", @\"{1}\", {2}, {3};",
@@ -211,7 +211,7 @@ namespace UnityTwine.Editor.StoryFormats
 			if (output == null || output.Trim().Length == 0)
 				output = "yield break;";
 
-			return output;
+			return new TwinePassageCode() { Main = output };
 		}
 
 		void OutputAppend(StringBuilder outputBuffer, string format, params object[] args)
@@ -244,7 +244,7 @@ namespace UnityTwine.Editor.StoryFormats
 			string parsed = rx_Vars.Replace(expression, varName =>
 			{
 				string val = varName.Groups[1].Value;
-				Importer.Vars[val] = null; // null because we don't need any value here, just using a dictionary as a lookup
+				Importer.RegisterVar(val);
 				return val;
 			});
 

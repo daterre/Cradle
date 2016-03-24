@@ -33,8 +33,13 @@ namespace UnityTwine.Editor
 			{
 				TwinePassageData passage = this.Passages[i];
 				passage.Tags = Regex.Replace(passage.Tags, @"([^\s]+)", "\"$&\",");
-				passage.Code = this.Parser.PassageToCode(passage).Split('\n');
+				passage.Code = this.Parser.PassageToCode(passage);
 			}
+		}
+
+		public void RegisterVar(string name)
+		{
+			Vars[name] = null; // null because we don't need any value here, just using a dictionary as a lookup
 		}
 	}
 }

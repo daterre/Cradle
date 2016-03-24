@@ -17,6 +17,19 @@ namespace UnityTwine.Editor
     {
 		static Regex NameSanitizer = new Regex(@"([^a-z0-9_]|^[0-9])", RegexOptions.IgnoreCase);
 
+		public class TemplatePassageData : TwinePassageData
+		{
+			public string[] Code;
+			public new TemplatePassageFragment[] Fragments;
+		}
+
+		public class TemplatePassageFragment
+		{
+			public string Pid;
+			public int FragId;
+			public string[] Code;
+		}
+
         static void OnPostprocessAllAssets (
             string[] importedAssets,
             string[] deletedAssets,
@@ -68,7 +81,18 @@ namespace UnityTwine.Editor
 						{"storyName", storyName},
 						{"timestamp", DateTime.Now.ToString("G")},
 						{"vars", importer.Vars.Keys},
-						{"passages", importer.Passages}
+						{"passages", importer.Passages.Select(p => new TemplatePassageData(){
+								Pid = p.Pid,
+								Name = p.Name,
+								Tags = p.Tags,
+								Code = p.Code.Main.Split('\n'),
+								Fragments = p.Code.Fragments.Select((frag,i) => new TemplatePassageFragment(){
+									Pid = p.Pid,
+									FragId = i,
+									Code = frag.Split('\n')
+								}).ToArray()
+							}).ToArray()
+						}
 					}
 				);
 
@@ -110,7 +134,7 @@ namespace UnityTwine.Editor
 								error.Line,
 								error.ErrorNumber,
 								error.ErrorText,
-								lines[error.Line - 1].Trim()
+								error.Line > 0 && error.Line < lines.Length ? lines[error.Line - 1].Trim() : null
 							);
 						}
 
@@ -121,7 +145,7 @@ namespace UnityTwine.Editor
 								errors
 							);
 							Debug.LogError(output);
-							return;
+							//return;
 						}
 					};
 				}

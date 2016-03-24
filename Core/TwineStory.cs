@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutput>;
 
 namespace UnityTwine
 {
@@ -282,8 +283,8 @@ namespace UnityTwine
 				throw new Exception(String.Format("Passage '{0}' does not exist.", pid));
 			return passage;
 		}
-			
-		IEnumerable<TwineOutput> ExecutePassage(TwinePassage passage)
+
+		ITwineThread ExecutePassage(TwinePassage passage)
         {
 			foreach(TwineOutput output in passage.Execute())
 			{
