@@ -30,7 +30,7 @@ namespace UnityTwine.Editor.Importers
 			{
 				Match m = matches[i];
 
-				// TODO: move this to SugarCube-related code
+				// Ignore images
 				if (m.Groups["tags"].Success && m.Groups["tags"].Value == "Twine.image")
 					continue;
 
@@ -44,7 +44,7 @@ namespace UnityTwine.Editor.Importers
 			}
 
 			// TODO: sniff story format
-			this.Parser = new SugarCubeParser(this);
+			this.Transcoder = new StoryFormats.Sugar.SugarTranscoder(this);
 		}
 	}
 }

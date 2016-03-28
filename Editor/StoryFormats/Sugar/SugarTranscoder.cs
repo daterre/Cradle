@@ -12,11 +12,11 @@ using System.Security.Cryptography;
 using UnityEngine;
 using System.Collections;
 
-namespace UnityTwine.Editor.StoryFormats
+namespace UnityTwine.Editor.StoryFormats.Sugar
 {
-	public class SugarCubeParser : TwineFormatParser
+	public class SugarTranscoder : TwineFormatTranscoder
 	{
-		public static Dictionary<string, SugarCubeMacro> MacroParsers = new Dictionary<string, SugarCubeMacro>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<string, CodeGenMacro> CodeGenMacros = new Dictionary<string, CodeGenMacro>(StringComparer.OrdinalIgnoreCase);
 
 		static Regex rx_PassageBody = new Regex(@"
 				(?'macro'
@@ -61,37 +61,37 @@ namespace UnityTwine.Editor.StoryFormats
 
 		static MD5 _md5 = MD5.Create();
 
-        static SugarCubeParser()
+        static SugarTranscoder()
         {
 			// Supported macros
-			MacroParsers["display"] = SugarCubeBuiltInMacros.Display;
-			MacroParsers["set"] = SugarCubeBuiltInMacros.Set;
-			MacroParsers["run"] = SugarCubeBuiltInMacros.Set;
-			MacroParsers["print"] = SugarCubeBuiltInMacros.Print;
-			MacroParsers["if"] = SugarCubeBuiltInMacros.IfElse;
-			MacroParsers["elseif"] = SugarCubeBuiltInMacros.IfElse;
-			MacroParsers["else"] = SugarCubeBuiltInMacros.IfElse;
-			MacroParsers["endif"] = SugarCubeBuiltInMacros.IfElse;
+			CodeGenMacros["display"] = BuiltInCodeGenMacros.Display;
+			CodeGenMacros["set"] = BuiltInCodeGenMacros.Set;
+			CodeGenMacros["run"] = BuiltInCodeGenMacros.Set;
+			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
+			CodeGenMacros["if"] = BuiltInCodeGenMacros.Conditional;
+			CodeGenMacros["elseif"] = BuiltInCodeGenMacros.Conditional;
+			CodeGenMacros["else"] = BuiltInCodeGenMacros.Conditional;
+			CodeGenMacros["endif"] = BuiltInCodeGenMacros.Conditional;
 
 			// TODO:
-			MacroParsers["silently"] = null;
-			MacroParsers["/silently"] = null;
-			MacroParsers["endsilently"] = null;
-			MacroParsers["nobr"] = null;
-			MacroParsers["/nobr"] = null;
-			MacroParsers["endnobr"] = null;
-			MacroParsers["script"] = null;
-			MacroParsers["/script"] = null;
-			MacroParsers["endscript"] = null;
+			CodeGenMacros["silently"] = null;
+			CodeGenMacros["/silently"] = null;
+			CodeGenMacros["endsilently"] = null;
+			CodeGenMacros["nobr"] = null;
+			CodeGenMacros["/nobr"] = null;
+			CodeGenMacros["endnobr"] = null;
+			CodeGenMacros["script"] = null;
+			CodeGenMacros["/script"] = null;
+			CodeGenMacros["endscript"] = null;
 
 			// Unsupported macros. Recognize them but don't output anything
 			
-			MacroParsers["remember"] = null;
-			MacroParsers["actions"] = null;
-			MacroParsers["choice"] = null;
+			CodeGenMacros["remember"] = null;
+			CodeGenMacros["actions"] = null;
+			CodeGenMacros["choice"] = null;
         }
 
-		public SugarCubeParser(TwineImporter importer): base(importer)
+		public SugarTranscoder(TwineImporter importer): base(importer)
 		{
 		}
 
@@ -135,22 +135,22 @@ namespace UnityTwine.Editor.StoryFormats
 					// MACRO
 
 					string macroName = null;
-					SugarCubeMacro parseMacro;
+					CodeGenMacro parseMacro;
 					if (match.Groups["macroName"].Success)
 					{
 						macroName = match.Groups["macroName"].Value;
-						if (!MacroParsers.TryGetValue(macroName, out parseMacro))
-							parseMacro = SugarCubeBuiltInMacros.DisplayShorthand;
+						if (!CodeGenMacros.TryGetValue(macroName, out parseMacro))
+							parseMacro = BuiltInCodeGenMacros.DisplayShorthand;
 					}
 					else
 					{
-						parseMacro = SugarCubeBuiltInMacros.Print;
+						parseMacro = BuiltInCodeGenMacros.Print;
 					}
 
 					if (parseMacro != null)
 					{
 						// Get macro output from macro function. Includes indentation instructions
-						SugarCubeMacroOutput macroOutput = parseMacro(this, macroName,
+						CodeGenMacroOutput macroOutput = parseMacro(this, macroName,
 							match.Groups["macroArg"].Success ? match.Groups["macroArg"].Value : null
 						);
 

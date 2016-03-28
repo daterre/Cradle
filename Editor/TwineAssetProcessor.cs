@@ -67,7 +67,20 @@ namespace UnityTwine.Editor
 				// STEP 2: Load and parse
 
 				importer.Load();
-				importer.Parse();
+
+				try
+				{
+					importer.Transcode();
+				}
+				catch(TwineTranscodingException ex)
+				{
+					Debug.LogErrorFormat("Transcoding failed: {0} (passage: {1})", ex.Message, ex.Passage);
+				}
+				catch(Exception ex)
+				{
+					Debug.LogException(ex);
+					return;
+				}
 
 				// ======================================
 				// STEP 3: Generate code
@@ -79,6 +92,7 @@ namespace UnityTwine.Editor
 					{
 						{"originalFile", Path.GetFileName(assetPath)},
 						{"storyName", storyName},
+						{"runtimeMacrosClass", importer.Transcoder.RuntimeMacrosClassName},
 						{"timestamp", DateTime.Now.ToString("G")},
 						{"vars", importer.Vars.Keys},
 						{"passages", importer.Passages.Select(p => new TemplatePassageData(){
@@ -144,7 +158,7 @@ namespace UnityTwine.Editor
 								Path.GetFileName(assetPath),
 								errors
 							);
-							Debug.LogError(output);
+							//Debug.LogError(output);
 							//return;
 						}
 					};

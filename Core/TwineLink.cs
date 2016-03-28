@@ -13,26 +13,26 @@ namespace UnityTwine
 		public Func<ITwineThread> Action;
 
 		[System.Obsolete]
-		public TwineLink(string name, string text, string passageID, Func<ITwineThread> action, string unused) :
-			this(name,text, passageID, action)
+		public TwineLink(string name, string text, string passageName, Func<ITwineThread> action, string unused) :
+			this(name,text, passageName, action)
 		{
 		}
 
-		public TwineLink(string name, string text, string passageID, Func<ITwineThread> action)
+		public TwineLink(string name, string text, string passageName, Func<ITwineThread> action)
         {
 			this.Name = name;
             this.Text = text;
-            this.PassageName = passageID;
+            this.PassageName = passageName;
 			this.Action = action;
         }
 
-		public TwineLink(string name, string text, string passageID):
-			this(name, text, passageID, null)
+		public TwineLink(string name, string text, string passageName):
+			this(name, text, passageName, null)
 		{
 		}
 
-		public TwineLink(string text, string passageID) :
-			this(text, text, passageID, null)
+		public TwineLink(string text, string passageName) :
+			this(text, text, passageName, null)
 		{
 		}
 

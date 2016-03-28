@@ -4,31 +4,31 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace UnityTwine.Editor.StoryFormats
+namespace UnityTwine.Editor.StoryFormats.Sugar
 {
-	public delegate SugarCubeMacroOutput SugarCubeMacro(SugarCubeParser parser, string macro, string argument);
+	public delegate CodeGenMacroOutput CodeGenMacro(SugarTranscoder parser, string macro, string argument);
 
-	public struct SugarCubeMacroOutput
+	public struct CodeGenMacroOutput
 	{
 		public int IndentChangeBefore;
 		public int IndentChangeAfter;
 		public string Code;
 
-		public SugarCubeMacroOutput(string code, int indentChangeBefore = 0, int indentChangeAfter = 0)
+		public CodeGenMacroOutput(string code, int indentChangeBefore = 0, int indentChangeAfter = 0)
 		{
 			this.IndentChangeBefore = indentChangeBefore;
 			this.IndentChangeAfter = indentChangeAfter;
 			this.Code = code;
 		}
 
-		public static implicit operator SugarCubeMacroOutput(string code)
+		public static implicit operator CodeGenMacroOutput(string code)
 		{
-			return new SugarCubeMacroOutput(code);
+			return new CodeGenMacroOutput(code);
 		}
 		
 	}
 
-	public static class SugarCubeBuiltInMacros
+	public static class BuiltInCodeGenMacros
 	{
 		static Regex rx_params = new Regex("\"([^\"]*)\"|'([^']*)'|([^\\s]+)");
 
@@ -47,20 +47,20 @@ namespace UnityTwine.Editor.StoryFormats
 		}
 
 		// ......................
-		public static SugarCubeMacro Set = (parser, macro, argument) =>
+		public static CodeGenMacro Set = (parser, macro, argument) =>
 		{
 			return string.Format("{0};", parser.ParseVars(argument));
 		};
 
 		// ......................
-		public static SugarCubeMacro Display = (parser, macro, argument) =>
+		public static CodeGenMacro Display = (parser, macro, argument) =>
 		{
 			return string.Format("yield return new TwineDisplay({0});", parser.ParseVars(argument));
 		};
 		
 		// ......................
 
-		public static SugarCubeMacro DisplayShorthand = (parser, macro, argument) =>
+		public static CodeGenMacro DisplayShorthand = (parser, macro, argument) =>
 		{
 			string passageExpr = parser.ParseVars(macro);
 			string args = argument != null ? parser.ParseVars(argument) : null;
@@ -69,16 +69,16 @@ namespace UnityTwine.Editor.StoryFormats
 			return string.Format("yield return new TwineDisplay(\"{0}\"{1});", passageExpr, args);
 		};
 		// ......................
-		public static SugarCubeMacro Print = (parser, macro, argument) =>
+		public static CodeGenMacro Print = (parser, macro, argument) =>
 		{
 			return string.Format("yield return new TwineText({0});", parser.ParseVars(argument));
 		};
 		
 		// ......................
 		
-		public static SugarCubeMacro IfElse = (parser, macro, argument) =>
+		public static CodeGenMacro Conditional = (parser, macro, argument) =>
 		{
-			SugarCubeMacroOutput logic;
+			CodeGenMacroOutput logic;
 			bool format = false;
 
 			switch (macro)
@@ -105,7 +105,7 @@ namespace UnityTwine.Editor.StoryFormats
 					logic.IndentChangeBefore = -1;
 					break;
 				default:
-					throw new FormatException("SugarCubeMacroIfElse doesn't support " + macro);
+					throw new FormatException("Conditional macro doesn't support " + macro);
 			}
 
 			if (format)

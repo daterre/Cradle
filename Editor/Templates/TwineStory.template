@@ -10,21 +10,21 @@ using UnityEngine;
 using UnityTwine;
 using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutput>;
 
-public class @{{storyName}}: TwineStory
+public partial class @{{storyName}}: TwineStory
 {
 	{{#vars}}
 	public TwineVar {{.}};
 	{{/vars}}
 
-	string[] _varNames = new string[] {
-	{{#vars}}
-		"{{.}}",
-	{{/vars}}
-	};
+	Macros _macros;
+	string[] _varNames;
 
 	public override string[] VarNames
 	{
 		get { return _varNames; }
+	}
+
+	public partial class Macros: {{runtimeMacrosClass}} {
 	}
 
 	public override TwineVar this[string name]
@@ -50,6 +50,16 @@ public class @{{storyName}}: TwineStory
 			}
 		}
 	}
+
+	@{{storyName}}()
+	{
+		_macros = new Macros() { Story = this };
+		_varNames= new string[] {
+		{{#vars}}
+			"{{.}}",
+		{{/vars}}
+		};
+	}
 	
 	void Awake() {
 		base.Init();
@@ -64,10 +74,10 @@ public class @{{storyName}}: TwineStory
 
 	void passage{{Pid}}_Init()
 	{
-		this.Passages["{{Name}}"] = new TwinePassage("{{Name}}", new string[]{ {{& Tags}} }, passage{{Pid}}_Execute);
+		this.Passages["{{Name}}"] = new TwinePassage("{{Name}}", new string[]{ {{& Tags}} }, passage{{Pid}}_Main);
 	}
 
-	ITwineThread passage{{Pid}}_Execute()
+	ITwineThread passage{{Pid}}_Main()
 	{
 		{{#Code}}
 		{{& .}}

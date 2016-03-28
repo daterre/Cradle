@@ -1,19 +1,40 @@
 require(['markup', 'utils'], function(TwineMarkup, utils){
 	"use strict";
 
-	function simplify(tokens) {
+	function simplify(tokens, collapsed) {
 		var result = [];
 		for (var i = 0; i < tokens.length; i++) {
 			var complex = tokens[i];
-			//if (complex.type === "whitespace")
-			//	continue;
+			
+			// special cases
+			switch(complex.type) {
+				case "twineLink": {
+					// Desugar links
+					complex = TwineMarkup.lex("(link-goto:"
+						+ utils.toJSLiteral(complex.innerText) + ","
+						+ utils.toJSLiteral(complex.passage) + ")"
+					);
+				}
+
+				case "collapsed": {
+					// Continue by skipping children
+					result = result.concat(simplify(complex.children, true));
+					continue;
+				}
+
+				case "br": {
+					// Skip line breaks when collapsed
+					if (collapsed)
+						continue;
+				}
+			}
 
 			var simple = {type: complex.type};
 
 			if (complex.children && complex.children.length && complex.type !== 'string')
-				simple.tokens = simplify(complex.children);
+				simple.tokens = simplify(complex.children, collapsed);
 			if (complex.text)
-				simple.text = complex.text;
+				simple.text = $('<div/>').html(complex.text).text();
 			if (complex.innerText)
 				simple.innerText = complex.innerText;
 			if (complex.value)

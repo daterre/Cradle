@@ -20,7 +20,7 @@ namespace UnityTwine.Editor.Importers
 		public override void Load()
 		{
 			// TODO: sniff story format
-			this.Parser = new HarloweParser(this);
+			this.Transcoder = new HarloweTranscoder(this);
 		}
 	}
 }
