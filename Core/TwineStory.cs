@@ -28,7 +28,8 @@ namespace UnityTwine
 
 		protected Dictionary<string, TwinePassage> Passages { get; private set; }
 		TwineStoryState _state = TwineStoryState.Idle;
-		IEnumerator<TwineOutput> _passageExecutor = null;
+		IEnumerator<TwineOutput> _currentThread = null;
+		ThreadResult _lastThreadResult = ThreadResult.Done;
 		Hook[] _passageUpdateHooks = null;
 		string _passageWaitingToEnter = null;
 		Dictionary<string, List<Hook>> _hookCache = new Dictionary<string, List<Hook>>();
@@ -42,6 +43,13 @@ namespace UnityTwine
 		{
 			public MonoBehaviour target;
 			public MethodInfo method;
+		}
+
+		private enum ThreadResult
+		{
+			InProgress = 0,
+			Done = 1,
+			Aborted = 2
 		}
 
 		public TwineStory()
@@ -89,24 +97,27 @@ namespace UnityTwine
 
 		public void Reset()
 		{
-			if (this.State != TwineStoryState.Idle && this.State != TwineStoryState.Complete)
-				throw new InvalidOperationException("Can only reset a story that is Idle or Complete.");
+			if (this.State != TwineStoryState.Idle)
+				throw new InvalidOperationException("Can only reset a story that is Idle.");
 
 			// Reset twine vars
-			// TODO: don't use reflection, dummy. We need to code generate a dictionary of variables and use that
-			FieldInfo[] fields = this.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-			for (int i = 0; i < fields.Length; i++)
-				if (fields[i].FieldType == typeof(TwineVar))
-					fields[i].SetValue(this, default(TwineVar));
+			for (int i = 0; i < this.VarNames.Length; i++)
+				this[this.VarNames[i]] = default(TwineVar);
 
 			this.Init();
 		}
 
+		/// <summary>
+		/// Begins the story by calling GoTo(StartPassage).
+		/// </summary>
 		public void Begin()
 		{
 			GoTo(StartPassage);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public void GoTo(string passageName)
 		{
 			if (this.State != TwineStoryState.Idle)
@@ -138,58 +149,8 @@ namespace UnityTwine
 				Enter(passageName);
 		}
 
-		void Enter(string passageName)
-		{
-			_passageWaitingToEnter = null;
-
-			this.Output.Clear();
-			this.Text.Clear();
-			this.Links.Clear();
-			this.PassageParameters = null;
-			_passageUpdateHooks = null;
-
-			TwinePassage passage = GetPassage(passageName);
-			this.Tags = (string[]) passage.Tags.Clone();
-			this.PreviousPassageName = this.CurrentPassageName;
-			this.CurrentPassageName = passage.Name;
-			
-			// Update visited counters for passages and tags
-			int visitedPassage;
-			if (!_visitedCountPassages.TryGetValue(passageName, out visitedPassage))
-				visitedPassage = 0;
-			_visitedCountPassages[passageName] = visitedPassage+1;
-
-			for (int i = 0; i < passage.Tags.Length; i++)
-			{
-				string tag = passage.Tags[i];
-				int visitedTag;
-				if (!_visitedCountTags.TryGetValue(tag, out visitedTag))
-					visitedTag = 0;
-				_visitedCountTags[tag] = visitedTag+1;
-			}
-
-			// Add output (and trigger hooks)
-			this.Output.Add(passage);
-
-			// Prepare the enumerator
-			_passageExecutor = ExecutePassage(passage).GetEnumerator();
-			
-			// Get update hooks for calling during update
-			_passageUpdateHooks = HooksFind("Update", reverse: false, allowCoroutines: false).ToArray();
-
-			this.State = TwineStoryState.Playing;
-			SendOutput(passage);
-			HooksInvoke(HooksFind("Enter", maxLevels: 1));
-
-			// Story was paused, wait for it to resume
-			if (this.State == TwineStoryState.Paused)
-				return;
-			else
-				Execute();
-		}
-
 		/// <summary>
-		/// While the story is playing, pauses the execution of the current passage.
+		/// While the story is playing, pauses the execution of the current story thread.
 		/// </summary>
 		public void Pause()
 		{
@@ -199,6 +160,9 @@ namespace UnityTwine
 			this.State = TwineStoryState.Paused;
 		}
 
+		/// <summary>
+		/// When the story is paused, resumes execution of the current story thread.
+		/// </summary>
 		public void Resume()
 		{
 			if (this.State != TwineStoryState.Paused)
@@ -221,18 +185,88 @@ namespace UnityTwine
 			}
 			else {
 				this.State = TwineStoryState.Playing;
-				Execute();
+				ExecuteCurrentThread();
+			}
+		}
+
+		TwinePassage GetPassage(string passageName)
+		{
+			TwinePassage passage;
+			if (!Passages.TryGetValue(passageName, out passage))
+				throw new Exception(String.Format("Passage '{0}' does not exist.", passageName));
+			return passage;
+		}
+
+		void Enter(string passageName)
+		{
+			_passageWaitingToEnter = null;
+
+			this.Output.Clear();
+			this.Text.Clear();
+			this.Links.Clear();
+			this.PassageParameters = null;
+			_passageUpdateHooks = null;
+
+			TwinePassage passage = GetPassage(passageName);
+			this.Tags = (string[])passage.Tags.Clone();
+			this.PreviousPassageName = this.CurrentPassageName;
+			this.CurrentPassageName = passage.Name;
+
+			// Update visited counters for passages and tags
+			int visitedPassage;
+			if (!_visitedCountPassages.TryGetValue(passageName, out visitedPassage))
+				visitedPassage = 0;
+			_visitedCountPassages[passageName] = visitedPassage + 1;
+
+			for (int i = 0; i < passage.Tags.Length; i++)
+			{
+				string tag = passage.Tags[i];
+				int visitedTag;
+				if (!_visitedCountTags.TryGetValue(tag, out visitedTag))
+					visitedTag = 0;
+				_visitedCountTags[tag] = visitedTag + 1;
+			}
+
+			// Add output (and trigger hooks)
+			this.Output.Add(passage);
+
+			// Get update hooks for calling during update
+			_passageUpdateHooks = HooksFind("Update", reverse: false, allowCoroutines: false).ToArray();
+
+			// Prepare the thread enumerator
+			_currentThread = CollapseThread(passage.GetMainThread()).GetEnumerator();
+
+			this.State = TwineStoryState.Playing;
+			SendOutput(passage);
+			HooksInvoke(HooksFind("Enter", maxLevels: 1));
+
+			// Story was paused, wait for it to resume
+			if (this.State == TwineStoryState.Paused)
+				return;
+			else
+			{
+				ExecuteCurrentThread();
 			}
 		}
 
 		/// <summary>
-		/// Resumes a story that was paused.
+		/// Executes the current thread by advancing its enumerator, sending its output and invoking hooks.
 		/// </summary>
-		void Execute()
+		void ExecuteCurrentThread()
 		{
-			while (_passageExecutor.MoveNext())
+			TwineAbort aborted = null;
+
+			while (_currentThread.MoveNext())
 			{
-				TwineOutput output = _passageExecutor.Current;
+				TwineOutput output = _currentThread.Current;
+
+				// Abort this thread
+				if (output is TwineAbort)
+				{
+					aborted = (TwineAbort) output;
+					break;
+				}
+
 				this.Output.Add(output);
 
 				if (output is TwineLink)
@@ -262,95 +296,112 @@ namespace UnityTwine
 
 				// Story was paused, wait for it to resume
 				if (this.State == TwineStoryState.Paused)
+				{
+					_lastThreadResult = ThreadResult.InProgress;
 					return;
+				}
 			}
 
-			_passageExecutor.Dispose();
-			_passageExecutor = null;
+			_currentThread.Dispose();
+			_currentThread = null;
 
-			this.State = this.Links.Count > 0 ?
-				TwineStoryState.Idle :
-				TwineStoryState.Complete;
+			this.State = TwineStoryState.Idle;
 
-			HooksInvoke(HooksFind("Done"));
-		}
-
-		TwinePassage GetPassage(string passageName)
-		{
-			string pid = passageName;
-			TwinePassage passage;
-			if (!Passages.TryGetValue(pid, out passage))
-				throw new Exception(String.Format("Passage '{0}' does not exist.", pid));
-			return passage;
-		}
-
-		ITwineThread ExecutePassage(TwinePassage passage)
-        {
-			foreach(TwineOutput output in passage.Execute())
+			// Return the appropriate result
+			if (aborted != null)
 			{
-                if (output is TwineDisplay)
+				HooksInvoke(HooksFind("Aborted"));
+				if (aborted.GoToPassage != null)
+					this.GoTo(aborted.GoToPassage);
+
+				_lastThreadResult = ThreadResult.Aborted;
+			}
+			else
+			{
+				HooksInvoke(HooksFind("Done"));
+				_lastThreadResult = ThreadResult.Done;
+			}
+		}
+
+		/// <summary>
+		/// Invokes and bubbles up output of inner passages (display).
+		/// </summary>
+		ITwineThread CollapseThread(ITwineThread thread)
+		{
+			foreach (TwineOutput output in thread)
+			{
+				if (output is TwineDisplay)
 				{
 					yield return output;
-                    var display = (TwineDisplay) output;
+					var display = (TwineDisplay)output;
 					var displayParams = (TwineVar[])display.Parameters.Clone();
 					this.PassageParameters = displayParams;
-					
+
 					TwinePassage displayPassage = GetPassage(display.PassageName);
 					yield return displayPassage;
-					foreach (TwineOutput innerOutput in ExecutePassage(displayPassage))
+					foreach (TwineOutput innerOutput in CollapseThread(displayPassage.GetMainThread()))
 					{
 						yield return innerOutput;
 						this.PassageParameters = displayParams; // do this again because inner display macros can override this
 					}
 					PassageParameters = null;
-                }
-                else
-                    yield return output;
-            }
-        }
+				}
+				else
+					yield return output;
+			}
+		}
 
 		void SendOutput(TwineOutput output)
 		{
 			if (OnOutput != null)
 				OnOutput(output);
-
 		}
 		
 		// ---------------------------------
 		// Links
 
-		[Obsolete("Use DoLink instead.")]
-		public void Advance(TwineLink link)
-		{
-			DoLink (link);
-		}
-
 		public void DoLink(TwineLink link)
 		{
+			if (this.State != TwineStoryState.Idle)
+			{
+				throw new InvalidOperationException(
+					// Paused
+					this.State == TwineStoryState.Paused ?
+						"The story is currently paused. Resume() must be called before a link can be done." :
+					// Playing
+					this.State == TwineStoryState.Playing || this.State == TwineStoryState.Exiting ?
+						"The story can only be advanced when it is in the Idle state." :
+					// Complete
+						"The story is complete. Reset() must be called before it can be played again."
+					);
+			}
+
+			// Process the link action before continuing
 			if (link.Action != null)
-				link.Action.Invoke();
+			{
+				// Action might invoke a fragment, in which case we need to process it with hooks etc.
+				ITwineThread fragmentThread = link.Action.Invoke();
+				if (fragmentThread != null)
+				{
+					// Prepare the fragment thread enumerator
+					_currentThread = CollapseThread(fragmentThread).GetEnumerator();
 
-			_turns++;
+					// Resume story, this time with the fragment thread
+					Resume();
+				}
+			}
 
-			if (link.PassageName != null)
+			// Continue to the link passage only if a fragment thread wasn't aborted or left running
+			if (link.PassageName != null && _lastThreadResult == ThreadResult.Done)
+			{
+				_turns++;
 				GoTo(link.PassageName);
-		}
-
-		[Obsolete("Use DoLink instead.")]
-		public void Advance(int linkIndex)
-		{
-			DoLink (linkIndex);
+			}
 		}
 
 		public void DoLink(int linkIndex)
 		{
 			DoLink(this.Links[linkIndex]);
-		}
-
-		[Obsolete("Use DoLink instead.")]
-		public void Advance(string linkName)
-		{
-			DoLink (linkName);
 		}
 
 		public void DoLink(string linkName)
@@ -374,6 +425,23 @@ namespace UnityTwine
 			return link != null;
 		}
 
+		[Obsolete("Use DoLink instead.")]
+		public void Advance(TwineLink link)
+		{
+			DoLink(link);
+		}
+
+		[Obsolete("Use DoLink instead.")]
+		public void Advance(int linkIndex)
+		{
+			DoLink(linkIndex);
+		}
+
+		[Obsolete("Use DoLink instead.")]
+		public void Advance(string linkName)
+		{
+			DoLink(linkName);
+		}
 
 		// ---------------------------------
 		// Hooks

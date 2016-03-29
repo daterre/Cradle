@@ -4,7 +4,7 @@ using System.Text;
 
 namespace UnityTwine.Editor.Utils
 {
-	public static class CodeGen
+	public static class CodeGenUtils
 	{
 		public static string Indent(int num, StringBuilder buffer = null)
 		{

@@ -207,8 +207,12 @@ namespace UnityTwine
 
 		public int ToInt()
 		{
-			if (this.value is int || this.value is double) {
+			if (this.value is int) {
 				return (int) this.value;
+			}
+			else if (this.value is double)
+			{
+				return Convert.ToInt32((double)this.value);
 			}
 			else if (this.value is string) {
 				int parsed;

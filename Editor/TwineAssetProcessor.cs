@@ -60,26 +60,26 @@ namespace UnityTwine.Editor
 				if (storyName != fileName)
 				{
 					Debug.LogErrorFormat("UnityTwine cannot import the story because \"{0}\" is not a valid Unity script name.", fileName);
-					return;
+					continue;
 				}
 
 				// ======================================
-				// STEP 2: Load and parse
-
-				importer.Load();
+				// STEP 2: Load and transcode
 
 				try
 				{
+					importer.Load();
 					importer.Transcode();
 				}
 				catch(TwineTranscodingException ex)
 				{
 					Debug.LogErrorFormat("Transcoding failed: {0} (passage: {1})", ex.Message, ex.Passage);
+					continue;
 				}
 				catch(Exception ex)
 				{
 					Debug.LogException(ex);
-					return;
+					continue;
 				}
 
 				// ======================================
@@ -159,14 +159,14 @@ namespace UnityTwine.Editor
 								errors
 							);
 							//Debug.LogError(output);
-							//return;
+							continue;
 						}
 					};
 				}
 				catch (Exception ex)
 				{
 					Debug.LogError(ex);
-					return;
+					continue;
 				}
 
 				// Passed syntax check, save to file
@@ -178,7 +178,7 @@ namespace UnityTwine.Editor
 				catch (Exception ex)
 				{
 					Debug.LogError(ex);
-					return;
+					continue;
 				}
 
 				// Need to do it twice - on the second time it compiles the script

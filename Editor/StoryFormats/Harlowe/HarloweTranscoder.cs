@@ -40,6 +40,8 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["linkreveal"] =
 			CodeGenMacros["linkrepeat"] = BuiltInCodeGenMacros.Link;
 
+			CodeGenMacros["goto"] = BuiltInCodeGenMacros.GoTo;
+
 			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
 		}
 
@@ -246,7 +248,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 		public void Indent()
 		{
-			Utils.CodeGen.Indent(Indentation, Buffer);
+			Utils.CodeGenUtils.Indent(Indentation, Buffer);
 		}
 	}
 }

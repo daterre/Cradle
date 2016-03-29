@@ -148,6 +148,19 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		};
 
 		// ......................
+		public static CodeGenMacro GoTo = (transcoder, tokens, tokenIndex, usage) =>
+		{
+			if (usage == MacroUsage.Inline)
+				throw new TwineTranscodingException("GoTo macro cannot be used inside another macro");
+
+			transcoder.Code.Buffer.Append("yield return new TwineAbort(goToPassage: ");
+			transcoder.GenerateExpression(tokens[tokenIndex].tokens, 1);
+			transcoder.Code.Buffer.AppendLine(");");
+
+			return tokenIndex;
+		};
+
+		// ......................
 		public static CodeGenMacro Print = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			if (usage != MacroUsage.Inline)

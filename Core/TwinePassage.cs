@@ -8,13 +8,13 @@ namespace UnityTwine
     public class TwinePassage: TwineOutput
     {
         public string[] Tags;
-		internal Func<ITwineThread> Execute;
+		internal Func<ITwineThread> GetMainThread;
 
-		public TwinePassage(string name, string[] tags, Func<ITwineThread> execute)
+		public TwinePassage(string name, string[] tags, Func<ITwineThread> mainThread)
         {
             this.Name = name;
             this.Tags = tags;
-            this.Execute = execute;
+            this.GetMainThread = mainThread;
         }
     }
 }

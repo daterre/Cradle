@@ -188,7 +188,7 @@ namespace UnityTwine.Editor.StoryFormats.Sugar
 						string.Format("() =>{{ {0}; return null; }}", ParseVars(match.Groups["linkSetter"].Value)) : // stick the setter into a lambda
 						null;
 					
-					OutputAppend(outputBuffer, "yield return new TwineLink(@\"{0}\", @\"{1}\", {2}, {3};",
+					OutputAppend(outputBuffer, "yield return new TwineLink(@\"{0}\", @\"{1}\", {2}, {3});",
 						name.Replace("\"", "\"\""),
 						text.Replace("\"", "\"\""),
 						linkTarget.IndexOf('(') >= 1 ? linkTarget : string.Format("@\"{0}\"", linkTarget.Replace("\"", "\"\"")), // if a peren is present, treat as a function
