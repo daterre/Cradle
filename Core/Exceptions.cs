@@ -13,4 +13,16 @@ namespace UnityTwine
 		  System.Runtime.Serialization.StreamingContext context)
 			: base(info, context) { }
 	}
+
+	[Serializable]
+	public class TwineStrictModeException : TwineException
+	{
+		public TwineStrictModeException() { }
+		public TwineStrictModeException(string message) : base(message) { }
+		public TwineStrictModeException(string message, Exception inner) : base(message, inner) { }
+		protected TwineStrictModeException(
+		  System.Runtime.Serialization.SerializationInfo info,
+		  System.Runtime.Serialization.StreamingContext context)
+			: base(info, context) { }
+	}
 }

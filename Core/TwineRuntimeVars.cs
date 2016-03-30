@@ -62,7 +62,7 @@ namespace UnityTwine
 				if (StrictMode && value.value != null)
 				{
 					if (prevValue.value != null && !prevValue.value.GetType().IsAssignableFrom(value.value.GetType()))
-						throw new TwineException(string.Format("Strict mode: the variable '{0}' was previously assigned a value of type {1}, and so cannot be assigned a value of type {2}.",
+						throw new TwineStrictModeException(string.Format("The variable '{0}' was previously assigned a value of type {1}, and so cannot be assigned a value of type {2}.",
 							varName,
 							prevValue.value.GetType().Name,
 							value.value.GetType().Name
