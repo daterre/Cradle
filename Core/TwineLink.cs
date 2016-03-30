@@ -20,7 +20,7 @@ namespace UnityTwine
 
 		public TwineLink(string name, string text, string passageName, Func<ITwineThread> action)
         {
-			this.Name = name;
+			this.Name = name ?? text;
             this.Text = text;
             this.PassageName = passageName;
 			this.Action = action;

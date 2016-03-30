@@ -23,12 +23,15 @@ namespace UnityTwine
 		public List<TwineOutput> Output { get; private set; }
 		public TwineVar[] PassageParameters { get; private set; }
 		public string[] Tags { get; private set; }
+		public TwineRuntimeVars Vars { get; protected set; }
 		public string CurrentPassageName { get; private set; }
+		
 		public string PreviousPassageName { get; private set; }
 
 		protected Dictionary<string, TwinePassage> Passages { get; private set; }
 		TwineStoryState _state = TwineStoryState.Idle;
 		IEnumerator<TwineOutput> _currentThread = null;
+		TwineLink _currentLinkInAction = null;
 		ThreadResult _lastThreadResult = ThreadResult.Done;
 		Hook[] _passageUpdateHooks = null;
 		string _passageWaitingToEnter = null;
@@ -101,8 +104,8 @@ namespace UnityTwine
 				throw new InvalidOperationException("Can only reset a story that is Idle.");
 
 			// Reset twine vars
-			for (int i = 0; i < this.VarNames.Length; i++)
-				this[this.VarNames[i]] = default(TwineVar);
+			if (Vars != null)
+				Vars.Reset();
 
 			this.Init();
 		}
@@ -193,7 +196,7 @@ namespace UnityTwine
 		{
 			TwinePassage passage;
 			if (!Passages.TryGetValue(passageName, out passage))
-				throw new Exception(String.Format("Passage '{0}' does not exist.", passageName));
+				throw new TwineException(String.Format("Passage '{0}' does not exist.", passageName));
 			return passage;
 		}
 
@@ -235,6 +238,7 @@ namespace UnityTwine
 
 			// Prepare the thread enumerator
 			_currentThread = CollapseThread(passage.GetMainThread()).GetEnumerator();
+			_currentLinkInAction = null;
 
 			this.State = TwineStoryState.Playing;
 			SendOutput(passage);
@@ -318,9 +322,16 @@ namespace UnityTwine
 			}
 			else
 			{
-				HooksInvoke(HooksFind("Done"));
+				// Invoke the done hook - either for main or for a link
+				if (_currentLinkInAction == null)
+					HooksInvoke(HooksFind("Done"));
+				else
+					HooksInvoke(HooksFind("ActionDone"), _currentLinkInAction);
+
 				_lastThreadResult = ThreadResult.Done;
 			}
+
+			_currentLinkInAction = null;
 		}
 
 		/// <summary>
@@ -367,10 +378,10 @@ namespace UnityTwine
 				throw new InvalidOperationException(
 					// Paused
 					this.State == TwineStoryState.Paused ?
-						"The story is currently paused. Resume() must be called before a link can be done." :
+						"The story is currently paused. Resume() must be called before a link can be used." :
 					// Playing
 					this.State == TwineStoryState.Playing || this.State == TwineStoryState.Exiting ?
-						"The story can only be advanced when it is in the Idle state." :
+						"A link can be used only when the story is in the Idle state." :
 					// Complete
 						"The story is complete. Reset() must be called before it can be played again."
 					);
@@ -379,19 +390,22 @@ namespace UnityTwine
 			// Process the link action before continuing
 			if (link.Action != null)
 			{
-				// Action might invoke a fragment, in which case we need to process it with hooks etc.
-				ITwineThread fragmentThread = link.Action.Invoke();
-				if (fragmentThread != null)
+				// Action might invoke a fragment method, in which case we need to process it with hooks etc.
+				ITwineThread linkActionThread = link.Action.Invoke();
+				if (linkActionThread != null)
 				{
 					// Prepare the fragment thread enumerator
-					_currentThread = CollapseThread(fragmentThread).GetEnumerator();
+					_currentThread = CollapseThread(linkActionThread).GetEnumerator();
+					_currentLinkInAction = link;
 
-					// Resume story, this time with the fragment thread
-					Resume();
+					// Resume story, this time with the actoin thread
+					this.State = TwineStoryState.Playing;
+
+					ExecuteCurrentThread();
 				}
 			}
 
-			// Continue to the link passage only if a fragment thread wasn't aborted or left running
+			// Continue to the link passage only if a fragment thread (opened by the action) isn't in progress
 			if (link.PassageName != null && _lastThreadResult == ThreadResult.Done)
 			{
 				_turns++;
@@ -406,23 +420,25 @@ namespace UnityTwine
 
 		public void DoLink(string linkName)
 		{
-			TwineLink link = this.Links
-				.Where(lnk => string.Equals(lnk.Name, linkName, System.StringComparison.OrdinalIgnoreCase))
-				.FirstOrDefault();
-
-			if (link == null)
-				throw new KeyNotFoundException(string.Format("There is no available link with the name '{0}'.", linkName));
-
+			TwineLink link = GetLink(linkName, true);
 			DoLink(link);
 		}
 
 		public bool HasLink(string linkName)
 		{
+			return GetLink(linkName) != null;
+		}
+
+		public TwineLink GetLink(string linkName, bool throwException = false)
+		{
 			TwineLink link = this.Links
 				.Where(lnk => string.Equals(lnk.Name, linkName, System.StringComparison.OrdinalIgnoreCase))
 				.FirstOrDefault();
 
-			return link != null;
+			if (link == null && throwException)
+				throw new TwineException(string.Format("There is no available link with the name '{0}'.", linkName));
+
+			return link;
 		}
 
 		[Obsolete("Use DoLink instead.")]
@@ -506,7 +522,16 @@ namespace UnityTwine
 
 		void HookInvoke(Hook hook, object[] args)
 		{
-			var result = hook.method.Invoke(hook.target, args);
+			object result = null;
+			try { result = hook.method.Invoke(hook.target, args); }
+			catch(TargetParameterCountException)
+			{
+				Debug.LogErrorFormat("The hook {0} doesn't have the right parameters so it is being ignored.",
+					hook.method.Name
+				);
+				return;
+			}
+
 			if (result is IEnumerator)
 				StartCoroutine(((IEnumerator)result));
 		}
@@ -595,19 +620,6 @@ namespace UnityTwine
 			_hookTargets = null;
 		}
 
-		// ---------------------------------
-		// Variables
-
-		public abstract TwineVar this[string name]
-		{
-			get;
-			set;
-		}
-
-		public abstract string[] VarNames
-		{
-			get;
-		}
 
 		// ---------------------------------
 		// Functions

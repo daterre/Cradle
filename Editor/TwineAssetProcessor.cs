@@ -85,16 +85,21 @@ namespace UnityTwine.Editor
 				// ======================================
 				// STEP 3: Generate code
 
+				StoryFormatMetadata storyFormatMetadata = importer.Transcoder.Metadata;
+
 				// Get template file from this editor script's directory
 				string output = Nustache.Core.Render.FileToString(
 					Path.Combine(Application.dataPath, "Plugins/UnityTwine/Editor/Templates/TwineStory.template"),
 					new Dictionary<string, object>()
 					{
-						{"originalFile", Path.GetFileName(assetPath)},
-						{"storyName", storyName},
-						{"runtimeMacrosClass", importer.Transcoder.RuntimeMacrosClassName},
 						{"timestamp", DateTime.Now.ToString("G")},
+						{"version", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()},
+						{"originalFile", Path.GetFileName(assetPath)},
+						{"storyFormat", storyFormatMetadata.StoryFormatName},
+						{"storyName", storyName},
+						{"runtimeMacrosClass", storyFormatMetadata.RuntimeMacrosType.FullName},
 						{"vars", importer.Vars.Keys},
+						{"strictMode", storyFormatMetadata.StrictMode ? "true" : "false"},
 						{"passages", importer.Passages.Select(p => new TemplatePassageData(){
 								Pid = p.Pid,
 								Name = p.Name,

@@ -181,7 +181,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		{
 			LexerToken macroToken = tokens[tokenIndex];
 
-			transcoder.Code.Buffer.AppendFormat("_macros.@{0}(", macroToken.name);
+			transcoder.Code.Buffer.AppendFormat("Macros.@{0}(", macroToken.name);
 			transcoder.GenerateExpression(macroToken.tokens, 1);
 			transcoder.Code.Buffer.Append(")");
 

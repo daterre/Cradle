@@ -9,7 +9,7 @@ namespace UnityTwine.Editor
 	public abstract class TwineImporter
 	{
 		public readonly string AssetPath;
-		public TwineFormatTranscoder Transcoder {get; protected set;}
+		public StoryFormatTranscoder Transcoder {get; protected set;}
 
 		public readonly List<TwinePassageData> Passages = new List<TwinePassageData>();
 		public readonly Dictionary<string, string> Vars = new Dictionary<string, string>();

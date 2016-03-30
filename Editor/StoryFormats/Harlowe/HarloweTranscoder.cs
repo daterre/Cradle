@@ -12,7 +12,7 @@ using UnityTwine.Editor.Utils;
 
 namespace UnityTwine.Editor.StoryFormats.Harlowe
 {
-	public class HarloweTranscoder : TwineFormatTranscoder
+	public class HarloweTranscoder : StoryFormatTranscoder
 	{
 		public static Dictionary<string, CodeGenMacro> CodeGenMacros = new Dictionary<string, CodeGenMacro>(StringComparer.OrdinalIgnoreCase);
 
@@ -49,9 +49,17 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		{
 		}
 
-		public override string RuntimeMacrosClassName
+		public override StoryFormatMetadata Metadata
 		{
-			get { return typeof(UnityTwine.StoryFormats.Harlowe.HarloweRuntimeMacros).FullName; }
+			get
+			{
+				return new StoryFormatMetadata()
+				{
+					StoryFormatName = "Sugar",
+					RuntimeMacrosType = typeof(UnityTwine.StoryFormats.Harlowe.HarloweRuntimeMacros),
+					StrictMode = true
+				};
+			}
 		}
 
 		public override void Init()
@@ -78,8 +86,6 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 			// Get final string
 			string code = Code.Buffer.ToString();
-			if (code == null || code.Trim().Length == 0)
-				code = "yield break;";
 			_output.Main = code;
 
 			return _output;
@@ -132,6 +138,9 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					}
 				}
 			}
+
+			Code.Indent();
+			Code.Buffer.AppendLine("yield break;");
 		}
 
 		public void GenerateText(string text)
@@ -191,7 +200,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				case "variable":
 					Importer.RegisterVar(token.name);
 					_lastVariable = token.name;
-					return token.name;
+					return string.Format("Vars.@{0}", token.name);
 				case "identifiter":
 					if (_lastVariable == null)
 						throw new TwineTranscodingException("'it' or 'its' used without first mentioning a variable");

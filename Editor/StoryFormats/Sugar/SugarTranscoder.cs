@@ -14,7 +14,7 @@ using System.Collections;
 
 namespace UnityTwine.Editor.StoryFormats.Sugar
 {
-	public class SugarTranscoder : TwineFormatTranscoder
+	public class SugarTranscoder : StoryFormatTranscoder
 	{
 		public static Dictionary<string, CodeGenMacro> CodeGenMacros = new Dictionary<string, CodeGenMacro>(StringComparer.OrdinalIgnoreCase);
 
@@ -93,6 +93,18 @@ namespace UnityTwine.Editor.StoryFormats.Sugar
 
 		public SugarTranscoder(TwineImporter importer): base(importer)
 		{
+		}
+
+		public override StoryFormatMetadata Metadata
+		{
+			get
+			{
+				return new StoryFormatMetadata()
+				{
+					StoryFormatName = "Sugar",
+					StrictMode = false
+				};
+			}
 		}
 
 		// Instance vars

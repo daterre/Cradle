@@ -89,14 +89,14 @@ public class TwineTextPlayer : MonoBehaviour {
 
 		// Check if a wait is needed
 		float wait = 0f;
-		try { wait = (float) Story["wait"].ToDouble(); }
+		try { wait = (float) Story.Vars["wait"].ToDouble(); }
 		catch (KeyNotFoundException) { }
 
 		// Check if a click in needed (only for links and non-empty text lines)
 		bool click = false;
 		if ((output is TwineLink || output is TwineText) && output.Text.Length > 0)
 		{
-			try { click = Story["click"].ToBool(); }
+			try { click = Story.Vars["click"].ToBool(); }
 			catch (KeyNotFoundException) { }
 		}
 
@@ -123,7 +123,7 @@ public class TwineTextPlayer : MonoBehaviour {
 		DisplayOutput(output);
 
 		yield return null;
-		Story["wait"] = 0.0;
+		Story.Vars["wait"] = 0.0;
 		Story.Resume();
 	}
 
