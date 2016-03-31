@@ -624,6 +624,33 @@ namespace UnityTwine
 		// ---------------------------------
 		// Functions
 
+		protected TwineVar v(string val)
+		{
+			return new TwineVar(val);
+		}
+
+		protected TwineVar v(double val)
+		{
+			return new TwineVar(val);
+		}
+
+		protected TwineVar v(int val)
+		{
+			return new TwineVar(val);
+		}
+
+		protected TwineVar v(bool val)
+		{
+			return new TwineVar(val);
+		}
+
+		protected TwineVar v(object val)
+		{
+			return new TwineVar(val);
+		}
+
+		// OBSOLETE: //
+
 		protected TwineVar either(params TwineVar[] vars)
 		{
 			return vars[UnityEngine.Random.Range(0, vars.Length)];

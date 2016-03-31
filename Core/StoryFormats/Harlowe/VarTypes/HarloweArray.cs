@@ -5,12 +5,9 @@ using System.Text.RegularExpressions;
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class HarloweArray
+	public class HarloweArray: ITwineVarType
 	{
-		static Regex rx_Position = new Regex(@"^(?'index'[\d]*)(st|nd|rd|th)?(?'last'last)?$", RegexOptions.IgnoreCase);
-
 		List<TwineVar> values;
-		
 
 		public HarloweArray()
 		{
@@ -27,11 +24,14 @@ namespace UnityTwine.StoryFormats.Harlowe
 			get { return values.Count; }
 		}
 
-		public TwineVar this[string position]
+		public TwineVar this[string propertyName]
 		{
 			get
 			{
-				int index = PositionToIndex(position);
+				if (propertyName.ToLower() == "length")
+					return this.Length;
+
+				int index = HarloweUtils.PositionToIndex(propertyName, values.Count);
 				try { return values[index]; }
 				catch(System.IndexOutOfRangeException)
 				{
@@ -40,7 +40,10 @@ namespace UnityTwine.StoryFormats.Harlowe
 			}
 			set
 			{
-				int index = PositionToIndex(position);
+				if (propertyName.ToLower() == "length")
+					throw new TwineVarPropertyException("Cannot directly set the length of an array.");
+
+				int index = HarloweUtils.PositionToIndex(propertyName, values.Count);
 				try { values[index] = value; }
 				catch (System.IndexOutOfRangeException)
 				{
@@ -49,24 +52,9 @@ namespace UnityTwine.StoryFormats.Harlowe
 			}
 		}
 
-		int PositionToIndex(string position)
+		public bool Contains(TwineVar val)
 		{
-			Match match = rx_Position.Match(position);
-			if (!match.Success)
-				throw new System.ArgumentException(string.Format("'{0}' is not a valid array position", position));
-
-			bool fromEnd = match.Groups["last"].Success;
-
-			int index = 0;
-			if (match.Groups["index"].Success)
-				index = int.Parse(match.Groups["index"].Value)-1;
-			else if (!fromEnd)
-				throw new System.ArgumentException(string.Format("'{0}' is not a valid array position", position));
-
-			if (fromEnd)
-				index = values.Count - 1 - index;
-
-			return index;
+			throw new System.NotImplementedException();
 		}
 	}
 }

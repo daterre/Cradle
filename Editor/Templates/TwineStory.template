@@ -14,7 +14,7 @@ using UnityEngine;
 using UnityTwine;
 using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutput>;
 
-public partial class @{{storyName}}: TwineStory
+public partial class @{{storyName}}: {{storyBaseClass}}
 {
 	public partial class MacroDefs:
 		{{runtimeMacrosClass}} {}

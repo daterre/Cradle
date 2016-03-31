@@ -59,13 +59,13 @@ namespace UnityTwine
 				TwineVar prevValue = this[varName];
 
 				// Enfore strict mode
-				if (StrictMode && value.value != null)
+				if (StrictMode && value.Value != null)
 				{
-					if (prevValue.value != null && !prevValue.value.GetType().IsAssignableFrom(value.value.GetType()))
+					if (prevValue.Value != null && !prevValue.Value.GetType().IsAssignableFrom(value.Value.GetType()))
 						throw new TwineStrictModeException(string.Format("The variable '{0}' was previously assigned a value of type {1}, and so cannot be assigned a value of type {2}.",
 							varName,
-							prevValue.value.GetType().Name,
-							value.value.GetType().Name
+							prevValue.Value.GetType().Name,
+							value.Value.GetType().Name
 						));
 				}
 				

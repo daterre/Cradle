@@ -1,98 +1,109 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace UnityTwine
 {
 	[Serializable]
 	public struct TwineVar
 	{
-		#if UNITY_EDITOR
-		private object _val;
-		public object value
-		{
-			get { return _val; }
-			set { _val = value; AsString = this.ToString(); }
-		}
-		public string AsString;
-		#else
-		private object value;
-		#endif
+		internal object Value;
 
 		public Type GetInnerType()
 		{
-			return value == null ? null : value.GetType();
+			return Value == null ? null : Value.GetType();
+		}
+
+		public override int GetHashCode()
+		{
+			if (Value == null)
+				return 0;
+
+			int hash = 17;
+			hash = hash * 31 + Value.GetType().GetHashCode();
+			hash = hash * 31 + Value.GetHashCode();
+			return hash;
+		}
+
+		// ..............
+		// PROPERTIES
+
+		static Dictionary<Type, TwineVarTypeService> _typeServices = new Dictionary<Type, TwineVarTypeService>();
+
+		public static void RegisterTypeService<T>(TwineVarTypeService service)
+		{
+			_typeServices[typeof(T)] = service;
+		}
+
+		public TwineVar GetProperty(string propertyName)
+		{
+			if (Value == null)
+				throw new TwineVarPropertyException("Cannot get property of empty Twine var.");
+
+			TwineVarTypeService service;
+			if (_typeServices.TryGetValue(this.Value.GetType(), out service))
+				return service.GetProperty(this.Value, propertyName);
+
+			if (this.Value is ITwineVarType)
+				return ((ITwineVarType)this.Value)[propertyName];
+
+			throw new TwineVarPropertyException(string.Format("Cannot get property of a Twine var of type {0}.", this.Value.GetType().Name));
+		}
+
+		public TwineVar GetProperty(TwineVar propertyName)
+		{
+			return GetProperty(propertyName.ToString());
+		}
+
+		public void SetProperty(string propertyName, TwineVar val)
+		{
+			if (Value == null)
+				throw new TwineVarPropertyException("Cannot set property of empty Twine var.");
+
+			TwineVarTypeService service;
+			if (_typeServices.TryGetValue(this.Value.GetType(), out service))
+				service.SetProperty(this.Value, propertyName, val);
+
+			if (this.Value is ITwineVarType)
+				((ITwineVarType)this.Value)[propertyName] = val;
+
+			throw new TwineVarPropertyException(string.Format("Cannot set property of a Twine var of type {0}.", this.Value.GetType().Name));
+		}
+
+		public void SetProperty(TwineVar propertyName, TwineVar val)
+		{
+			SetProperty(propertyName.ToString(), val);
 		}
 
 		public TwineVar this[string propertyName]
 		{
 			get
 			{
-				object[] index;
-				PropertyInfo property = GetProperty(propertyName, out index);
-
-				if (!property.CanRead)
-					throw new InvalidOperationException("Property '{0}' of this Twine variable is not readable.");
-
-				object result;
-				try { result = property.GetValue(this, index); }
-				catch (Exception ex)
-				{
-					throw new InvalidOperationException("Error while trying to read property '{0}' of this Twine variable.", ex);
-				}
-
-				return new TwineVar(result);
+				return GetProperty(propertyName);
 			}
 			set
 			{
-				object[] index;
-				PropertyInfo property = GetProperty(propertyName, out index);
-
-				if (!property.CanWrite)
-					throw new InvalidOperationException("Property '{0}' of this Twine variable is not writable.");
-
-				try { property.SetValue(this, value, index); }
-				catch (Exception ex)
-				{
-					throw new InvalidOperationException("Error while trying to set property '{0}' of this Twine variable.", ex);
-				}
+				SetProperty(propertyName, value);
 			}
 		}
 
-		PropertyInfo GetProperty(string propertyName, out object[] index)
+		public TwineVar AsPropertyOf(TwineVar val)
 		{
-			if (value == null)
-				throw new InvalidOperationException("Cannot get property of empty Twine variable.");
-
-			index = null;
-
-			PropertyInfo property = value.GetType().GetProperty(propertyName, BindingFlags.IgnoreCase);
-			if (property == null)
-			{
-				// Try to use an indexer instead
-				property = value.GetType().GetProperty("Item");
-				if (property == null)
-					throw new InvalidOperationException("Property '{0}' of this Twine variable could not be found.");
-
-				index = new object[] { propertyName };
-			}
-
-			return property;
+			return val.GetProperty(this);
 		}
 
-		public override int GetHashCode()
-		{
-			if (value == null)
-				return 0;
+		// ..............
+		// OBJECT
 
-			int hash = 17;
-			hash = hash * 31 + value.GetType().GetHashCode();
-			hash = hash * 31 + value.GetHashCode();
-			return hash;
+		public TwineVar(object val)
+		{
+			this.Value = val;
 		}
 
 		public override bool Equals(object obj)
 		{
-			object val = obj is TwineVar ? ((TwineVar)obj).value : obj;
+			object val = obj is TwineVar ? ((TwineVar)obj).Value : obj;
 
 			if (val is bool)
 				return this == (bool)val;
@@ -103,25 +114,45 @@ namespace UnityTwine
 			else if (val is string)
 				return this == (string)val;
 			else
-				return Object.Equals(this.value, obj);
+				return Object.Equals(this.Value, obj);
+		}
+
+		public bool Contains(TwineVar val)
+		{
+			if (this.Value is string)
+				return ((string)this.Value).Contains(val);
+			else if (this.Value is ITwineVarType)
+				return ((ITwineVarType)this.Value).Contains(val);
+			else
+				return false;
+		}
+
+		public bool ContainedBy(TwineVar val)
+		{
+			if (val.Value is string)
+				return ((string)val.Value).Contains(this);
+			else if (val.Value is ITwineVarType)
+				return ((ITwineVarType)val.Value).Contains(this);
+			else
+				return false;
 		}
 
 		public static TwineVar operator++(TwineVar twVar)
 		{
-			if (twVar.value is int)
-				twVar.value = ((int)twVar.value)+1;
-			else if (twVar.value is double)
-				twVar.value = ((double)twVar.value)+1;
+			if (twVar.Value is int)
+				twVar.Value = ((int)twVar.Value)+1;
+			else if (twVar.Value is double)
+				twVar.Value = ((double)twVar.Value)+1;
 
 			return twVar;
 		}
 
 		public static TwineVar operator--(TwineVar twVar)
 		{
-			if (twVar.value is int)
-				twVar.value = ((int)twVar.value)-1;
-			else if (twVar.value is double)
-				twVar.value = ((double)twVar.value)-1;
+			if (twVar.Value is int)
+				twVar.Value = ((int)twVar.Value)-1;
+			else if (twVar.Value is double)
+				twVar.Value = ((double)twVar.Value)-1;
 
 			return twVar;
 		}
@@ -138,7 +169,7 @@ namespace UnityTwine
 
 		public static TwineVar operator +(TwineVar a, TwineVar b)
 		{
-			if ((a.value is int || a.value is double || a.value is bool) && (b.value is int || b.value is double || b.value is bool))
+			if ((a.Value is int || a.Value is double || a.Value is bool) && (b.Value is int || b.Value is double || b.Value is bool))
 				return a.ToDouble() + b.ToDouble();
 			else
 				return a.ToString() + b.ToString();
@@ -154,17 +185,12 @@ namespace UnityTwine
 
 		public TwineVar(string val)
 		{
-			#if UNITY_EDITOR
-			_val = val;
-			AsString = ConvertToString(val);
-			#else
-			this.value = val;
-			#endif
+			this.Value = val;
 		}
 
 		public override string ToString()
 		{
-			return ConvertToString(value);
+			return ConvertToString(Value);
 		}
 
 		public static string ConvertToString(object value)
@@ -197,32 +223,17 @@ namespace UnityTwine
 
 		public TwineVar(int val)
 		{
-			#if UNITY_EDITOR
-			_val = val;
-			AsString = ConvertToString(val);
-			#else
-			this.value = val;
-			#endif
+			this.Value = val;
 		}
 
 		public int ToInt()
 		{
-			if (this.value is int) {
-				return (int) this.value;
+			if (this.Value is int) {
+				return (int) this.Value;
 			}
-			else if (this.value is double)
+			else if (this.Value is IConvertible)
 			{
-				return Convert.ToInt32((double)this.value);
-			}
-			else if (this.value is string) {
-				int parsed;
-				if (int.TryParse((string)this.value, out parsed))
-					return parsed;
-				else
-					return 0;
-			}
-			else if (this.value is bool ) {
-				return ((bool)this.value) ? 1 : 0;
+				return Convert.ToInt32(this.Value);
 			}
 			else
 				return 0;
@@ -237,13 +248,13 @@ namespace UnityTwine
 		}
 
 		public static TwineVar operator+(TwineVar twVar, int val) {
-			if (twVar.value is string) {
+			if (twVar.Value is string) {
 				return twVar.ToString() + val.ToString();
 			}
-			else if (twVar.value is int || twVar.value is bool) {
+			else if (twVar.Value is int || twVar.Value is bool) {
 				return twVar.ToInt() + val;
 			}
-			else if (twVar.value is double) {
+			else if (twVar.Value is double) {
 				return twVar.ToDouble() + (double) val;
 			}
 			else
@@ -252,7 +263,7 @@ namespace UnityTwine
 
 		public static TwineVar operator-(TwineVar twVar, int val) {
 
-			if (twVar.value is double) {
+			if (twVar.Value is double) {
 				return twVar.ToDouble() - (double) val;
 			}
 			else
@@ -260,7 +271,7 @@ namespace UnityTwine
 		}
 
 		public static TwineVar operator*(TwineVar twVar, int val) {
-			if (twVar.value is double) {
+			if (twVar.Value is double) {
 				return twVar.ToDouble() * (double) val;
 			}
 			else
@@ -268,7 +279,7 @@ namespace UnityTwine
 		}
 
 		public static TwineVar operator/(TwineVar twVar, int val) {
-			if (twVar.value is double) {
+			if (twVar.Value is double) {
 				return twVar.ToDouble() / (double) val;
 			}
 			else
@@ -276,7 +287,7 @@ namespace UnityTwine
 		}
 
 		public static TwineVar operator%(TwineVar twVar, int val) {
-			if (twVar.value is double) {
+			if (twVar.Value is double) {
 				return twVar.ToDouble() % (double) val;
 			}
 			else
@@ -312,31 +323,16 @@ namespace UnityTwine
 
 		public TwineVar(double val)
 		{
-			#if UNITY_EDITOR
-			_val = val;
-			AsString = ConvertToString(val);
-			#else
-			this.value = val;
-			#endif
+			this.Value = val;
 		}
 
 		public double ToDouble()
 		{
-			if (this.value is double) {
-				return (double) this.value;
+			if (this.Value is double) {
+				return (double) this.Value;
 			}
-			else if (this.value is int) {
-				return Convert.ToDouble((int)this.value);
-			}
-			else if (this.value is string) {
-				double parsed;
-				if (double.TryParse((string)this.value, out parsed))
-					return parsed;
-				else
-					return 0.0;
-			}
-			else if (this.value is bool ) {
-				return ((bool)this.value) ? 1.0 : 0.0;
+			else if (this.Value is IConvertible) {
+				return Convert.ToDouble(this.Value);
 			}
 			else
 				return 0.0;
@@ -351,7 +347,7 @@ namespace UnityTwine
 		}
 
 		public static TwineVar operator+(TwineVar twVar, double val) {
-			if (twVar.value is string) {
+			if (twVar.Value is string) {
 				return twVar.ToString() + val.ToString();
 			}
 			else {
@@ -404,27 +400,19 @@ namespace UnityTwine
 
 		public TwineVar(bool val)
 		{
-			#if UNITY_EDITOR
-			_val = val;
-			AsString = ConvertToString(val);
-			#else
-			this.value = val;
-			#endif
+			this.Value = val;
 		}
 
 		public bool ToBool()
 		{
-			if (this.value is bool) {
-				return (bool) this.value;
+			if (this.Value is bool) {
+				return (bool) this.Value;
 			}
-			else if (this.value is int) {
-				return ((int) this.value) != 0;
+			else if (this.Value is string) {
+				return ((string)this.Value).Length > 0;
 			}
-			else if (this.value is double) {
-				return ((double) this.value) != 0.0;
-			}
-			else if (this.value is string) {
-				return ((string)this.value).Length > 0;
+			else if (this.Value is IConvertible) {
+				return Convert.ToBoolean(this.Value);
 			}
 			else
 				return false;
@@ -464,19 +452,6 @@ namespace UnityTwine
 		public static TwineVar operator|(TwineVar a, TwineVar b)
 		{
 			return a.ToBool() || b.ToBool();
-		}
-
-		// ..............
-		// OBJECT
-
-		public TwineVar(object val)
-		{
-			#if UNITY_EDITOR
-			_val = val;
-			AsString = ConvertToString(val);
-			#else
-			this.value = val;
-			#endif
 		}
 	}
 }

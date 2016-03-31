@@ -96,6 +96,7 @@ namespace UnityTwine.Editor
 						{"version", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()},
 						{"originalFile", Path.GetFileName(assetPath)},
 						{"storyFormat", storyFormatMetadata.StoryFormatName},
+						{"storyBaseClass", storyFormatMetadata.StoryBaseType.FullName},
 						{"storyName", storyName},
 						{"runtimeMacrosClass", storyFormatMetadata.RuntimeMacrosType.FullName},
 						{"vars", importer.Vars.Keys},
@@ -164,7 +165,7 @@ namespace UnityTwine.Editor
 								errors
 							);
 							//Debug.LogError(output);
-							continue;
+							//continue;
 						}
 					};
 				}

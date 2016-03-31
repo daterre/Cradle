@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -21,7 +22,8 @@ namespace UnityTwine.Editor
 	public class StoryFormatMetadata
 	{
 		public string StoryFormatName;
-		public System.Type RuntimeMacrosType = typeof(TwineRuntimeMacros);
+		public Type StoryBaseType = typeof(TwineStory);
+		public Type RuntimeMacrosType = typeof(TwineRuntimeMacros);
 		public bool StrictMode = false;
 	}
 }

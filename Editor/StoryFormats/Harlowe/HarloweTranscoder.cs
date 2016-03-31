@@ -56,6 +56,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				return new StoryFormatMetadata()
 				{
 					StoryFormatName = "Sugar",
+					StoryBaseType = typeof(UnityTwine.StoryFormats.Harlowe.HarloweStory),
 					RuntimeMacrosType = typeof(UnityTwine.StoryFormats.Harlowe.HarloweRuntimeMacros),
 					StrictMode = true
 				};
@@ -199,28 +200,51 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			{
 				case "variable":
 					Importer.RegisterVar(token.name);
-					_lastVariable = token.name;
-					return string.Format("Vars.@{0}", token.name);
-				case "identifiter":
+					_lastVariable = string.Format("Vars.@{0}", token.name);
+					return _lastVariable;
+				case "identifier":
 					if (_lastVariable == null)
 						throw new TwineTranscodingException("'it' or 'its' used without first mentioning a variable");
-					return token.name;
+					return _lastVariable;
 				case "macro":
 					GenerateMacro(tokens, tokenIndex, MacroUsage.Inline);
 					return null;
+				case "string":
+					return WrapInVar(string.Format("\"{0}\"", token.innerText), tokens, tokenIndex);
+				case "number":
+					return WrapInVar(token.text, tokens, tokenIndex);
 				case "grouping":
+					if(WrapInVarRequired(tokens, tokenIndex))
+						Code.Buffer.Append(" v");
 					Code.Buffer.Append("(");
 					GenerateExpression(token.tokens);
 					Code.Buffer.Append(")");
 					return null;
 				case "property":
 					return string.Format("[\"{0}\"]", token.name);
+				case "belongingProperty":
+					EnsureGrouping(tokens, tokenIndex);
+					return string.Format("v(\"{0}\").AsPropertyOf", token.name);
+				case "contains":
+					EnsureGrouping(tokens, tokenIndex);
+					return ".Contains";
+				case "isIn":
+					EnsureGrouping(tokens, tokenIndex);
+					return ".ContainedBy";
+				case "possessiveOperator":
+					EnsureGrouping(tokens, tokenIndex);
+					return ".GetProperty";
+				case "belongingOperator":
+					EnsureGrouping(tokens, tokenIndex);
+					return ".AsPropertyOf";
 				case "and":
 					return "&&";
 				case "or":
 					return "||";
 				case "is":
 					return "==";
+				case "isNot":
+					return "!=";
 				case "to":
 					return "=";
 				case "not":
@@ -228,6 +252,69 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				default:
 					return token.text;
 			}
+		}
+
+		bool WrapInVarRequired(LexerToken[] tokens, int tokenIndex)
+		{
+			bool wrap = false;
+
+			if (tokenIndex < tokens.Length - 1)
+			{
+				for (int t = tokenIndex + 1; t < tokens.Length; t++)
+				{
+					switch(tokens[t].type)
+					{
+						case "property":
+						case "contains":
+						case "isIn":
+						case "possessiveOperator":
+						case "belongingOperator":
+							wrap = true;
+							break;
+						case "whitespace":
+							continue;
+						default:
+							break;
+					}
+				}
+			}
+
+			return wrap;
+		}
+
+		string WrapInVar(string expr, LexerToken[] tokens, int tokenIndex)
+		{
+			return WrapInVarRequired(tokens, tokenIndex) ?
+				string.Format("v({0})", expr) :
+				expr;
+		}
+
+		void EnsureGrouping(LexerToken[] tokens, int tokenIndex)
+		{
+			bool ok = false;
+
+			if (tokenIndex < tokens.Length - 1)
+			{
+				for (int t = tokenIndex + 1; t < tokens.Length; t++)
+				{
+					switch (tokens[t].type)
+					{
+						case "grouping":
+							ok = true;
+							break;
+						case "whitespace":
+							continue;
+						default:
+							break;
+					}
+				}
+			}
+
+			if (!ok)
+				throw new TwineTranscodingException(string.Format(
+					"Due to UnityTwine syntax limitations, '{0}' must be followed by perentheses: {0} (...) ",
+					tokens[tokenIndex].text
+				));
 		}
 	}
 
