@@ -101,11 +101,69 @@ namespace UnityTwine
 			this.Value = val;
 		}
 
+		internal ITwineVarType VarType
+		{
+			get { return this.Value as ITwineVarType; }
+		}
+
+		public static TwineVar Combine(TwineOperator op, TwineVar a, TwineVar b)
+		{
+			TwineVar result;
+
+			TwineVarTypeService service;
+			if ((a.Value != null && _typeServices.TryGetValue(a.Value.GetType(), out service)) ||
+				(b.Value != null && _typeServices.TryGetValue(b.Value.GetType(), out service)))
+			{
+				if (service.Combine(op, a.Value, b.Value, out result))
+					return result;
+			}
+
+			if (a.Value is ITwineVarType)
+			{
+				if (a.VarType.CombineLeft(op, b.Value, out result))
+					return result;
+			}
+			if (b.Value is ITwineVarType)
+			{
+				if (b.VarType.CombineRight(op, a.Value, out result))
+					return result;
+			}
+
+			throw new TwineVarTypeException(string.Format("Cannot use {0} with {1} and {2}", op, a.Value ?? "null", b.Value ?? "null"));
+		}
+
+		public static TwineVar Combine(TwineOperator op, TwineVar a, TwineVar b)
+		{
+			TwineVar result;
+
+			TwineVarTypeService service;
+			if ((a.Value != null && _typeServices.TryGetValue(a.Value.GetType(), out service)) ||
+				(b.Value != null && _typeServices.TryGetValue(b.Value.GetType(), out service)))
+			{
+				return service.Compare(op, a.Value, b.Value);
+			}
+
+			if (a.Value is ITwineVarType)
+			{
+				if (a.VarType.CombineLeft(op, b.Value, out result))
+					return result;
+			}
+			if (b.Value is ITwineVarType)
+			{
+				if (b.VarType.CombineRight(op, a.Value, out result))
+					return result;
+			}
+
+			throw new TwineVarTypeException(string.Format("Cannot compine {0} with {1} and {2}", op, a.Value ?? "null", b.Value ?? "null"));
+		}
+
 		public override bool Equals(object obj)
 		{
 			object val = obj is TwineVar ? ((TwineVar)obj).Value : obj;
 
-			if (val is bool)
+			if (val == null)
+				return this.Value == null;
+			else if (val is bool)
 				return this == (bool)val;
 			else if (val is int)
 				return this == (int)val;
@@ -114,7 +172,7 @@ namespace UnityTwine
 			else if (val is string)
 				return this == (string)val;
 			else
-				return Object.Equals(this.Value, obj);
+				return val.Equals(this.Value);
 		}
 
 		public bool Contains(TwineVar val)
@@ -169,15 +227,68 @@ namespace UnityTwine
 
 		public static TwineVar operator +(TwineVar a, TwineVar b)
 		{
-			if ((a.Value is int || a.Value is double || a.Value is bool) && (b.Value is int || b.Value is double || b.Value is bool))
-				return a.ToDouble() + b.ToDouble();
-			else
+			TwineVar result;
+
+			if (a.Value == null && b.Value == null)
+				return null;
+
+			if (a.Value is string || b.Value is string)
 				return a.ToString() + b.ToString();
+
+			if (a.Value is double || b.Value is double)
+			{
+				double aVal, bVal;
+				if (a.TryToDouble(out aVal) && b.TryToDouble(out bVal))
+					return aVal + bVal;
+			}
+
+			if (a.Value is int || b.Value is int || a.Value is bool || b.Value is bool)
+			{
+				int aVal, bVal;
+				if (a.TryToInt(out aVal) && b.TryToInt(out bVal))
+					return aVal + bVal;
+			}
+
+			TwineVarTypeService service;
+			if ((a.Value != null && _typeServices.TryGetValue(a.Value.GetType(), out service)) ||
+				(b.Value != null && _typeServices.TryGetValue(b.Value.GetType(), out service)))
+			{
+				if (service.Combine(TwineOperator.Plus, a.Value, b.Value, out result))
+					return result;
+			}
+
+			if (a.Value is ITwineVarType)
+			{
+				if (a.VarType.OperatorLeft(TwineVarOperator.Plus, b.Value, out result))
+					return result;
+			}
+			if (b.Value is ITwineVarType)
+			{
+				if (b.VarType.OperatorRight(TwineVarOperator.Plus, a.Value, out result))
+					return result;
+			}
+
+			throw new TwineVarTypeException(string.Format("Cannot add {0} to {1}", a.Value ?? "null", b.Value ?? "null"));
 		}
 
 		public static TwineVar operator -(TwineVar a, TwineVar b)
 		{
-			return a.ToDouble() - b.ToDouble();
+			if (a.Value is double || b.Value is double)
+			{
+				double aVal, bVal;
+				if (a.TryToDouble(out aVal) && b.TryToDouble(out bVal))
+					return aVal - bVal;
+			}
+
+			if (a.Value is int || b.Value is int)
+			{
+				int aVal, bVal;
+				if (a.TryToInt(out aVal) && b.TryToInt(out bVal))
+					return aVal - bVal;
+			}
+
+			// Undefined so just return a
+			throw new TwineVarTypeException("Cannot substract values of this type.");
 		}
 
 		// ..............
@@ -249,13 +360,13 @@ namespace UnityTwine
 
 		public static TwineVar operator+(TwineVar twVar, int val) {
 			if (twVar.Value is string) {
-				return twVar.ToString() + val.ToString();
+				return (string) twVar.Value + val.ToString();
 			}
 			else if (twVar.Value is int || twVar.Value is bool) {
-				return twVar.ToInt() + val;
+				return (int) twVar.Value + val;
 			}
 			else if (twVar.Value is double) {
-				return twVar.ToDouble() + (double) val;
+				return (double) twVar.Value + (double) val;
 			}
 			else
 				return twVar;
@@ -264,59 +375,136 @@ namespace UnityTwine
 		public static TwineVar operator-(TwineVar twVar, int val) {
 
 			if (twVar.Value is double) {
-				return twVar.ToDouble() - (double) val;
+				return (double) twVar.Value - (double) val;
 			}
 			else
 				return twVar.ToInt() - val;
 		}
 
+		//public static TwineVar operator-(int val, TwineVar twVar)
+		//{
+		//	if (twVar.Value is double)
+		//	{
+		//		return (double)val - twVar.ToDouble();
+		//	}
+		//	else
+		//		return val - twVar.ToInt();
+		//}
+
 		public static TwineVar operator*(TwineVar twVar, int val) {
 			if (twVar.Value is double) {
-				return twVar.ToDouble() * (double) val;
+				return (double) twVar.Value * (double) val;
 			}
 			else
 				return twVar.ToInt() * val;
 		}
 
+		public static TwineVar operator *(int val, TwineVar twVar)
+		{
+			return twVar * val;
+		}
+
 		public static TwineVar operator/(TwineVar twVar, int val) {
 			if (twVar.Value is double) {
-				return twVar.ToDouble() / (double) val;
+				return (double) twVar.Value / (double) val;
 			}
 			else
 				return twVar.ToInt() / val;
 		}
 
+		public static TwineVar operator /(int val, TwineVar twVar)
+		{
+			if (twVar.Value is double)
+			{
+				return Convert.ToDouble(val) / (double) twVar.Value;
+			}
+			else
+				return val / twVar.ToInt();
+		}
+
 		public static TwineVar operator%(TwineVar twVar, int val) {
 			if (twVar.Value is double) {
-				return twVar.ToDouble() % (double) val;
+				return (double) twVar.Value % (double) val;
 			}
 			else
 				return twVar.ToInt() % val;
 		}
 
+		//public static TwineVar operator %(int val, TwineVar twVar)
+		//{
+		//	if (twVar.Value is double)
+		//	{
+		//		return (double)val % twVar.ToDouble();
+		//	}
+		//	else
+		//		return val % twVar.ToInt();
+		//}
+
 		public static bool operator==(TwineVar twVar, int val) {
 			return twVar.ToInt() == val;
 		}
+
+		//public static bool operator ==(int val, TwineVar twVar)
+		//{
+		//	return twVar.ToInt() == val;
+		//}
 
 		public static bool operator!=(TwineVar twVar, int val) {
 			return twVar.ToInt() != val;
 		}
 
+		//public static bool operator !=(int val, TwineVar twVar)
+		//{
+		//	return twVar.ToInt() != val;
+		//}
+
 		public static bool operator>(TwineVar twVar, int val) {
-			return twVar.ToInt() > val;
+			if (twVar.Value is double)
+				return (double)twVar.Value > Convert.ToDouble(val);
+			else
+				return twVar.ToInt() > val;
 		}
+
+		//public static bool operator >(int val, TwineVar twVar)
+		//{
+		//	return val > twVar.ToInt();
+		//}
 
 		public static bool operator<(TwineVar twVar, int val) {
-			return twVar.ToInt() < val;
+			if (twVar.Value is double)
+				return (double) twVar.Value < Convert.ToDouble(val);
+			else
+				return twVar.ToInt() < val;
 		}
+
+		//public static bool operator <(int val, TwineVar twVar)
+		//{
+		//	return val < twVar.ToInt();
+		//}
 
 		public static bool operator>=(TwineVar twVar, int val) {
-			return twVar.ToInt() >= val;
+			if (twVar.Value is double)
+				return (double)twVar.Value >= Convert.ToDouble(val);
+			else
+				return twVar.ToInt() >= val;
 		}
 
+		//public static bool operator >=(int val, TwineVar twVar)
+		//{
+		//	return val >= twVar.ToInt();
+		//}
+
 		public static bool operator<=(TwineVar twVar, int val) {
-			return twVar.ToInt() <= val;
+			if (twVar.Value is double)
+				return (double)twVar.Value <= Convert.ToDouble(val);
+			else
+				return twVar.ToInt() <= val;
 		}
+
+		//public static bool operator <=(int val, TwineVar twVar)
+		//{
+		//	return val <= twVar.ToInt();
+		//}
 
 		// ..............
 		// DOUBLE
@@ -348,52 +536,106 @@ namespace UnityTwine
 
 		public static TwineVar operator+(TwineVar twVar, double val) {
 			if (twVar.Value is string) {
-				return twVar.ToString() + val.ToString();
+				return (string) twVar.Value  + val.ToString();
 			}
 			else {
 				return twVar.ToDouble() + (double) val;
 			}
 		}
 
+		//public static TwineVar operator+(double val, TwineVar twVar) {
+		//	return twVar + val;
+		//}
+
 		public static TwineVar operator-(TwineVar twVar, double val) {
 			return twVar.ToDouble() - val;
 		}
+
+		//public static TwineVar operator -(double val, TwineVar twVar)
+		//{
+		//	return val - twVar.ToDouble();
+		//}
 
 		public static TwineVar operator*(TwineVar twVar, double val) {
 			return twVar.ToDouble() * val;
 		}
 
+		//public static TwineVar operator *(double val, TwineVar twVar)
+		//{
+		//	return twVar * val;
+		//}
+
 		public static TwineVar operator/(TwineVar twVar, double val) {
 			return twVar.ToDouble() / val;
 		}
+
+		//public static TwineVar operator /(double val, TwineVar twVar)
+		//{
+		//	return val / twVar.ToDouble();
+		//}
 
 		public static TwineVar operator%(TwineVar twVar, double val) {
 			return twVar.ToDouble() % val;
 		}
 
+		//public static TwineVar operator %(double val, TwineVar twVar)
+		//{
+		//	return val % twVar.ToDouble();
+		//}
+
 		public static bool operator==(TwineVar twVar, double val) {
 			return twVar.ToDouble() == val;
 		}
+
+		//public static bool operator ==(double val, TwineVar twVar)
+		//{
+		//	return twVar.ToDouble() == val;
+		//}
 
 		public static bool operator!=(TwineVar twVar, double val) {
 			return twVar.ToDouble() != val;
 		}
 
+		//public static bool operator !=(double val, TwineVar twVar)
+		//{
+		//	return twVar.ToDouble() != val;
+		//}
+
 		public static bool operator>(TwineVar twVar, double val) {
 			return twVar.ToDouble() > val;
 		}
+
+		//public static bool operator >(double val, TwineVar twVar)
+		//{
+		//	return val > twVar.ToDouble();
+		//}
 
 		public static bool operator<(TwineVar twVar, double val) {
 			return twVar.ToDouble() < val;
 		}
 
+		//public static bool operator <(double val, TwineVar twVar)
+		//{
+		//	return val < twVar.ToDouble();
+		//}
+
 		public static bool operator>=(TwineVar twVar, double val) {
 			return twVar.ToDouble() >= val;
 		}
 
+		//public static bool operator >=(double val, TwineVar twVar)
+		//{
+		//	return val >= twVar.ToDouble();
+		//}
+
 		public static bool operator<=(TwineVar twVar, double val) {
 			return twVar.ToDouble() <= val;
 		}
+
+		//public static bool operator <=(double val, TwineVar twVar)
+		//{
+		//	return val <= twVar.ToDouble();
+		//}
 
 		// ..............
 		// BOOL
