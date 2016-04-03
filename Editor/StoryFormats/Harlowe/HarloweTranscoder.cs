@@ -102,21 +102,27 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				switch (token.type)
 				{
 					case "text": {
-						if (t < tokens.Length -1 && tokens[t + 1].type == "br")
-						{
-							// Merge with following br and skip the br token
-							GenerateText(token.text + "\\n");
-							t++;
-						}
-						else
-							GenerateText(token.text);
-
+						GenerateText(token.text);
 						break;
 					}
 
+					case "verbatim": {
+						GenerateText(token.innerText);
+						break;
+					}
+
+					case "italic":
+					case "bold":
+					case "em":
+					case "del":
+					case "strong":
+					case "sup":
+						GenerateStyle(token);
+						break;
+
 					case "br": {
 						if (!Code.Collapsed)
-							GenerateText("\\n");
+							GenerateLineBreak();
 						break;
 					}
 
@@ -149,6 +155,16 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			Code.Buffer.AppendFormat("yield return new TwineText(\"{0}\");\n",
 				text.Replace("\"", "\\\"")
 			);
+		}
+
+		public void GenerateLineBreak()
+		{
+			Code.Buffer.Append("yield return new TwineLineBreak();\n");
+		}
+
+		public void GenerateStyle(LexerToken token)
+		{
+			// TODO: how to handle this?
 		}
 
 		public string GenerateFragment(LexerToken[] tokens)

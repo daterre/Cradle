@@ -31,7 +31,7 @@ require(['markup', 'utils'], function(TwineMarkup, utils){
 
 			var simple = {type: complex.type};
 
-			if (complex.children && complex.children.length && complex.type !== 'string')
+			if (complex.children && complex.children.length && complex.type !== 'string' && complex.type !== 'verbatim')
 				simple.tokens = simplify(complex.children, collapsed);
 			if (complex.text)
 				simple.text = $('<div/>').html(complex.text).text();
