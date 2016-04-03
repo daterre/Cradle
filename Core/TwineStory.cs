@@ -57,6 +57,11 @@ namespace UnityTwine
 
 		public TwineStory()
 		{
+			TwineVar.RegisterTypeService<bool>(new BoolService());
+			TwineVar.RegisterTypeService<int>(new IntService());
+			TwineVar.RegisterTypeService<double>(new DoubleService());
+			TwineVar.RegisterTypeService<string>(new StringService());
+
 			this.Passages = new Dictionary<string, TwinePassage>();
 		}
 

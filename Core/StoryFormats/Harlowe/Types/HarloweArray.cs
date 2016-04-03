@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class HarloweArray: ITwineVarType
+	public class HarloweArray: ITwineType
 	{
 		List<TwineVar> values;
 
@@ -41,7 +41,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 			set
 			{
 				if (propertyName.ToLower() == "length")
-					throw new TwineVarPropertyException("Cannot directly set the length of an array.");
+					throw new TwineTypePropertyException("Cannot directly set the length of an array.");
 
 				int index = HarloweUtils.PositionToIndex(propertyName, values.Count);
 				try { values[index] = value; }
@@ -52,7 +52,22 @@ namespace UnityTwine.StoryFormats.Harlowe
 			}
 		}
 
-		public bool Contains(TwineVar val)
+		public bool Compare(TwineOperator op, object b, out bool result)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public bool Combine(TwineOperator op, object b, out TwineVar result)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public bool Unary(TwineOperator op, out TwineVar result)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public bool ConvertTo(System.Type t, out object result, bool strict = false)
 		{
 			throw new System.NotImplementedException();
 		}

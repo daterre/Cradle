@@ -89,15 +89,15 @@ public class TwineTextPlayer : MonoBehaviour {
 
 		// Check if a wait is needed
 		float wait = 0f;
-		try { wait = (float) Story.Vars["wait"].ToDouble(); }
-		catch (KeyNotFoundException) { }
+		//try { wait = (float) Story.Vars["wait"].ToDouble(); }
+		//catch (KeyNotFoundException) { }
 
 		// Check if a click in needed (only for links and non-empty text lines)
 		bool click = false;
 		if ((output is TwineLink || output is TwineText) && output.Text.Length > 0)
 		{
-			try { click = Story.Vars["click"].ToBool(); }
-			catch (KeyNotFoundException) { }
+			//try { click = Story.Vars["click"].ToBool(); }
+			//catch (KeyNotFoundException) { }
 		}
 
 		if (click || wait > 0f)

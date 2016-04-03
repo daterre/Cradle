@@ -15,24 +15,24 @@ namespace UnityTwine
 	}
 
 	[Serializable]
-	public class TwineVarTypeException : Exception
+	public class TwineTypeException : Exception
 	{
-		public TwineVarTypeException() { }
-		public TwineVarTypeException(string message) : base(message) { }
-		public TwineVarTypeException(string message, Exception inner) : base(message, inner) { }
-		protected TwineVarTypeException(
+		public TwineTypeException() { }
+		public TwineTypeException(string message) : base(message) { }
+		public TwineTypeException(string message, Exception inner) : base(message, inner) { }
+		protected TwineTypeException(
 		  System.Runtime.Serialization.SerializationInfo info,
 		  System.Runtime.Serialization.StreamingContext context)
 			: base(info, context) { }
 	}
 
 	[Serializable]
-	public class TwineVarPropertyException : TwineException
+	public class TwineTypePropertyException : TwineException
 	{
-		public TwineVarPropertyException() { }
-		public TwineVarPropertyException(string message) : base(message) { }
-		public TwineVarPropertyException(string message, Exception inner) : base(message, inner) { }
-		protected TwineVarPropertyException(
+		public TwineTypePropertyException() { }
+		public TwineTypePropertyException(string message) : base(message) { }
+		public TwineTypePropertyException(string message, Exception inner) : base(message, inner) { }
+		protected TwineTypePropertyException(
 		  System.Runtime.Serialization.SerializationInfo info,
 		  System.Runtime.Serialization.StreamingContext context)
 			: base(info, context) { }
