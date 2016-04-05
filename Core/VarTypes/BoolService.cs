@@ -8,7 +8,7 @@ namespace UnityTwine
 {
 	public class BoolService: TwineTypeService<bool>
 	{
-		public override TwineVarRef GetMember(bool container, string memberName)
+		public override TwineVar GetMember(bool container, string memberName)
 		{
 			throw new TwineTypeMemberException("Cannot directly get any members of a boolean.");
 		}

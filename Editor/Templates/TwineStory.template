@@ -29,7 +29,7 @@ public partial class @{{storyName}}: {{storyFormatClass}}
 		}) {}
 
 		{{#vars}}
-		public TwineVarRef @{{.}}
+		public TwineVar @{{.}}
 		{
 			get { return GetMember("{{.}}"); }
 			set { SetMember("{{.}}", value); }

@@ -6,23 +6,23 @@ using System.Collections.Generic;
 
 namespace UnityTwine
 {
-	public abstract class TwineRuntimeVars: ITwineType, IDictionary<string, TwineVarRef>
+	public class TwineRuntimeVars: ITwineType, IDictionary<string, TwineVar>
 	{
 		public TwineStory Story;
 		public bool StrictMode;
 
-		protected Dictionary<string, TwineVarRef> dictionary = new Dictionary<string,TwineVarRef>();
+		protected Dictionary<string, TwineVar> dictionary = new Dictionary<string,TwineVar>();
 
 		public TwineRuntimeVars(params string[] varNames)
 		{
 			for (int i = 0; i < varNames.Length; i++)
-				dictionary[varNames[i]] = new TwineVarRef(this, varNames[i]);
+				dictionary[varNames[i]] = new TwineVar(this, varNames[i]);
 		}
 
 		internal void Reset()
 		{
 			foreach(string varName in dictionary.Keys)
-				dictionary[varName] = new TwineVarRef(this, varName);
+				dictionary[varName] = new TwineVar(this, varName);
 		}
 
 		public bool ContainsKey(string varName)
@@ -35,12 +35,12 @@ namespace UnityTwine
 			get { return dictionary.Keys; }
 		}
 
-		public bool TryGetValue(string varName, out TwineVarRef value)
+		public bool TryGetValue(string varName, out TwineVar value)
 		{
 			return dictionary.TryGetValue(varName, out value);
 		}
 
-		public ICollection<TwineVarRef> Values
+		public ICollection<TwineVar> Values
 		{
 			get { return dictionary.Values; }
 		}
@@ -57,9 +57,9 @@ namespace UnityTwine
 			}
 		}
 
-		public TwineVarRef GetMember(string varName)
+		public TwineVar GetMember(string varName)
 		{
-			var value = default(TwineVarRef);
+			var value = default(TwineVar);
 			if (!TryGetValue(varName, out value))
 				throw new TwineException(string.Format("There is no variable with the name '{0}'.", varName));
 			return value;
@@ -68,20 +68,21 @@ namespace UnityTwine
 		public void SetMember(string varName, TwineVar value)
 		{
 			TwineVar prevValue = this[varName];
+			object v = value.Value;
 
 			// Enfore strict mode
-			if (StrictMode && value.Value != null)
+			if (StrictMode)
 			{
-				if (prevValue.Value != null && !prevValue.Value.GetType().IsAssignableFrom(value.Value.GetType()))
+				if (prevValue.Value != null && !TwineVar.TryConvertTo(v, prevValue.GetInnerType(), out v))
 					throw new TwineStrictModeException(string.Format("The variable '{0}' was previously assigned a value of type {1}, and so cannot be assigned a value of type {2}.",
 						varName,
 						prevValue.Value.GetType().Name,
-						value.Value.GetType().Name
+						v == null ? "null" : v.GetType().Name
 					));
 			}
 
 			// Run the setter
-			dictionary[varName] = new TwineVarRef(this, varName, value);
+			dictionary[varName] = new TwineVar(this, varName, v);
 		}
 
 		public int Count
@@ -89,12 +90,12 @@ namespace UnityTwine
 			get { return dictionary.Count; }
 		}
 
-		void IDictionary<string, TwineVarRef>.Add(string key, TwineVarRef value)
+		void IDictionary<string, TwineVar>.Add(string key, TwineVar value)
 		{
 			throw new NotSupportedException();
 		}
 
-		bool IDictionary<string, TwineVarRef>.Remove(string key)
+		bool IDictionary<string, TwineVar>.Remove(string key)
 		{
 			throw new NotSupportedException();
 		}
@@ -104,44 +105,47 @@ namespace UnityTwine
 			throw new NotImplementedException();
 		}
 
-		void ICollection<KeyValuePair<string, TwineVarRef>>.Add(KeyValuePair<string, TwineVarRef> item)
+		void ICollection<KeyValuePair<string, TwineVar>>.Add(KeyValuePair<string, TwineVar> item)
 		{
 			throw new NotSupportedException();
 		}
 
-		void ICollection<KeyValuePair<string, TwineVarRef>>.Clear()
+		void ICollection<KeyValuePair<string, TwineVar>>.Clear()
 		{
 			throw new NotSupportedException();
 		}
 
-		bool ICollection<KeyValuePair<string, TwineVarRef>>.Contains(KeyValuePair<string, TwineVarRef> item)
+		bool ICollection<KeyValuePair<string, TwineVar>>.Contains(KeyValuePair<string, TwineVar> item)
 		{
-			return ((ICollection<KeyValuePair<string, TwineVarRef>>)dictionary).Contains(item);
+			return ((ICollection<KeyValuePair<string, TwineVar>>)dictionary).Contains(item);
 		}
 
-		void ICollection<KeyValuePair<string, TwineVarRef>>.CopyTo(KeyValuePair<string, TwineVarRef>[] array, int arrayIndex)
+		void ICollection<KeyValuePair<string, TwineVar>>.CopyTo(KeyValuePair<string, TwineVar>[] array, int arrayIndex)
 		{
-			((ICollection<KeyValuePair<string, TwineVarRef>>)dictionary).CopyTo(array, arrayIndex);
+			((ICollection<KeyValuePair<string, TwineVar>>)dictionary).CopyTo(array, arrayIndex);
 		}
 
-		bool ICollection<KeyValuePair<string, TwineVarRef>>.IsReadOnly
+		bool ICollection<KeyValuePair<string, TwineVar>>.IsReadOnly
 		{
-			get { return ((ICollection<KeyValuePair<string, TwineVarRef>>)dictionary).IsReadOnly; }
+			get { return ((ICollection<KeyValuePair<string, TwineVar>>)dictionary).IsReadOnly; }
 		}
 
-		bool ICollection<KeyValuePair<string, TwineVarRef>>.Remove(KeyValuePair<string, TwineVarRef> item)
+		bool ICollection<KeyValuePair<string, TwineVar>>.Remove(KeyValuePair<string, TwineVar> item)
 		{
 			throw new NotSupportedException();
 		}
 
-		IEnumerator<KeyValuePair<string, TwineVarRef>> IEnumerable<KeyValuePair<string, TwineVarRef>>.GetEnumerator()
+		IEnumerator<KeyValuePair<string, TwineVar>> IEnumerable<KeyValuePair<string, TwineVar>>.GetEnumerator()
 		{
 			return dictionary.GetEnumerator();
 		}
 
-		void ITwineType.RemoveMember(string memberName)
+		void ITwineType.RemoveMember(string varName)
 		{
-			this[memberName] = new TwineVarRef(this, memberName);
+			if (!dictionary.ContainsKey(varName))
+				throw new TwineException(string.Format("There is no variable with the name '{0}'.", varName));
+
+			dictionary[varName] = new TwineVar(this, varName);
 		}
 
 		bool ITwineType.Compare(TwineOperator op, object b, out bool result)
@@ -164,7 +168,7 @@ namespace UnityTwine
 			throw new NotSupportedException();
 		}
 
-		TwineVarRef IDictionary<string, TwineVarRef>.this[string key]
+		TwineVar IDictionary<string, TwineVar>.this[string key]
 		{
 			get
 			{
@@ -172,7 +176,7 @@ namespace UnityTwine
 			}
 			set
 			{
-				SetMember(key, value.Value);
+				SetMember(key, value);
 			}
 		}
 	}

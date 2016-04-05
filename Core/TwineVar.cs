@@ -6,29 +6,44 @@ using System.Text.RegularExpressions;
 
 namespace UnityTwine
 {
-	public interface ITwineVar
-	{
-		TwineVarRef GetMember(string memberName);
-		TwineVarRef GetMember(TwineVar memberName);
-		void SetMember(string memberName, TwineVar val);
-		void SetMember(TwineVar memberName, TwineVar val);
-		TwineVarRef this[string memberName] { get; set; }
-		TwineVarRef AsMemberOf(TwineVar val);
-		bool Contains(object obj);
-		bool ContainedBy(object obj);
-		void PutInto(TwineVarRef varRef);
-	}
-
 	[Serializable]
-	public struct TwineVar: ITwineVar
+	public struct TwineVar
 	{
 		public static bool StrictMode = false;
 
+		internal object Container;
+		internal string Member;
 		internal object Value;
+
+		public TwineVar(object value)
+		{
+			Container = null;
+			Member = null;
+			this.Value = value is TwineVar ? ((TwineVar)value).Value : value;
+		}
+
+		public TwineVar(object container, string member)
+		{
+			Container = container;
+			Member = member;
+			Value = null;
+		}
+
+		public TwineVar(object container, string member, object value)
+		{
+			Container = container;
+			Member = member;
+			this.Value = value is TwineVar ? ((TwineVar)value).Value : value;
+		}
 
 		public Type GetInnerType()
 		{
 			return Value == null ? null : Value.GetType();
+		}
+
+		internal TwineVar ContainerVar
+		{
+			get { return Container is TwineVar ? (TwineVar) Container : new TwineVar(Container); }
 		}
 
 		public override int GetHashCode()
@@ -80,7 +95,7 @@ namespace UnityTwine
 		// ..............
 		// PROPERTIES
 
-		public TwineVarRef this[string memberName]
+		public TwineVar this[string memberName]
 		{
 			get
 			{
@@ -88,16 +103,16 @@ namespace UnityTwine
 			}
 			set
 			{
-				SetMember(memberName, value.Value);
+				SetMember(memberName, value);
 			}
 		}
 
-		public TwineVarRef AsMemberOf(TwineVar val)
+		public TwineVar AsMemberOf(TwineVar val)
 		{
 			return val.GetMember(this);
 		}
 
-		public TwineVarRef GetMember(string memberName)
+		public TwineVar GetMember(string memberName)
 		{
 			if (Value == null)
 				throw new TwineTypeMemberException("Cannot get member of empty Twine var.");
@@ -112,7 +127,7 @@ namespace UnityTwine
 			throw new TwineTypeMemberException(string.Format("Cannot get member of a Twine var of type {0}.", this.Value.GetType().Name));
 		}
 
-		public TwineVarRef GetMember(TwineVar memberName)
+		public TwineVar GetMember(TwineVar memberName)
 		{
 			return GetMember(memberName.ToString());
 		}
@@ -124,10 +139,16 @@ namespace UnityTwine
 
 			ITwineTypeService service = GetTypeService(this.Value.GetType());
 			if (service != null)
+			{
 				service.SetMember(this.Value, memberName, val);
+				return;
+			}
 
 			if (this.Value is ITwineType)
+			{
 				((ITwineType)this.Value).SetMember(memberName, val);
+				return;
+			}
 
 			throw new TwineTypeMemberException(string.Format("Cannot set member of a Twine var of type {0}.", this.Value.GetType().Name));
 		}
@@ -144,10 +165,16 @@ namespace UnityTwine
 
 			ITwineTypeService service = GetTypeService(this.Value.GetType());
 			if (service != null)
+			{
 				service.RemoveMember(this.Value, memberName);
+				return;
+			}
 
 			if (this.Value is ITwineType)
+			{
 				((ITwineType)this.Value).RemoveMember(memberName);
+				return;
+			}
 
 			throw new TwineTypeMemberException(string.Format("Cannot remove member of a Twine var of type {0}.", this.Value.GetType().Name));
 		}
@@ -160,10 +187,6 @@ namespace UnityTwine
 		// ..............
 		// OBJECT
 
-		public TwineVar(object val)
-		{
-			this.Value = val;
-		}
 
 		public static bool Compare(TwineOperator op, object left, object right)
 		{
@@ -260,34 +283,42 @@ namespace UnityTwine
 			throw new TwineTypeException(string.Format("Cannot use {0} with {1}", op, a.GetType().Name ?? "null"));
 		}
 
-		public static bool TryConvertTo<T>(object obj, out T result)
+		public static bool TryConvertTo(object obj, Type t, out object result)
 		{
 			// Same type
-			if (obj is T)
+			if (obj != null && t.IsAssignableFrom(obj.GetType()))
 			{
-				result = (T) obj;
+				result = obj;
 				return true;
 			}
 
 			ITwineTypeService service = obj == null ? null : GetTypeService(obj.GetType());
+			if (service != null && service.ConvertTo(obj, t, out result, TwineVar.StrictMode))
+				return true;
+
+			if (obj is ITwineType)
+			{
+				if ((obj as ITwineType).ConvertTo(t, out result, TwineVar.StrictMode))
+					return true;
+			}
+
+			result = null;
+			return false;
+		}
+
+		public static bool TryConvertTo<T>(object obj, out T result)
+		{
 			object r;
-			if (service != null && service.ConvertTo(obj, typeof(T), out r, TwineVar.StrictMode))
+			if (TryConvertTo(obj, typeof(T), out r))
 			{
 				result = (T)r;
 				return true;
 			}
-
-			if (obj is ITwineType)
+			else
 			{
-				if ((obj as ITwineType).ConvertTo(typeof(T), out r, TwineVar.StrictMode))
-				{
-					result = (T)r;
-					return true;
-				}
+				result = default(T);
+				return false;
 			}
-
-			result = default(T);
-			return false;
 		}
 
 		public static T ConvertTo<T>(object obj)
@@ -319,9 +350,28 @@ namespace UnityTwine
 			return Compare(TwineOperator.ContainedBy, this, obj);
 		}
 
-		public void PutInto(TwineVarRef varRef)
+		internal void ApplyValue(TwineVar val)
+		{
+			if (this.ContainerVar.Value != null)
+				this.ContainerVar.SetMember(this.Member, val);
+			this.Value = val;
+		}
+
+		public void PutInto(TwineVar varRef)
 		{
 			varRef.ApplyValue(this);
+		}
+
+		public void MoveInto(TwineVar varRef)
+		{
+			varRef.ApplyValue(this);
+
+			if (this.ContainerVar.Value != null)
+				this.ContainerVar.RemoveMember(this.Member);
+
+			this.Container = null;
+			this.Member = null;
+			this.Value = default(TwineVar);
 		}
 
 		#region Operators

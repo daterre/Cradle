@@ -13,7 +13,7 @@ namespace UnityTwine
 		/// </summary>
 		public const int DecimalPrecision = 5;
 
-		public override TwineVarRef GetMember(int container, string memberName)
+		public override TwineVar GetMember(int container, string memberName)
 		{
 			throw new TwineTypeMemberException("Cannot directly get any members of a number.");
 		}

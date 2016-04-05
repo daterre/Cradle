@@ -24,7 +24,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 			get { return values.Count; }
 		}
 
-		public override TwineVarRef GetMember(string memberName)
+		public override TwineVar GetMember(string memberName)
 		{
 			TwineVar val;
 			if (memberName.ToLower() == "length")
@@ -41,7 +41,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 				}
 			}
 
-			return new TwineVarRef(this, memberName, val);
+			return new TwineVar(this, memberName, val);
 		}
 
 		public override void SetMember(string memberName, TwineVar value)

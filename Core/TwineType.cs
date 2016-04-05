@@ -8,7 +8,7 @@ namespace UnityTwine
 {
 	public interface ITwineType
 	{
-		TwineVarRef GetMember(string memberName);
+		TwineVar GetMember(string memberName);
 		void SetMember(string memberName, TwineVar value);
 		void RemoveMember(string memberName);
 
@@ -20,7 +20,7 @@ namespace UnityTwine
 
 	public abstract class TwineType: ITwineType
 	{
-		public abstract TwineVarRef GetMember(string memberName);
+		public abstract TwineVar GetMember(string memberName);
 		public abstract void SetMember(string memberName, TwineVar value);
 		public abstract void RemoveMember(string memberName);
 
@@ -32,7 +32,7 @@ namespace UnityTwine
 
 	public interface ITwineTypeService
 	{
-		TwineVarRef GetMember(object container, string memberName);
+		TwineVar GetMember(object container, string memberName);
 		void SetMember(object container, string memberName, TwineVar value);
 		void RemoveMember(object container, string memberName);
 
@@ -44,7 +44,7 @@ namespace UnityTwine
 
 	public abstract class TwineTypeService<T>: ITwineTypeService
 	{
-		public abstract TwineVarRef GetMember(T container, string memberName);
+		public abstract TwineVar GetMember(T container, string memberName);
 		public abstract void SetMember(T container, string memberName, TwineVar value);
 		public abstract void RemoveMember(T container, string memberName);
 
@@ -86,7 +86,7 @@ namespace UnityTwine
 			return ConvertTo((T)a, t, out result, strict);
 		}
 
-		TwineVarRef ITwineTypeService.GetMember(object container, string memberName)
+		TwineVar ITwineTypeService.GetMember(object container, string memberName)
 		{
 			return GetMember((T)container, memberName);
 		}

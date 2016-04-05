@@ -8,7 +8,7 @@ namespace UnityTwine
 {
 	public class StringService: TwineTypeService<string>
 	{
-		public override TwineVarRef GetMember(string container, string memberName)
+		public override TwineVar GetMember(string container, string memberName)
 		{
 			string containerString = (string)container;
 
@@ -22,7 +22,7 @@ namespace UnityTwine
 					value = containerString[Int32.Parse(memberName)]; break;
 			}
 
-			return new TwineVarRef(container, memberName, value);
+			return new TwineVar(container, memberName, value);
 		}
 
 		public override void SetMember(string container, string memberName, TwineVar value)

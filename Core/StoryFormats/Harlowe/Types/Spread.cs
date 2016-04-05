@@ -22,7 +22,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return new Spread(val);
 		}
 
-		public override TwineVarRef GetMember(string memberName)
+		public override TwineVar GetMember(string memberName)
 		{
 			throw new System.NotSupportedException();
 		}

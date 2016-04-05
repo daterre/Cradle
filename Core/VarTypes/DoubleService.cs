@@ -8,7 +8,7 @@ namespace UnityTwine
 {
 	public class DoubleService: TwineTypeService<double>
 	{
-		public override TwineVarRef GetMember(double container, string memberName)
+		public override TwineVar GetMember(double container, string memberName)
 		{
 			throw new TwineTypeMemberException("Cannot directly get any members of a number.");
 		}
