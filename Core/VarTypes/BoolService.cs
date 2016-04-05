@@ -8,14 +8,19 @@ namespace UnityTwine
 {
 	public class BoolService: TwineTypeService<bool>
 	{
-		public override TwineVar GetProperty(bool container, string propertyName)
+		public override TwineVarRef GetMember(bool container, string memberName)
 		{
-			throw new TwineTypePropertyException("Cannot directly get any properties of a boolean.");
+			throw new TwineTypeMemberException("Cannot directly get any members of a boolean.");
 		}
 
-		public override void SetProperty(bool container, string propertyName, TwineVar value)
+		public override void SetMember(bool container, string memberName, TwineVar value)
 		{
-			throw new TwineTypePropertyException("Cannot directly set any properties of a boolean.");
+			throw new TwineTypeMemberException("Cannot directly set any members of a boolean.");
+		}
+
+		public override void RemoveMember(bool container, string memberName)
+		{
+			throw new TwineTypeMemberException("Cannot directly remove any members of a boolean.");
 		}
 
 		// ............................

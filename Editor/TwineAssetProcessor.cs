@@ -95,8 +95,9 @@ namespace UnityTwine.Editor
 						{"timestamp", DateTime.Now.ToString("G")},
 						{"version", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()},
 						{"originalFile", Path.GetFileName(assetPath)},
-						{"storyFormat", storyFormatMetadata.StoryFormatName},
-						{"storyBaseClass", storyFormatMetadata.StoryBaseType.FullName},
+						{"storyFormatName", storyFormatMetadata.StoryFormatName},
+						{"storyFormatNamespace", storyFormatMetadata.StoryBaseType.Namespace},
+						{"storyFormatClass", storyFormatMetadata.StoryBaseType.FullName},
 						{"storyName", storyName},
 						{"runtimeMacrosClass", storyFormatMetadata.RuntimeMacrosType.FullName},
 						{"vars", importer.Vars.Keys},
@@ -105,11 +106,11 @@ namespace UnityTwine.Editor
 								Pid = p.Pid,
 								Name = p.Name,
 								Tags = p.Tags,
-								Code = p.Code.Main.Split('\n'),
+								Code = p.Code.Main.Split(new string[]{Environment.NewLine}, StringSplitOptions.None),
 								Fragments = p.Code.Fragments.Select((frag,i) => new TemplatePassageFragment(){
 									Pid = p.Pid,
 									FragId = i,
-									Code = frag.Split('\n')
+									Code = frag.Split(new string[]{Environment.NewLine}, StringSplitOptions.None)
 								}).ToArray()
 							}).ToArray()
 						}

@@ -27,12 +27,12 @@ namespace UnityTwine
 	}
 
 	[Serializable]
-	public class TwineTypePropertyException : TwineException
+	public class TwineTypeMemberException : TwineException
 	{
-		public TwineTypePropertyException() { }
-		public TwineTypePropertyException(string message) : base(message) { }
-		public TwineTypePropertyException(string message, Exception inner) : base(message, inner) { }
-		protected TwineTypePropertyException(
+		public TwineTypeMemberException() { }
+		public TwineTypeMemberException(string message) : base(message) { }
+		public TwineTypeMemberException(string message, Exception inner) : base(message, inner) { }
+		protected TwineTypeMemberException(
 		  System.Runtime.Serialization.SerializationInfo info,
 		  System.Runtime.Serialization.StreamingContext context)
 			: base(info, context) { }

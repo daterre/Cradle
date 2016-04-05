@@ -6,6 +6,8 @@ require(['markup', 'utils'], function(TwineMarkup, utils){
 		for (var i = 0; i < tokens.length; i++) {
 			var complex = tokens[i];
 			
+			var simple = {type: complex.type};
+
 			// special cases
 			switch(complex.type) {
 				case "twineLink": {
@@ -14,10 +16,13 @@ require(['markup', 'utils'], function(TwineMarkup, utils){
 						+ utils.toJSLiteral(complex.innerText) + ","
 						+ utils.toJSLiteral(complex.passage) + ")"
 					);
+					continue;
 				}
 
+				// Changed this to be handled by the transcoder
+				/*
 				case "collapsed": {
-					// Continue by skipping children
+					// Continue with children
 					result = result.concat(simplify(complex.children, true));
 					continue;
 				}
@@ -27,9 +32,9 @@ require(['markup', 'utils'], function(TwineMarkup, utils){
 					if (collapsed)
 						continue;
 				}
+				*/
 			}
-
-			var simple = {type: complex.type};
+			
 
 			if (complex.children && complex.children.length && complex.type !== 'string' && complex.type !== 'verbatim')
 				simple.tokens = simplify(complex.children, collapsed);

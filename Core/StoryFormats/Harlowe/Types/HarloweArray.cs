@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class HarloweArray: ITwineType
+	public class HarloweArray: TwineType
 	{
 		List<TwineVar> values;
 
@@ -24,50 +24,60 @@ namespace UnityTwine.StoryFormats.Harlowe
 			get { return values.Count; }
 		}
 
-		public TwineVar this[string propertyName]
+		public override TwineVarRef GetMember(string memberName)
 		{
-			get
+			TwineVar val;
+			if (memberName.ToLower() == "length")
 			{
-				if (propertyName.ToLower() == "length")
-					return this.Length;
-
-				int index = HarloweUtils.PositionToIndex(propertyName, values.Count);
-				try { return values[index]; }
-				catch(System.IndexOutOfRangeException)
-				{
-					throw new System.IndexOutOfRangeException(string.Format("The array doesn't have a {0} position."));
-				}
+				val = this.Length;
 			}
-			set
+			else
 			{
-				if (propertyName.ToLower() == "length")
-					throw new TwineTypePropertyException("Cannot directly set the length of an array.");
-
-				int index = HarloweUtils.PositionToIndex(propertyName, values.Count);
-				try { values[index] = value; }
+				int index = HarloweUtils.PositionToIndex(memberName, values.Count);
+				try { val = values[index]; }
 				catch (System.IndexOutOfRangeException)
 				{
 					throw new System.IndexOutOfRangeException(string.Format("The array doesn't have a {0} position."));
 				}
 			}
+
+			return new TwineVarRef(this, memberName, val);
 		}
 
-		public bool Compare(TwineOperator op, object b, out bool result)
+		public override void SetMember(string memberName, TwineVar value)
+		{
+			if (memberName.ToLower() == "length")
+				throw new TwineTypeMemberException("Cannot directly set the length of an array.");
+
+			int index = HarloweUtils.PositionToIndex(memberName, values.Count);
+			try { values[index] = value; }
+			catch (System.IndexOutOfRangeException)
+			{
+				throw new System.IndexOutOfRangeException(string.Format("The array doesn't have a {0} position."));
+			}
+		}
+
+		public override void RemoveMember(string memberName)
 		{
 			throw new System.NotImplementedException();
 		}
 
-		public bool Combine(TwineOperator op, object b, out TwineVar result)
+		public override bool Compare(TwineOperator op, object b, out bool result)
 		{
 			throw new System.NotImplementedException();
 		}
 
-		public bool Unary(TwineOperator op, out TwineVar result)
+		public override bool Combine(TwineOperator op, object b, out TwineVar result)
 		{
 			throw new System.NotImplementedException();
 		}
 
-		public bool ConvertTo(System.Type t, out object result, bool strict = false)
+		public override bool Unary(TwineOperator op, out TwineVar result)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public override bool ConvertTo(System.Type t, out object result, bool strict = false)
 		{
 			throw new System.NotImplementedException();
 		}

@@ -39,7 +39,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 		{
 			int index = -1;
 			if (!TryPositionToIndex(position, total, out index))
-				throw new TwineTypePropertyException(string.Format("'{0}' is not a valid position", position));
+				throw new TwineTypeMemberException(string.Format("'{0}' is not a valid position", position));
 			return index;
 		}
 	}

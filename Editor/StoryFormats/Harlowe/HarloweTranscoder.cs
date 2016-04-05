@@ -29,8 +29,11 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		static HarloweTranscoder()
 		{
 			// Supported macros
-			CodeGenMacros["set"] = BuiltInCodeGenMacros.Set;
+			CodeGenMacros["put"] =
+			CodeGenMacros["move"] = 
+			CodeGenMacros["set"] = BuiltInCodeGenMacros.Assignment;
 
+			CodeGenMacros["unless"] =
 			CodeGenMacros["if"] =
 			CodeGenMacros["elseif"] =
 			CodeGenMacros["else"] = BuiltInCodeGenMacros.Conditional;
@@ -41,6 +44,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["linkrepeat"] = BuiltInCodeGenMacros.Link;
 
 			CodeGenMacros["goto"] = BuiltInCodeGenMacros.GoTo;
+			CodeGenMacros["hook"] = BuiltInCodeGenMacros.Hook;
 
 			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
 		}
@@ -55,7 +59,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			{
 				return new StoryFormatMetadata()
 				{
-					StoryFormatName = "Sugar",
+					StoryFormatName = "Harlowe",
 					StoryBaseType = typeof(UnityTwine.StoryFormats.Harlowe.HarloweStory),
 					RuntimeMacrosType = typeof(UnityTwine.StoryFormats.Harlowe.HarloweRuntimeMacros),
 					StrictMode = true
@@ -92,24 +96,28 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			return _output;
 		}
 
-		public void GenerateBody(LexerToken[] tokens)
+		public void GenerateBody(LexerToken[] tokens, bool breaks = true)
 		{
 			for (int t = 0; t < tokens.Length; t++)
 			{
 				LexerToken token = tokens[t];
-				Code.Indent();
 
 				switch (token.type)
 				{
-					case "text": {
-						GenerateText(token.text);
+					case "text":
+						Code.Indent();
+						GenerateText(token.text, true);
 						break;
-					}
 
-					case "verbatim": {
-						GenerateText(token.innerText);
+					case "verbatim":
+						Code.Indent();
+						GenerateText(token.innerText, true);
 						break;
-					}
+
+					case "bulleted":
+					case "numbered":
+						Debug.LogWarning("Bulleted and numbered lists not currently supported");
+						break;
 
 					case "italic":
 					case "bold":
@@ -117,14 +125,37 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					case "del":
 					case "strong":
 					case "sup":
-						GenerateStyle(token);
+						Code.Indent();
+						GenerateStyle(token.type, token.tokens);
 						break;
 
-					case "br": {
-						if (!Code.Collapsed)
-							GenerateLineBreak();
+					case "collapsed":
+						bool wasCollapsed = Code.Collapsed;
+						Code.Collapsed = true;
+						GenerateBody(token.tokens, false);
+						Code.Collapsed = wasCollapsed;
 						break;
-					}
+
+					case "br":
+						if (!Code.Collapsed)
+						{
+							Code.Indent();
+							GenerateLineBreak();
+						}
+						break;
+
+					case "whitespace":
+						if (!Code.Collapsed)
+						{
+							Code.Indent();
+							GenerateText(token.text, true);
+						}
+						break;
+
+					case "variable":
+						Code.Indent();
+						GenerateText(BuildVariableRef(token), false);
+						break;
 
 					case "macro": {
 
@@ -140,31 +171,50 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 						break;
 					}
 
-					case "hook": {
+					case "hook":
+					default:
 						break;
-					}
 				}
 			}
 
-			Code.Indent();
-			Code.Buffer.AppendLine("yield break;");
+			if (breaks)
+			{
+				Code.Indent();
+				Code.Buffer.Append("yield break;");
+			}
 		}
 
-		public void GenerateText(string text)
+		public void GenerateText(string text, bool isString)
 		{
-			Code.Buffer.AppendFormat("yield return new TwineText(\"{0}\");\n",
-				text.Replace("\"", "\\\"")
-			);
+			Code.Buffer.Append("yield return text(");
+			if (isString)
+			{
+				Code.Buffer.Append("\"");
+				Code.Buffer.Append(text.Replace("\"", "\\\""));
+				Code.Buffer.Append("\"");
+			}
+			else
+				Code.Buffer.Append(text);
+
+			Code.Buffer.AppendLine(");");
 		}
 
 		public void GenerateLineBreak()
 		{
-			Code.Buffer.Append("yield return new TwineLineBreak();\n");
+			Code.Buffer.AppendLine("yield return lineBreak();");
 		}
 
-		public void GenerateStyle(LexerToken token)
+		public void GenerateStyle(string styleName, LexerToken[] tokens)
 		{
-			// TODO: how to handle this?
+			Code.Buffer
+				.Append("using (Style.Apply(\"")
+				.Append(styleName)
+				.AppendLine("\", true)) {");
+			Code.Indentation++;
+			GenerateBody(tokens, breaks: false);
+			Code.Indentation--;
+			Code.Indent();
+			Code.Buffer.AppendLine("}");
 		}
 
 		public string GenerateFragment(LexerToken[] tokens)
@@ -187,11 +237,61 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 			if (macro != null)
 			{
-				Code.Indent();
+				if (usage != MacroUsage.Inline)
+					Code.Indent();
+
 				return macro(this, tokens, macroTokenIndex, usage);
 			}
 			else
 				return macroTokenIndex;
+		}
+
+		public void GeneratedAssignment(string assignType, LexerToken[] assignTokens, int start, int end)
+		{
+			string delimeter = assignType == "set" ? "to" : "into";
+			bool close = delimeter == "into";
+			
+			int t = start;
+			for (; t <= end; t++)
+			{
+				LexerToken token = assignTokens[t];
+				if (token.type == delimeter)
+				{
+					GenerateExpression(assignTokens, start, t-1);
+					Code.Buffer.Append(
+						assignType == "set" ? "=" :
+						assignType == "move" ? ".MoveInto(" :
+						".PutInto("
+					);
+					GenerateExpression(assignTokens, t+1, end);
+					if (close)
+						Code.Buffer.Append(")");
+
+					return;
+				}
+			}
+
+			throw new TwineTranscodingException(string.Format("The '{0}' assignment was not written correctly.", assignType));
+		}
+
+		string BuildInverseAssignment(LexerToken[] tokens, ref int tokenIndex, bool moveAssignment)
+		{
+			string statement = string.Format(".{0}(vref(Vars, \"", moveAssignment ? "MoveInto" : "PutInto");
+			tokenIndex++;
+			for (; tokenIndex < tokens.Length; tokenIndex++)
+			{
+				LexerToken token = tokens[tokenIndex];
+				if (token.type == "whitespace")
+					continue;
+
+				if (token.type != "variable")
+					break;
+
+				statement += token.name + "\"))";
+				return statement;
+			}
+
+			throw new TwineTranscodingException(string.Format("{0} macro was not formatted correctly", moveAssignment ? "Move" : "Put"));
 		}
 
 		public void GenerateExpression(LexerToken[] tokens, int start = 0, int end = -1)
@@ -203,21 +303,26 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			for (int t = start; t < (end > 0 ? end + 1 : tokens.Length); t++)
 			{
 				LexerToken token = tokens[t];
-				string expr = BuildExpressionSegment(tokens, t);
+				string expr = BuildExpressionSegment(tokens, ref t);
 				if (expr != null)
 					Code.Buffer.Append(expr);
 			}
 		}
 
-		string BuildExpressionSegment(LexerToken[] tokens, int tokenIndex)
+		string BuildVariableRef(LexerToken token)
+		{
+			Importer.RegisterVar(token.name);
+			_lastVariable = string.Format("Vars.{0}", EscapeCSharpWord (token.name));
+			return _lastVariable;
+		}
+
+		string BuildExpressionSegment(LexerToken[] tokens, ref int tokenIndex)
 		{
 			LexerToken token = tokens[tokenIndex];
 			switch (token.type)
 			{
 				case "variable":
-					Importer.RegisterVar(token.name);
-					_lastVariable = string.Format("Vars.@{0}", token.name);
-					return _lastVariable;
+					return BuildVariableRef(token);
 				case "identifier":
 					if (_lastVariable == null)
 						throw new TwineTranscodingException("'it' or 'its' used without first mentioning a variable");
@@ -225,6 +330,8 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				case "macro":
 					GenerateMacro(tokens, tokenIndex, MacroUsage.Inline);
 					return null;
+				case "hookRef":
+					return string.Format("Fragments[\"{0}\"]", token.name);
 				case "string":
 					return WrapInVar(string.Format("\"{0}\"", token.innerText), tokens, tokenIndex);
 				case "number":
@@ -236,11 +343,15 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					GenerateExpression(token.tokens);
 					Code.Buffer.Append(")");
 					return null;
+				case "itsProperty":
+					if (_lastVariable == null)
+						throw new TwineTranscodingException("'it' or 'its' used without first mentioning a variable");
+					return string.Format("{0}.GetMember(\"{1}\")", _lastVariable, token.name);
 				case "property":
-					return string.Format("[\"{0}\"]", token.name);
+					return string.Format(".GetMember(\"{0}\")", token.name);
 				case "belongingProperty":
 					EnsureGrouping(tokens, tokenIndex);
-					return string.Format("v(\"{0}\").AsPropertyOf", token.name);
+					return string.Format("v(\"{0}\").AsMemberOf", token.name);
 				case "contains":
 					EnsureGrouping(tokens, tokenIndex);
 					return ".Contains";
@@ -249,10 +360,10 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					return ".ContainedBy";
 				case "possessiveOperator":
 					EnsureGrouping(tokens, tokenIndex);
-					return ".GetProperty";
+					return ".GetMember";
 				case "belongingOperator":
 					EnsureGrouping(tokens, tokenIndex);
-					return ".AsPropertyOf";
+					return ".AsMemberOf";
 				case "and":
 					return "&&";
 				case "or":
@@ -261,14 +372,19 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					return "==";
 				case "isNot":
 					return "!=";
-				case "to":
-					return "=";
 				case "not":
 					return "!";
+				case "spread":
+					return "(Spread)";
+				case "to":
+				case "into":
+					throw new TwineTranscodingException(string.Format("'{0}' is an assignment keyword and cannot be used inside an expression.", token.type));
 				default:
 					return token.text;
 			}
 		}
+
+		
 
 		bool WrapInVarRequired(LexerToken[] tokens, int tokenIndex)
 		{
@@ -283,6 +399,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 						case "property":
 						case "contains":
 						case "isIn":
+						case "into":
 						case "possessiveOperator":
 						case "belongingOperator":
 							wrap = true;
@@ -328,7 +445,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 			if (!ok)
 				throw new TwineTranscodingException(string.Format(
-					"Due to UnityTwine syntax limitations, '{0}' must be followed by perentheses: {0} (...) ",
+					"Due to UnityTwine syntax limitations, '{0}' must be followed by values in perentheses. ",
 					tokens[tokenIndex].text
 				));
 		}

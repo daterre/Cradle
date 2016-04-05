@@ -13,14 +13,19 @@ namespace UnityTwine
 		/// </summary>
 		public const int DecimalPrecision = 5;
 
-		public override TwineVar GetProperty(int container, string propertyName)
+		public override TwineVarRef GetMember(int container, string memberName)
 		{
-			throw new TwineTypePropertyException("Cannot directly get any properties of a number.");
+			throw new TwineTypeMemberException("Cannot directly get any members of a number.");
 		}
 
-		public override void SetProperty(int container, string propertyName, TwineVar value)
+		public override void SetMember(int container, string memberName, TwineVar value)
 		{
-			throw new TwineTypePropertyException("Cannot directly set any properties of a number.");
+			throw new TwineTypeMemberException("Cannot directly set any members of a number.");
+		}
+
+		public override void RemoveMember(int container, string memberName)
+		{
+			throw new TwineTypeMemberException("Cannot directly remove any members of a number.");
 		}
 
 		// ............................

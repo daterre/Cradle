@@ -2,11 +2,25 @@
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace UnityTwine
 {
+	public interface ITwineVar
+	{
+		TwineVarRef GetMember(string memberName);
+		TwineVarRef GetMember(TwineVar memberName);
+		void SetMember(string memberName, TwineVar val);
+		void SetMember(TwineVar memberName, TwineVar val);
+		TwineVarRef this[string memberName] { get; set; }
+		TwineVarRef AsMemberOf(TwineVar val);
+		bool Contains(object obj);
+		bool ContainedBy(object obj);
+		void PutInto(TwineVarRef varRef);
+	}
+
 	[Serializable]
-	public struct TwineVar
+	public struct TwineVar: ITwineVar
 	{
 		public static bool StrictMode = false;
 
@@ -66,61 +80,81 @@ namespace UnityTwine
 		// ..............
 		// PROPERTIES
 
-		public TwineVar GetProperty(string propertyName)
-		{
-			if (Value == null)
-				throw new TwineTypePropertyException("Cannot get property of empty Twine var.");
-
-			ITwineTypeService service = GetTypeService(this.Value.GetType());
-			if (service != null)
-				return service.GetProperty(this.Value, propertyName);
-
-			if (this.Value is ITwineType)
-				return ((ITwineType)this.Value)[propertyName];
-
-			throw new TwineTypePropertyException(string.Format("Cannot get property of a Twine var of type {0}.", this.Value.GetType().Name));
-		}
-
-		public TwineVar GetProperty(TwineVar propertyName)
-		{
-			return GetProperty(propertyName.ToString());
-		}
-
-		public void SetProperty(string propertyName, TwineVar val)
-		{
-			if (Value == null)
-				throw new TwineTypePropertyException("Cannot set property of empty Twine var.");
-
-			ITwineTypeService service = GetTypeService(this.Value.GetType());
-			if (service != null)
-				service.SetProperty(this.Value, propertyName, val);
-
-			if (this.Value is ITwineType)
-				((ITwineType)this.Value)[propertyName] = val;
-
-			throw new TwineTypePropertyException(string.Format("Cannot set property of a Twine var of type {0}.", this.Value.GetType().Name));
-		}
-
-		public void SetProperty(TwineVar propertyName, TwineVar val)
-		{
-			SetProperty(propertyName.ToString(), val);
-		}
-
-		public TwineVar this[string propertyName]
+		public TwineVarRef this[string memberName]
 		{
 			get
 			{
-				return GetProperty(propertyName);
+				return GetMember(memberName);
 			}
 			set
 			{
-				SetProperty(propertyName, value);
+				SetMember(memberName, value.Value);
 			}
 		}
 
-		public TwineVar AsPropertyOf(TwineVar val)
+		public TwineVarRef AsMemberOf(TwineVar val)
 		{
-			return val.GetProperty(this);
+			return val.GetMember(this);
+		}
+
+		public TwineVarRef GetMember(string memberName)
+		{
+			if (Value == null)
+				throw new TwineTypeMemberException("Cannot get member of empty Twine var.");
+
+			ITwineTypeService service = GetTypeService(this.Value.GetType());
+			if (service != null)
+				return service.GetMember(this.Value, memberName);
+
+			if (this.Value is ITwineType)
+				return ((ITwineType)this.Value).GetMember(memberName);
+
+			throw new TwineTypeMemberException(string.Format("Cannot get member of a Twine var of type {0}.", this.Value.GetType().Name));
+		}
+
+		public TwineVarRef GetMember(TwineVar memberName)
+		{
+			return GetMember(memberName.ToString());
+		}
+
+		public void SetMember(string memberName, TwineVar val)
+		{
+			if (Value == null)
+				throw new TwineTypeMemberException("Cannot set member of empty Twine var.");
+
+			ITwineTypeService service = GetTypeService(this.Value.GetType());
+			if (service != null)
+				service.SetMember(this.Value, memberName, val);
+
+			if (this.Value is ITwineType)
+				((ITwineType)this.Value).SetMember(memberName, val);
+
+			throw new TwineTypeMemberException(string.Format("Cannot set member of a Twine var of type {0}.", this.Value.GetType().Name));
+		}
+
+		public void SetMember(TwineVar memberName, TwineVar val)
+		{
+			SetMember(memberName.ToString(), val);
+		}
+
+		public void RemoveMember(string memberName)
+		{
+			if (Value == null)
+				throw new TwineTypeMemberException("Cannot remove member of empty Twine var.");
+
+			ITwineTypeService service = GetTypeService(this.Value.GetType());
+			if (service != null)
+				service.RemoveMember(this.Value, memberName);
+
+			if (this.Value is ITwineType)
+				((ITwineType)this.Value).RemoveMember(memberName);
+
+			throw new TwineTypeMemberException(string.Format("Cannot remove member of a Twine var of type {0}.", this.Value.GetType().Name));
+		}
+
+		public void RemoveMember(TwineVar memberName)
+		{
+			RemoveMember(memberName.ToString());
 		}
 
 		// ..............
@@ -138,6 +172,10 @@ namespace UnityTwine
 
 			bool result;
 			ITwineTypeService service;
+
+			Type t = typeof(void);
+
+			// TODO: null service?
 
 			if (a != null && _typeServices.TryGetValue(a.GetType(), out service) && service.Compare(op, a, b, out result))
 				return result;
@@ -252,13 +290,18 @@ namespace UnityTwine
 			return false;
 		}
 
-		public T ConvertTo<T>()
+		public static T ConvertTo<T>(object obj)
 		{
 			T result;
-			if (TryConvertTo<T>(this.Value, out result))
+			if (TryConvertTo<T>(obj, out result))
 				return result;
 			else
-				throw new TwineTypeException(string.Format("Cannot convert {0} to {1}", this.Value.GetType().Name ?? "null", typeof(T).Name));
+				throw new TwineTypeException(string.Format("Cannot convert {0} to {1}", obj == null ? "null" : obj.GetType().FullName, typeof(T).FullName));
+		}
+
+		public T ConvertTo<T>()
+		{
+			return ConvertTo<T>(this.Value);
 		}
 
 		public override bool Equals(object obj)
@@ -275,6 +318,14 @@ namespace UnityTwine
 		{
 			return Compare(TwineOperator.ContainedBy, this, obj);
 		}
+
+		public void PutInto(TwineVarRef varRef)
+		{
+			varRef.ApplyValue(this);
+		}
+
+		#region Operators
+		// ------------------------
 
 		public static TwineVar operator++(TwineVar val)
 		{
@@ -371,6 +422,11 @@ namespace UnityTwine
 			return new TwineVar(val);
 		}
 
+		public static implicit operator TwineVar(TwineType val)
+		{
+			return new TwineVar(val);
+		}
+
 		public static implicit operator string(TwineVar val)
 		{
 			return val.ConvertTo<string>();
@@ -400,6 +456,8 @@ namespace UnityTwine
 		{
 			return !val.ConvertTo<bool>();
 		}
+		// ------------------------
+		#endregion
 	}
 }
 

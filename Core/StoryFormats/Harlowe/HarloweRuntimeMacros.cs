@@ -8,11 +8,15 @@ namespace UnityTwine.StoryFormats.Harlowe
 	{
 		// ------------------------------------
 
-		public void click(string passageName)
+		public void click(string text)
 		{
 			throw new System.NotImplementedException();
 		}
 
+		public void click(TwineNamedFragment namedFragment)
+		{
+			throw new System.NotImplementedException();
+		}
 		
 		// ------------------------------------
 
@@ -37,6 +41,11 @@ namespace UnityTwine.StoryFormats.Harlowe
 		public TwineVar round(double num, int precision)
 		{
 			return Math.Round(num, precision);
+		}
+
+		public TwineVar either(params TwineVar[] vars)
+		{
+			return vars[UnityEngine.Random.Range(0, vars.Length)];
 		}
 	}
 }

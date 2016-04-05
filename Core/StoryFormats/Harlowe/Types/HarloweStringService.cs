@@ -8,13 +8,13 @@ namespace UnityTwine.StoryFormats.Harlowe
 {
 	public class HarloweStringService: StringService
 	{
-		public override TwineVar GetProperty(string container, string propertyName)
+		public override TwineVarRef GetMember(string container, string memberName)
 		{
 			int index;
-			if (HarloweUtils.TryPositionToIndex(propertyName, container.Length, out index))
-				return container[index].ToString();
+			if (HarloweUtils.TryPositionToIndex(memberName, container.Length, out index))
+				return new TwineVarRef(container, memberName, container[index].ToString());
 
-			return base.GetProperty(container, propertyName);
+			return base.GetMember(container, memberName);
 		}
 	}
 }

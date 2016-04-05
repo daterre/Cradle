@@ -6,6 +6,8 @@ namespace UnityTwine
 	{
 		public string Name;
 		public string Text;
+
+		public TwineStyle Style;
 	}
 }
 

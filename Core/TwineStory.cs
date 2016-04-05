@@ -9,6 +9,14 @@ using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutp
 
 namespace UnityTwine
 {
+	public enum TwineStoryState
+	{
+		Idle = 0,
+		Playing = 1,
+		Paused = 2,
+		Exiting = 3
+	}
+
     public abstract class TwineStory: MonoBehaviour
     {
 		public bool AutoPlay = true;
@@ -21,14 +29,15 @@ namespace UnityTwine
 		public List<TwineText> Text { get; private set; }
 		public List<TwineLink> Links { get; private set; }
 		public List<TwineOutput> Output { get; private set; }
-		public TwineVar[] PassageParameters { get; private set; }
 		public string[] Tags { get; private set; }
 		public TwineRuntimeVars Vars { get; protected set; }
 		public string CurrentPassageName { get; private set; }
+		public TwineStyle Style { get; private set; }
 		
 		public string PreviousPassageName { get; private set; }
 
 		protected Dictionary<string, TwinePassage> Passages { get; private set; }
+		protected Dictionary<string, TwineNamedFragment> Fragments = new Dictionary<string, TwineNamedFragment>();
 		TwineStoryState _state = TwineStoryState.Idle;
 		IEnumerator<TwineOutput> _currentThread = null;
 		TwineLink _currentLinkInAction = null;
@@ -63,6 +72,7 @@ namespace UnityTwine
 			TwineVar.RegisterTypeService<string>(new StringService());
 
 			this.Passages = new Dictionary<string, TwinePassage>();
+			this.Style = new TwineStyle();
 		}
 
 		protected void Init()
@@ -72,7 +82,6 @@ namespace UnityTwine
 			this.Text = new List<TwineText>();
 			this.Links = new List<TwineLink>();
 			this.Tags = new string[0];
-			this.PassageParameters = null;
 
 			_turns = 0;
 			_visitedCountPassages.Clear();
@@ -212,7 +221,6 @@ namespace UnityTwine
 			this.Output.Clear();
 			this.Text.Clear();
 			this.Links.Clear();
-			this.PassageParameters = null;
 			_passageUpdateHooks = null;
 
 			TwinePassage passage = GetPassage(passageName);
@@ -244,6 +252,9 @@ namespace UnityTwine
 			// Prepare the thread enumerator
 			_currentThread = CollapseThread(passage.GetMainThread()).GetEnumerator();
 			_currentLinkInAction = null;
+			
+			// Clear any named fragments
+			Fragments.Clear();
 
 			this.State = TwineStoryState.Playing;
 			SendOutput(passage);
@@ -268,6 +279,9 @@ namespace UnityTwine
 			while (_currentThread.MoveNext())
 			{
 				TwineOutput output = _currentThread.Current;
+				
+				// Get a copy of the current style
+				output.Style = this.Style.GetCopy();
 
 				// Abort this thread
 				if (output is TwineAbort)
@@ -340,27 +354,44 @@ namespace UnityTwine
 		}
 
 		/// <summary>
-		/// Invokes and bubbles up output of inner passages (display).
+		/// Invokes and bubbles up output of embedded fragments and passages.
 		/// </summary>
 		ITwineThread CollapseThread(ITwineThread thread)
 		{
 			foreach (TwineOutput output in thread)
 			{
-				if (output is TwineDisplay)
+				if (output is TwineEmbed)
 				{
-					yield return output;
-					var display = (TwineDisplay)output;
-					var displayParams = (TwineVar[])display.Parameters.Clone();
-					this.PassageParameters = displayParams;
-
-					TwinePassage displayPassage = GetPassage(display.PassageName);
-					yield return displayPassage;
-					foreach (TwineOutput innerOutput in CollapseThread(displayPassage.GetMainThread()))
+					ITwineThread embeddedThread;
+					if (output is TwineEmbedPassage)
 					{
-						yield return innerOutput;
-						this.PassageParameters = displayParams; // do this again because inner display macros can override this
+						var embedInfo = (TwineEmbedPassage)output;
+						TwinePassage passage = GetPassage(embedInfo.Name);
+						embeddedThread = passage.GetMainThread();
 					}
-					PassageParameters = null;
+					else if (output is TwineEmbedFragment)
+					{
+						var embedInfo = (TwineEmbedFragment)output;
+						TwineNamedFragment namedFragment;
+						if (Fragments.TryGetValue(embedInfo.Name, out namedFragment))
+							embeddedThread = namedFragment.GetThread();
+						else
+							continue;
+					}
+					else
+						continue;
+
+					// Output an opener
+					var opener = new TwineEmbedOpen() { EmbedInfo = (TwineEmbed)output };
+					yield return opener;
+
+					// Output the content
+					foreach (TwineOutput innerOutput in CollapseThread(embeddedThread))
+						yield return innerOutput;
+
+					// Output the closer
+					yield return new TwineEmbedClose() { Opener = opener };
+					
 				}
 				else
 					yield return output;
@@ -654,6 +685,33 @@ namespace UnityTwine
 			return new TwineVar(val);
 		}
 
+		protected TwineText text(TwineVar text)
+		{
+			return new TwineText(text);
+		}
+
+		protected TwineLineBreak lineBreak()
+		{
+			return new TwineLineBreak();
+		}
+
+		protected TwineLink link(string name, string text, string passageName, Func<ITwineThread> action)
+		{
+			return new TwineLink(name, text, passageName, action);
+		}
+
+		protected TwineAbort abort(string goToPassage)
+		{
+			return new TwineAbort(goToPassage);
+		}
+
+		protected TwineEmbedFragment fragment(string name, Func<ITwineThread> thread)
+		{
+			this.Fragments[name] = new TwineNamedFragment(name, thread);
+			return new TwineEmbedFragment(name);
+		}
+
+		// ============================================================== //
 		// OBSOLETE: //
 
 		protected TwineVar either(params TwineVar[] vars)
@@ -732,10 +790,10 @@ namespace UnityTwine
 			return this.Tags;
 		}
 
-		protected TwineVar parameter(int index)
-		{
-			return this.PassageParameters == null || this.PassageParameters.Length-1 < index ? new TwineVar(index) : this.PassageParameters[index];
-		}
+		//protected TwineVar parameter(int index)
+		//{
+		//	return this.PassageParameters == null || this.PassageParameters.Length-1 < index ? new TwineVar(index) : this.PassageParameters[index];
+		//}
 		
 	}
 }

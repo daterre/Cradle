@@ -51,5 +51,6 @@ namespace UnityTwine.Editor
 		{
 			Vars[name] = null; // null because we don't need any value here, just using a dictionary as a lookup
 		}
+
 	}
 }

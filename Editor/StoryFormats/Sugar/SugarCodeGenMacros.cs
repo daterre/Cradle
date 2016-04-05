@@ -55,7 +55,7 @@ namespace UnityTwine.Editor.StoryFormats.Sugar
 		// ......................
 		public static CodeGenMacro Display = (parser, macro, argument) =>
 		{
-			return string.Format("yield return new TwineDisplay({0});", parser.ParseVars(argument));
+			return string.Format("yield return new TwineEmbedPassage({0});", parser.ParseVars(argument));
 		};
 		
 		// ......................
@@ -66,7 +66,7 @@ namespace UnityTwine.Editor.StoryFormats.Sugar
 			string args = argument != null ? parser.ParseVars(argument) : null;
 			if (!string.IsNullOrEmpty(args))
 				args = ", " + ParamsWithCommas(args);
-			return string.Format("yield return new TwineDisplay(\"{0}\"{1});", passageExpr, args);
+			return string.Format("yield return new TwineEmbedPassage(\"{0}\"{1});", passageExpr, args);
 		};
 		// ......................
 		public static CodeGenMacro Print = (parser, macro, argument) =>
