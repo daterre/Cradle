@@ -66,6 +66,11 @@ namespace UnityTwine
 			return result;
 		}
 
+		public override bool Equals(object obj)
+		{
+			return Compare(TwineOperator.Equals, this, obj);
+		}
+
 		// ..............
 		// TYPE SERVICES
 
@@ -345,11 +350,6 @@ namespace UnityTwine
 		public static T ConvertTo<T>(object obj)
 		{
 			return ConvertTo<T>(obj, TwineVar.StrictMode);
-		}
-
-		public override bool Equals(object obj)
-		{
-			return Compare(TwineOperator.Equals, this, obj);
 		}
 
 		public bool Contains(object obj)

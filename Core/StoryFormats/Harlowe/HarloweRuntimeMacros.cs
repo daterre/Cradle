@@ -22,8 +22,12 @@ namespace UnityTwine.StoryFormats.Harlowe
 
 		public TwineVar a(params TwineVar[] vals)
 		{
-			// Wrap a Harlowe array in a TwineVar
-			return new TwineVar(new HarloweArray(vals));
+			return new HarloweArray(vals);
+		}
+
+		public TwineVar dataset(params TwineVar[] vals)
+		{
+			return new HarloweDataset(vals);
 		}
 
 		// ------------------------------------

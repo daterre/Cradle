@@ -7,22 +7,22 @@ using System.Text;
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class HarloweArray: TwineType
+	public class HarloweDataset: TwineType
 	{
-		internal List<TwineVar> Values;
+		internal HashSet<TwineVar> Values;
 
-		public HarloweArray()
+		public HarloweDataset()
 		{
-			Values = new List<TwineVar>();
+			Values = new HashSet<TwineVar>();
 		}
 
-		public HarloweArray(params TwineVar[] vals):this((IEnumerable<TwineVar>)vals)
+		public HarloweDataset(params TwineVar[] vals):this((IEnumerable<TwineVar>)vals)
 		{
 		}
 
-		public HarloweArray(IEnumerable<TwineVar> vals)
+		public HarloweDataset(IEnumerable<TwineVar> vals)
 		{
-			Values = new List<TwineVar>(Spread.Flatten(vals));
+			Values = new HashSet<TwineVar>(Spread.Flatten(vals));
 		}
 
 		public int Length
@@ -38,14 +38,21 @@ namespace UnityTwine.StoryFormats.Harlowe
 		public override string ToString()
 		{
 			var str = new StringBuilder();
-			for (int i = 0; i < Values.Count; i++)
+			foreach(TwineVar value in Values.OrderBy(v => v))
 			{
-				str.Append(Values[i].ToString());
-				if (i < Values.Count - 1)
+				if (str.Length > 0)
 					str.Append(',');
+				str.Append(value.ToString());
 			}
 
 			return str.ToString();
+		}
+
+		void EnsureNotPosition(string memberName)
+		{
+			int index;
+			if (HarloweUtils.TryPositionToIndex(memberName, Values.Count, out index))
+				throw new TwineTypeMemberException("Datasets can't be accessed by position.");
 		}
 
 		public override TwineVar GetMember(string memberName)
@@ -57,17 +64,8 @@ namespace UnityTwine.StoryFormats.Harlowe
 			}
 			else
 			{
-				int index;
-				if (HarloweUtils.TryPositionToIndex(memberName, Values.Count, out index))
-				{
-					try { val = Values[index]; }
-					catch (System.IndexOutOfRangeException)
-					{
-						throw new TwineTypeMemberException(string.Format("The array doesn't have a {0} position.", memberName));
-					}
-				}
-				else
-					throw new TwineTypeMemberException(string.Format("The array doesn't have a member called {0}.", memberName));
+				EnsureNotPosition(memberName);
+				throw new TwineTypeMemberException(string.Format("The dataset doesn't have a member called {0}.", memberName));
 			}
 
 			return new TwineVar(this, memberName, val);
@@ -78,17 +76,8 @@ namespace UnityTwine.StoryFormats.Harlowe
 			if (memberName.ToLower() == "length")
 				throw new TwineTypeMemberException("'length' cannot be modified.");
 
-			int index;
-			if (HarloweUtils.TryPositionToIndex(memberName, Values.Count, out index))
-			{
-				try { Values[index] = value; }
-				catch (System.IndexOutOfRangeException)
-				{
-					throw new TwineTypeMemberException(string.Format("The array doesn't have a {0} position.", memberName));
-				}
-			}
-			else
-				throw new TwineTypeMemberException(string.Format("The array doesn't have a member called {0}.", memberName));
+			EnsureNotPosition(memberName);
+			throw new TwineTypeMemberException(string.Format("The dataset doesn't have a member called {0}.", memberName));
 		}
 
 		public override void RemoveMember(string memberName)
@@ -96,17 +85,8 @@ namespace UnityTwine.StoryFormats.Harlowe
 			if (memberName.ToLower() == "length")
 				throw new TwineTypeMemberException("'length' cannot be modified.");
 
-			int index;
-			if (HarloweUtils.TryPositionToIndex(memberName, Values.Count, out index))
-			{
-				try { Values.RemoveAt(index); }
-				catch (System.IndexOutOfRangeException)
-				{
-					throw new TwineTypeMemberException(string.Format("The array doesn't have a {0} position.", memberName));
-				}
-			}
-			else
-				throw new TwineTypeMemberException(string.Format("The array doesn't have a member called {0}.", memberName));
+			EnsureNotPosition(memberName);
+			throw new TwineTypeMemberException(string.Format("The dataset doesn't have a member called {0}.", memberName));
 		}
 
 		public override bool Compare(TwineOperator op, object b, out bool result)
@@ -116,11 +96,11 @@ namespace UnityTwine.StoryFormats.Harlowe
 			switch (op)
 			{
 				case TwineOperator.Equals: {
-					if (!(b is HarloweArray))
+					if (!(b is HarloweDataset))
 						return false;
-					var bArray = (HarloweArray)b;
 
-					result = Values.SequenceEqual(bArray.Values);
+					var bSet = (HarloweDataset)b;
+					result = Values.SetEquals(bSet.Values);
 					break;
 				}
 				case TwineOperator.Contains: {
@@ -135,17 +115,17 @@ namespace UnityTwine.StoryFormats.Harlowe
 		public override bool Combine(TwineOperator op, object b, out TwineVar result)
 		{
 			result = default(TwineVar);
-			if (!(b is HarloweArray))
+			if (!(b is HarloweDataset))
 				return false;
-			var bArray = (HarloweArray)b;
+			var bSet = (HarloweDataset)b;
 
 			switch (op)
 			{
 				case TwineOperator.Add:
-					result = new TwineVar(new HarloweArray(Values.Concat(bArray.Values)));
+					result = new TwineVar(new HarloweDataset(Values.Concat(bSet.Values)));
 					break;
 				case TwineOperator.Subtract:
-					result = new TwineVar(new HarloweArray(Values.Except(bArray.Values)));
+					result = new TwineVar(new HarloweDataset(Values.Except(bSet.Values)));
 					break;
 				default:
 					return false;

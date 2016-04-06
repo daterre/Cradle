@@ -12,7 +12,7 @@ namespace UnityTwine.Editor
 		public StoryFormatTranscoder Transcoder {get; protected set;}
 
 		public readonly List<TwinePassageData> Passages = new List<TwinePassageData>();
-		public readonly Dictionary<string, string> Vars = new Dictionary<string, string>();
+		public readonly HashSet<string> Vars = new HashSet<string>();
 
 		public TwineImporter(string assetPath)
 		{
@@ -49,7 +49,7 @@ namespace UnityTwine.Editor
 
 		public void RegisterVar(string name)
 		{
-			Vars[name] = null; // null because we don't need any value here, just using a dictionary as a lookup
+			Vars.Add(name);
 		}
 
 	}

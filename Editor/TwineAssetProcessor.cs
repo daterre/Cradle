@@ -100,7 +100,7 @@ namespace UnityTwine.Editor
 						{"storyFormatClass", storyFormatMetadata.StoryBaseType.FullName},
 						{"storyName", storyName},
 						{"runtimeMacrosClass", storyFormatMetadata.RuntimeMacrosType.FullName},
-						{"vars", importer.Vars.Keys},
+						{"vars", importer.Vars},
 						{"strictMode", storyFormatMetadata.StrictMode ? "true" : "false"},
 						{"passages", importer.Passages.Select(p => new TemplatePassageData(){
 								Pid = p.Pid,
