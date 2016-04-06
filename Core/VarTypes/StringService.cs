@@ -71,8 +71,6 @@ namespace UnityTwine
 					result = String.Compare(a, bString) <= 0; break;
 				case TwineOperator.Contains:
 					result = a.Contains(bString); break;
-				case TwineOperator.ContainedBy:
-					result = bString.Contains(a); break;
 				default:
 					return false;
 			}

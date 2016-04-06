@@ -687,7 +687,7 @@ namespace UnityTwine
 
 		protected TwineText text(TwineVar text)
 		{
-			return new TwineText(text);
+			return new TwineText(TwineVar.ConvertTo<string>(text, strict: false));
 		}
 
 		protected TwineLineBreak lineBreak()

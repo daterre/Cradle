@@ -203,19 +203,20 @@ namespace UnityTwine
 			if (a != null && _typeServices.TryGetValue(a.GetType(), out service) && service.Compare(op, a, b, out result))
 				return result;
 
-			if (b != null && _typeServices.TryGetValue(b.GetType(), out service) && service.Compare(op, a, b, out result))
-				return result;
-
 			if (a is ITwineType)
 			{
 				if ((a as ITwineType).Compare(op, b, out result))
 					return result;
 			}
-			if (b is ITwineType)
-			{
-				if ((b as ITwineType).Compare(op, a, out result))
-					return result;
-			}
+
+			//if (b != null && _typeServices.TryGetValue(b.GetType(), out service) && service.Compare(op, a, b, out result))
+			//	return result;
+
+			//if (b is ITwineType)
+			//{
+			//	if ((b as ITwineType).Compare(op, a, out result))
+			//		return result;
+			//}
 
 			return false;
 		}
@@ -230,19 +231,20 @@ namespace UnityTwine
 			if (a != null && _typeServices.TryGetValue(a.GetType(), out service) && service.Combine(op, a, b, out result))
 				return true;
 
-			if (b != null && _typeServices.TryGetValue(b.GetType(), out service) && service.Combine(op, a, b, out result))
-				return true;
-
 			if (a is ITwineType)
 			{
 				if ((a as ITwineType).Combine(op, b, out result))
 					return true;
 			}
-			if (b is ITwineType)
-			{
-				if ((b as ITwineType).Combine(op, a, out result))
-					return true;
-			}
+
+			//if (b != null && _typeServices.TryGetValue(b.GetType(), out service) && service.Combine(op, a, b, out result))
+			//	return true;
+
+			//if (b is ITwineType)
+			//{
+			//	if ((b as ITwineType).Combine(op, a, out result))
+			//		return true;
+			//}
 
 			result = default(TwineVar);
 			return false;
@@ -283,7 +285,7 @@ namespace UnityTwine
 			throw new TwineTypeException(string.Format("Cannot use {0} with {1}", op, a.GetType().Name ?? "null"));
 		}
 
-		public static bool TryConvertTo(object obj, Type t, out object result)
+		public static bool TryConvertTo(object obj, Type t, out object result, bool strict)
 		{
 			// Same type
 			if (obj != null && t.IsAssignableFrom(obj.GetType()))
@@ -293,12 +295,12 @@ namespace UnityTwine
 			}
 
 			ITwineTypeService service = obj == null ? null : GetTypeService(obj.GetType());
-			if (service != null && service.ConvertTo(obj, t, out result, TwineVar.StrictMode))
+			if (service != null && service.ConvertTo(obj, t, out result, strict))
 				return true;
 
 			if (obj is ITwineType)
 			{
-				if ((obj as ITwineType).ConvertTo(t, out result, TwineVar.StrictMode))
+				if ((obj as ITwineType).ConvertTo(t, out result, strict))
 					return true;
 			}
 
@@ -306,10 +308,15 @@ namespace UnityTwine
 			return false;
 		}
 
-		public static bool TryConvertTo<T>(object obj, out T result)
+		public static bool TryConvertTo(object obj, Type t, out object result)
+		{
+			return TryConvertTo(obj, t, out result, TwineVar.StrictMode);
+		}
+
+		public static bool TryConvertTo<T>(object obj, out T result, bool strict)
 		{
 			object r;
-			if (TryConvertTo(obj, typeof(T), out r))
+			if (TryConvertTo(obj, typeof(T), out r, strict))
 			{
 				result = (T)r;
 				return true;
@@ -321,18 +328,23 @@ namespace UnityTwine
 			}
 		}
 
-		public static T ConvertTo<T>(object obj)
+		public static bool TryConvertTo<T>(object obj, out T result)
+		{
+			return TryConvertTo<T>(obj, out result, TwineVar.StrictMode);
+		}
+
+		public static T ConvertTo<T>(object obj, bool strict)
 		{
 			T result;
-			if (TryConvertTo<T>(obj, out result))
+			if (TryConvertTo<T>(obj, out result, strict))
 				return result;
 			else
 				throw new TwineTypeException(string.Format("Cannot convert {0} to {1}", obj == null ? "null" : obj.GetType().FullName, typeof(T).FullName));
 		}
 
-		public T ConvertTo<T>()
+		public static T ConvertTo<T>(object obj)
 		{
-			return ConvertTo<T>(this.Value);
+			return ConvertTo<T>(obj, TwineVar.StrictMode);
 		}
 
 		public override bool Equals(object obj)
@@ -347,7 +359,7 @@ namespace UnityTwine
 
 		public bool ContainedBy(object obj)
 		{
-			return Compare(TwineOperator.ContainedBy, this, obj);
+			return Compare(TwineOperator.Contains, obj, this);
 		}
 
 		internal void ApplyValue(TwineVar val)
@@ -479,32 +491,32 @@ namespace UnityTwine
 
 		public static implicit operator string(TwineVar val)
 		{
-			return val.ConvertTo<string>();
+			return ConvertTo<string>(val);
 		}
 
 		public static implicit operator double(TwineVar val)
 		{
-			return val.ConvertTo<double>();
+			return ConvertTo<double>(val);
 		}
 
 		public static implicit operator int(TwineVar val)
 		{
-			return val.ConvertTo<int>();
+			return ConvertTo<int>(val);
 		}
 
 		public static implicit operator bool(TwineVar val)
 		{
-			return val.ConvertTo<bool>();
+			return ConvertTo<bool>(val);
 		}
 
 		public static bool operator true(TwineVar val)
 		{
-			return val.ConvertTo<bool>();
+			return ConvertTo<bool>(val);
 		}
 
 		public static bool operator false(TwineVar val)
 		{
-			return !val.ConvertTo<bool>();
+			return ConvertTo<bool>(val);
 		}
 		// ------------------------
 		#endregion

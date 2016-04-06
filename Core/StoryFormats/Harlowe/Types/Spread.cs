@@ -17,7 +17,23 @@ namespace UnityTwine.StoryFormats.Harlowe
 			this.Target = (HarloweArray) val.Value;
 		}
 
-		public static implicit operator Spread(TwineVar val)
+		public static IEnumerable<TwineVar> Flatten(IEnumerable<TwineVar> vals)
+		{
+			foreach(TwineVar val in vals)
+			{
+				if (val.Value is Spread)
+				{
+					var spread = (Spread)val.Value;
+					foreach (TwineVar innerVal in spread.Target.Values)
+						yield return innerVal;
+
+				}
+				else
+					yield return val;
+			}
+		}
+
+		public static explicit operator Spread(TwineVar val)
 		{
 			return new Spread(val);
 		}
