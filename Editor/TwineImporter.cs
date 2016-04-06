@@ -10,6 +10,7 @@ namespace UnityTwine.Editor
 	{
 		public readonly string AssetPath;
 		public StoryFormatTranscoder Transcoder {get; protected set;}
+		public TwinePassageData CurrentPassage { get; private set; }
 
 		public readonly List<TwinePassageData> Passages = new List<TwinePassageData>();
 		public readonly HashSet<string> Vars = new HashSet<string>();
@@ -31,17 +32,17 @@ namespace UnityTwine.Editor
 
 			for (int i = 0; i < this.Passages.Count; i++)
 			{
-				TwinePassageData passage = this.Passages[i];
+				CurrentPassage = this.Passages[i];
 
-				passage.Tags = Regex.Replace(passage.Tags, @"([^\s]+)", "\"$&\",");
+				CurrentPassage.Tags = Regex.Replace(CurrentPassage.Tags, @"([^\s]+)", "\"$&\",");
 
 				try
 				{
-					passage.Code = this.Transcoder.PassageToCode(passage);
+					CurrentPassage.Code = this.Transcoder.PassageToCode(CurrentPassage);
 				}
 				catch(TwineTranscodingException ex)
 				{
-					ex.Passage = passage.Name;
+					ex.Passage = CurrentPassage.Name;
 					throw;
 				}
 			}

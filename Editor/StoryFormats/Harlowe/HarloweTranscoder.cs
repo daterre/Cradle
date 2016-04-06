@@ -249,25 +249,42 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		public void GeneratedAssignment(string assignType, LexerToken[] assignTokens, int start, int end)
 		{
 			string delimeter = assignType == "set" ? "to" : "into";
-			bool close = delimeter == "into";
-			
+			bool usesPropertyOperator = false;
+
 			int t = start;
 			for (; t <= end; t++)
 			{
 				LexerToken token = assignTokens[t];
 				if (token.type == delimeter)
 				{
+					bool close;
+					string assignCode;
+					if (assignType == "set")
+					{
+						// Special case: when GetMember or AsPropertyOf will be used in the left-side expression, can't use = but must use ReplaceWith
+						assignCode = usesPropertyOperator ? ".ReplaceWith(" : "= ";
+						close = usesPropertyOperator;
+					}
+					else
+					{
+						assignCode = assignType == "move" ? ".MoveInto(" : ".PutInto(";
+						close = true;
+					}
+
 					GenerateExpression(assignTokens, start, t-1);
-					Code.Buffer.Append(
-						assignType == "set" ? "=" :
-						assignType == "move" ? ".MoveInto(" :
-						".PutInto("
-					);
+					Code.Buffer.Append(assignCode);
 					GenerateExpression(assignTokens, t+1, end);
 					if (close)
 						Code.Buffer.Append(")");
 
 					return;
+				}
+				else
+				{
+					usesPropertyOperator |=
+						token.type == "belongingProperty" ||
+						token.type == "possessiveOperator" ||
+						token.type == "belongingOperator";
 				}
 			}
 
@@ -346,9 +363,9 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				case "itsProperty":
 					if (_lastVariable == null)
 						throw new TwineTranscodingException("'it' or 'its' used without first mentioning a variable");
-					return string.Format("{0}.GetMember(\"{1}\")", _lastVariable, token.name);
+					return string.Format("{0}[\"{1}\"]", _lastVariable, token.name);
 				case "property":
-					return string.Format(".GetMember(\"{0}\")", token.name);
+					return string.Format("[\"{0}\"]", token.name);
 				case "belongingProperty":
 					EnsureGrouping(tokens, tokenIndex);
 					return string.Format("v(\"{0}\").AsMemberOf", token.name);

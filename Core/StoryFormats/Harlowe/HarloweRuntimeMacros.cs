@@ -30,6 +30,11 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return new HarloweDataset(vals);
 		}
 
+		public TwineVar datamap(params TwineVar[] vals)
+		{
+			return new HarloweDatamap(vals);
+		}
+
 		// ------------------------------------
 
 		public TwineVar ceil(double num)

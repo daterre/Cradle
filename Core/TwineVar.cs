@@ -15,18 +15,12 @@ namespace UnityTwine
 		internal string Member;
 		internal object Value;
 
-		public TwineVar(object value)
+		public TwineVar(object value): this(null,null,value)
 		{
-			Container = null;
-			Member = null;
-			this.Value = value is TwineVar ? ((TwineVar)value).Value : value;
 		}
 
-		public TwineVar(object container, string member)
+		public TwineVar(object container, string member):this(container, member, null)
 		{
-			Container = container;
-			Member = member;
-			Value = null;
 		}
 
 		public TwineVar(object container, string member, object value)
@@ -100,7 +94,7 @@ namespace UnityTwine
 		// ..............
 		// PROPERTIES
 
-		public TwineVar this[string memberName]
+		public TwineVar this[TwineVar memberName]
 		{
 			get
 			{
@@ -292,20 +286,22 @@ namespace UnityTwine
 
 		public static bool TryConvertTo(object obj, Type t, out object result, bool strict)
 		{
+			object val = obj is TwineVar ? ((TwineVar)obj).Value : obj;
+
 			// Same type
-			if (obj != null && t.IsAssignableFrom(obj.GetType()))
+			if (val != null && t.IsAssignableFrom(val.GetType()))
 			{
-				result = obj;
+				result = val;
 				return true;
 			}
 
-			ITwineTypeService service = obj == null ? null : GetTypeService(obj.GetType());
-			if (service != null && service.ConvertTo(obj, t, out result, strict))
+			ITwineTypeService service = val == null ? null : GetTypeService(val.GetType());
+			if (service != null && service.ConvertTo(val, t, out result, strict))
 				return true;
 
-			if (obj is ITwineType)
+			if (val is ITwineType)
 			{
-				if ((obj as ITwineType).ConvertTo(t, out result, strict))
+				if ((val as ITwineType).ConvertTo(t, out result, strict))
 					return true;
 			}
 
@@ -362,7 +358,7 @@ namespace UnityTwine
 			return Compare(TwineOperator.Contains, obj, this);
 		}
 
-		internal void ApplyValue(TwineVar val)
+		public void ReplaceWith(TwineVar val)
 		{
 			if (this.ContainerVar.Value != null)
 				this.ContainerVar.SetMember(this.Member, val);
@@ -371,12 +367,12 @@ namespace UnityTwine
 
 		public void PutInto(TwineVar varRef)
 		{
-			varRef.ApplyValue(this);
+			varRef.ReplaceWith(this);
 		}
 
 		public void MoveInto(TwineVar varRef)
 		{
-			varRef.ApplyValue(this);
+			varRef.ReplaceWith(this);
 
 			if (this.ContainerVar.Value != null)
 				this.ContainerVar.RemoveMember(this.Member);
