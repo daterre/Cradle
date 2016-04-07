@@ -26,14 +26,4 @@ namespace UnityTwine
 			this.Name = fragmentName;
 		}
 	}
-
-	public class TwineEmbedOpen: TwineOutput
-	{
-		public TwineEmbed EmbedInfo;
-	}
-
-	public class TwineEmbedClose: TwineOutput
-	{
-		public TwineEmbedOpen Opener;
-	}
 }

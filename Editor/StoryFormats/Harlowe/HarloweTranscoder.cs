@@ -44,7 +44,20 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["linkrepeat"] = BuiltInCodeGenMacros.Link;
 
 			CodeGenMacros["goto"] = BuiltInCodeGenMacros.GoTo;
-			CodeGenMacros["hook"] = BuiltInCodeGenMacros.Hook;
+
+			CodeGenMacros["align"] =
+			CodeGenMacros["font"] =
+			CodeGenMacros["css"] =
+			CodeGenMacros["background"] =
+			CodeGenMacros["color"] =
+				CodeGenMacros["colour"] =
+				CodeGenMacros["text-color"] =
+				CodeGenMacros["text-colour"] =
+			CodeGenMacros["text-style"] =
+			CodeGenMacros["text-rotate"] =
+			CodeGenMacros["transition"] =
+				CodeGenMacros["t8n"] = 
+			CodeGenMacros["hook"] = BuiltInCodeGenMacros.Style;
 
 			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
 		}
@@ -348,11 +361,13 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					GenerateMacro(tokens, tokenIndex, MacroUsage.Inline);
 					return null;
 				case "hookRef":
-					return string.Format("Fragments[\"{0}\"]", token.name);
+					return string.Format("hookRef(\"{0}\")", token.name);
 				case "string":
 					return WrapInVar(string.Format("\"{0}\"", token.innerText), tokens, tokenIndex);
 				case "number":
 					return WrapInVar(token.text, tokens, tokenIndex);
+				case "colour":
+					return WrapInVar(string.Format("\"{0}\"", token.text), tokens, tokenIndex);
 				case "grouping":
 					if(WrapInVarRequired(tokens, tokenIndex))
 						Code.Buffer.Append(" v");
@@ -392,7 +407,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				case "not":
 					return "!";
 				case "spread":
-					return "(Spread)";
+					return "(HarloweSpread)";
 				case "to":
 				case "into":
 					throw new TwineTranscodingException(string.Format("'{0}' is an assignment keyword and cannot be used inside an expression.", token.type));

@@ -172,20 +172,34 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		};
 
 		// ......................
-		public static CodeGenMacro Hook = (transcoder, tokens, tokenIndex, usage) =>
+		public static CodeGenMacro Style = (transcoder, tokens, tokenIndex, usage) =>
 		{
-			if (usage != MacroUsage.LineAndHook)
-				throw new TwineTranscodingException("Hook macro must be followed by a Harlowe-hook");
-
 			LexerToken macroToken = tokens[tokenIndex];
-			transcoder.Code.Buffer.Append("yield return fragment(");
-			transcoder.GenerateExpression(macroToken.tokens, start: 1);
-			transcoder.Code.Buffer.Append(", ");
 
-			tokenIndex++; // advance to the hook
-			LexerToken hookToken = tokens[tokenIndex];
-			transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
-			transcoder.Code.Buffer.AppendLine(");");
+			if (usage == MacroUsage.Inline)
+			{
+				transcoder.Code.Buffer.AppendFormat("style(\"{0}\", ", macroToken.name);
+				transcoder.GenerateExpression(macroToken.tokens, start: 1);
+				transcoder.Code.Buffer.Append(")");
+			}
+			else if (usage == MacroUsage.LineAndHook)
+			{
+				transcoder.Code.Buffer.AppendFormat("using (Style.Apply(\"{0}\", ", macroToken.name);
+				transcoder.GenerateExpression(macroToken.tokens, start: 1);
+				transcoder.Code.Buffer.AppendLine(")) {");
+
+				// Advance to hook
+				tokenIndex++;
+				LexerToken hookToken = tokens[tokenIndex];
+
+				transcoder.Code.Indentation++;
+				transcoder.GenerateBody(hookToken.tokens, false);
+				transcoder.Code.Indentation--;
+				transcoder.Code.Indent();
+				transcoder.Code.Buffer.AppendLine("}");
+			}
+			else
+				throw new TwineTranscodingException(string.Format("The '{0}' macro must either be attached to a Harlowe-hook or assigned to a variable.", macroToken.name));		
 
 			return tokenIndex;
 		};

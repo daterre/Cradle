@@ -22,7 +22,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 
 		public HarloweArray(IEnumerable<TwineVar> vals)
 		{
-			Values = new List<TwineVar>(Spread.Flatten(vals));
+			Values = new List<TwineVar>(HarloweSpread.Flatten(vals));
 		}
 
 		public int Length

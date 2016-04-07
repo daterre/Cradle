@@ -8,6 +8,7 @@ namespace UnityTwine
 		public string Text;
 
 		public TwineStyle Style;
+		public TwineEmbed EmbedInfo;
 	}
 }
 

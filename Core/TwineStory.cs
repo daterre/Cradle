@@ -362,16 +362,17 @@ namespace UnityTwine
 			{
 				if (output is TwineEmbed)
 				{
+					var embed = (TwineEmbed) output;
 					ITwineThread embeddedThread;
-					if (output is TwineEmbedPassage)
+					if (embed is TwineEmbedPassage)
 					{
-						var embedInfo = (TwineEmbedPassage)output;
+						var embedInfo = (TwineEmbedPassage)embed;
 						TwinePassage passage = GetPassage(embedInfo.Name);
 						embeddedThread = passage.GetMainThread();
 					}
-					else if (output is TwineEmbedFragment)
+					else if (embed is TwineEmbedFragment)
 					{
-						var embedInfo = (TwineEmbedFragment)output;
+						var embedInfo = (TwineEmbedFragment)embed;
 						TwineNamedFragment namedFragment;
 						if (Fragments.TryGetValue(embedInfo.Name, out namedFragment))
 							embeddedThread = namedFragment.GetThread();
@@ -381,17 +382,15 @@ namespace UnityTwine
 					else
 						continue;
 
-					// Output an opener
-					var opener = new TwineEmbedOpen() { EmbedInfo = (TwineEmbed)output };
-					yield return opener;
+					// First yield the embed
+					yield return embed;
 
 					// Output the content
 					foreach (TwineOutput innerOutput in CollapseThread(embeddedThread))
+					{
+						innerOutput.EmbedInfo = embed;
 						yield return innerOutput;
-
-					// Output the closer
-					yield return new TwineEmbedClose() { Opener = opener };
-					
+					}
 				}
 				else
 					yield return output;
@@ -709,6 +708,11 @@ namespace UnityTwine
 		{
 			this.Fragments[name] = new TwineNamedFragment(name, thread);
 			return new TwineEmbedFragment(name);
+		}
+
+		protected TwineVar style(string name, object value)
+		{
+			return new TwineStyle(name, value);
 		}
 
 		// ============================================================== //

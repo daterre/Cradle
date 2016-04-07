@@ -5,7 +5,7 @@ using System.Text;
 
 namespace UnityTwine
 {
-	public class TwineStyle: IDisposable
+	public class TwineStyle: TwineType, IDisposable
 	{
 		public event Action<TwineStyle> OnDisposed;
 		public event Action<TwineStyle> OnChanged;
@@ -14,6 +14,15 @@ namespace UnityTwine
 		List<TwineStyle> _appliedStyles = new List<TwineStyle>();
 		Dictionary<string, object> _appliedValues = new Dictionary<string, object>();
 		Dictionary<string, object> _calculatedValues = new Dictionary<string, object>();
+
+		public TwineStyle()
+		{
+		}
+
+		public TwineStyle(string name, object value)
+		{
+			_appliedValues[name] = value;
+		}
 
 		public object this[string name]
 		{
@@ -113,6 +122,53 @@ namespace UnityTwine
 			copy._calculatedValues = new Dictionary<string, object>(this._calculatedValues);
 			copy.IsReadOnly = true;
 			return copy;
+		}
+
+		public override TwineVar GetMember(string memberName)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override void SetMember(string memberName, TwineVar value)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override void RemoveMember(string memberName)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override bool Compare(TwineOperator op, object b, out bool result)
+		{
+			result = default(TwineVar);
+			return false;
+		}
+
+		public override bool Combine(TwineOperator op, object b, out TwineVar result)
+		{
+			result = default(TwineVar);
+			if (!(b is TwineStyle) || op != TwineOperator.Add)
+				return false;
+			TwineStyle bStyle = (TwineStyle)b;
+
+			var combinedStyle = new TwineStyle();
+			combinedStyle.Apply(this);
+			combinedStyle.Apply(bStyle);
+			result = combinedStyle.GetCopy();
+			return true;
+		}
+
+		public override bool Unary(TwineOperator op, out TwineVar result)
+		{
+			result = default(TwineVar);
+			return false;
+		}
+
+		public override bool ConvertTo(Type t, out object result, bool strict = false)
+		{
+			result = null;
+			return false;
 		}
 	}
 }

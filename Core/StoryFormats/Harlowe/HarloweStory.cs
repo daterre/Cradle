@@ -12,5 +12,10 @@ namespace UnityTwine.StoryFormats.Harlowe
 		{
 			TwineVar.RegisterTypeService<string>(new HarloweStringService());
 		}
+
+		protected TwineVar hookRef(TwineVar hookName)
+		{
+			return new HarloweHookRef(hookName);
+		}
 	}
 }

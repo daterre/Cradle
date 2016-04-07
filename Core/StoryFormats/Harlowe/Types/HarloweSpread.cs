@@ -5,11 +5,11 @@ using System.Text.RegularExpressions;
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class Spread: TwineType
+	public class HarloweSpread: TwineType
 	{
 		public HarloweArray Target;
 
-		public Spread(TwineVar val)
+		public HarloweSpread(TwineVar val)
 		{
 			if (!(val.Value is HarloweArray))
 				throw new TwineTypeException("Only an array, datamap or dataset can be spread");
@@ -21,9 +21,9 @@ namespace UnityTwine.StoryFormats.Harlowe
 		{
 			foreach(TwineVar val in vals)
 			{
-				if (val.Value is Spread)
+				if (val.Value is HarloweSpread)
 				{
-					var spread = (Spread)val.Value;
+					var spread = (HarloweSpread)val.Value;
 					foreach (TwineVar innerVal in spread.Target.Values)
 						yield return innerVal;
 
@@ -33,9 +33,9 @@ namespace UnityTwine.StoryFormats.Harlowe
 			}
 		}
 
-		public static explicit operator Spread(TwineVar val)
+		public static explicit operator HarloweSpread(TwineVar val)
 		{
-			return new Spread(val);
+			return new HarloweSpread(val);
 		}
 
 		public override TwineVar GetMember(string memberName)
