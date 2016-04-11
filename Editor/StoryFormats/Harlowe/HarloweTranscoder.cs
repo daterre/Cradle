@@ -139,7 +139,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					case "strong":
 					case "sup":
 						Code.Indent();
-						GenerateStyle(token.type, token.tokens);
+						GenerateStyle(string.Format("\"{0}\", true", token.type), token.tokens);
 						break;
 
 					case "collapsed":
@@ -167,7 +167,14 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 					case "variable":
 						Code.Indent();
-						GenerateText(BuildVariableRef(token), false);
+						int hookIndex = FollowedBy("hook", tokens, t, true, false);
+						if (hookIndex >= 0)
+						{
+							GenerateStyle(BuildVariableRef(token), tokens[hookIndex].tokens);
+							t = hookIndex;
+						}
+						else
+							GenerateText(BuildVariableRef(token), false);
 						break;
 
 					case "macro": {
@@ -176,8 +183,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 						_lastVariable = null;
 
 						// If macro is followed by a hook, tell the macro
-						bool followedByHook = t < tokens.Length - 1 && tokens[t + 1].type == "hook";
-						t = GenerateMacro(tokens, t, followedByHook ?
+						t = GenerateMacro(tokens, t, FollowedBy("hook", tokens, t, true, false) >= 0 ?
 							MacroUsage.LineAndHook :
 							MacroUsage.Line
 						);
@@ -217,12 +223,11 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			Code.Buffer.AppendLine("yield return lineBreak();");
 		}
 
-		public void GenerateStyle(string styleName, LexerToken[] tokens)
+		public void GenerateStyle(string styleParams, LexerToken[] tokens)
 		{
 			Code.Buffer
-				.Append("using (Style.Apply(\"")
-				.Append(styleName)
-				.AppendLine("\", true)) {");
+				.AppendFormat("using (Style.Apply({0})) {{", styleParams)
+				.AppendLine();
 			Code.Indentation++;
 			GenerateBody(tokens, breaks: false);
 			Code.Indentation--;
@@ -342,7 +347,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		string BuildVariableRef(LexerToken token)
 		{
 			Importer.RegisterVar(token.name);
-			_lastVariable = string.Format("Vars.{0}", EscapeCSharpWord (token.name));
+			_lastVariable = string.Format("Vars.{0}", EscapeReservedWord (token.name));
 			return _lastVariable;
 		}
 
@@ -382,19 +387,19 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				case "property":
 					return string.Format("[\"{0}\"]", token.name);
 				case "belongingProperty":
-					EnsureGrouping(tokens, tokenIndex);
+					FollowedBy("grouping", tokens, tokenIndex, true, true);
 					return string.Format("v(\"{0}\").AsMemberOf", token.name);
 				case "contains":
-					EnsureGrouping(tokens, tokenIndex);
+					FollowedBy("grouping", tokens, tokenIndex, true, true);
 					return ".Contains";
 				case "isIn":
-					EnsureGrouping(tokens, tokenIndex);
+					FollowedBy("grouping", tokens, tokenIndex, true, true);
 					return ".ContainedBy";
 				case "possessiveOperator":
-					EnsureGrouping(tokens, tokenIndex);
+					FollowedBy("grouping", tokens, tokenIndex, true, true);
 					return ".GetMember";
 				case "belongingOperator":
-					EnsureGrouping(tokens, tokenIndex);
+					FollowedBy("grouping", tokens, tokenIndex, true, true);
 					return ".AsMemberOf";
 				case "and":
 					return "&&";
@@ -415,8 +420,6 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					return token.text;
 			}
 		}
-
-		
 
 		bool WrapInVarRequired(LexerToken[] tokens, int tokenIndex)
 		{
@@ -454,32 +457,43 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				expr;
 		}
 
-		void EnsureGrouping(LexerToken[] tokens, int tokenIndex)
+		int FollowedBy(string tokenType, LexerToken[] tokens, int tokenIndex, bool allowWhitespace, bool throwException)
 		{
-			bool ok = false;
+			int index = -1;
 
 			if (tokenIndex < tokens.Length - 1)
 			{
 				for (int t = tokenIndex + 1; t < tokens.Length; t++)
 				{
-					switch (tokens[t].type)
+					string ttype = (tokens[t].type);
+					if (ttype == tokenType)
 					{
-						case "grouping":
-							ok = true;
+							index = t;
 							break;
-						case "whitespace":
-							continue;
-						default:
+					}
+					else
+					{
+						if (ttype == "whitespace")
+						{
+							if (!allowWhitespace)
+								break;
+							else
+								continue;
+						}
+						else
 							break;
 					}
 				}
 			}
 
-			if (!ok)
+			if (throwException && index < 0)
 				throw new TwineTranscodingException(string.Format(
-					"Due to UnityTwine syntax limitations, '{0}' must be followed by values in perentheses. ",
-					tokens[tokenIndex].text
+					"'{0}' must be followed by a '{1}' ",
+					tokens[tokenIndex].text,
+					tokenType
 				));
+
+			return index;
 		}
 	}
 

@@ -101,6 +101,7 @@ namespace UnityTwine.Editor
 						{"storyName", storyName},
 						{"runtimeMacrosClass", storyFormatMetadata.RuntimeMacrosType.FullName},
 						{"vars", importer.Vars},
+						{"macroLibs", importer.MacroLibs},
 						{"strictMode", storyFormatMetadata.StrictMode ? "true" : "false"},
 						{"passages", importer.Passages.Select(p => new TemplatePassageData(){
 								Pid = p.Pid,

@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace UnityTwine
 {
-	public class TwineRuntimeMacros
+	public abstract class TwineRuntimeMacros
 	{
 		public TwineStory Story;
 	}

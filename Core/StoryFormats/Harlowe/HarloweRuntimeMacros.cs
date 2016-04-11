@@ -9,6 +9,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 	{
 		// ------------------------------------
 
+		[TwineRuntimeMacro]
 		public void click(TwineVar hookRef)
 		{
 			throw new System.NotImplementedException();
@@ -16,11 +17,13 @@ namespace UnityTwine.StoryFormats.Harlowe
 		
 		// ------------------------------------
 
+		[TwineRuntimeMacro]
 		public TwineVar a(params TwineVar[] vals)
 		{
 			return new HarloweArray(vals);
 		}
 
+		[TwineRuntimeMacro]
 		public TwineVar count(TwineVar array, TwineVar item)
 		{
 			if (array.GetInnerType() == typeof(HarloweArray))
@@ -32,6 +35,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 				throw new TwineMacroException("count macro only supports arrays");
 		}
 
+		[TwineRuntimeMacro]
 		public TwineVar range(int start, int end)
 		{
 			TwineVar[] values = new TwineVar[end - start + 1];
@@ -40,6 +44,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return new HarloweArray(values);
 		}
 
+		[TwineRuntimeMacro]
 		public TwineVar rotated(int steps, params TwineVar[] vals)
 		{
 			//var array = new HarloweArray(vals);
@@ -49,12 +54,13 @@ namespace UnityTwine.StoryFormats.Harlowe
 			throw new NotImplementedException();
 		}
 
-
+		[TwineRuntimeMacro]
 		public TwineVar dataset(params TwineVar[] vals)
 		{
 			return new HarloweDataset(vals);
 		}
 
+		[TwineRuntimeMacro]
 		public TwineVar datamap(params TwineVar[] vals)
 		{
 			return new HarloweDatamap(vals);
@@ -62,21 +68,25 @@ namespace UnityTwine.StoryFormats.Harlowe
 
 		// ------------------------------------
 
+		[TwineRuntimeMacro]
 		public TwineVar ceil(double num)
 		{
 			return Mathf.CeilToInt((float)num);
 		}
 
+		[TwineRuntimeMacro]
 		public TwineVar round(double num)
 		{
 			return Mathf.RoundToInt((float)num);
 		}
 
+		[TwineRuntimeMacro]
 		public TwineVar round(double num, int precision)
 		{
 			return Math.Round(num, precision);
 		}
 
+		[TwineRuntimeMacro]
 		public TwineVar either(params TwineVar[] vars)
 		{
 			return vars[UnityEngine.Random.Range(0, vars.Length)];

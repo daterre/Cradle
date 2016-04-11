@@ -17,9 +17,6 @@ using {{storyFormatNamespace}};
 
 public partial class @{{storyName}}: {{storyFormatClass}}
 {
-	public partial class MacroDefs:
-		{{runtimeMacrosClass}} {}
-
 	public class VarDefs: TwineRuntimeVars
 	{
 		public VarDefs(): base(new string[] {
@@ -38,21 +35,22 @@ public partial class @{{storyName}}: {{storyFormatClass}}
 		{{/vars}}
 	}
 
-	public MacroDefs Macros
-	{
-		get;
-		private set;
-	}
-
 	public new VarDefs Vars
 	{
 		get { return (VarDefs) base.Vars; }
 	}
 
+	{{#macroLibs}}
+	public readonly {{Type}} {{Name}};
+	{{/macroLibs}}
+
 	@{{storyName}}()
 	{
-		Macros = new MacroDefs() { Story = this };
 		base.Vars = new VarDefs() { Story = this, StrictMode = {{strictMode}} };
+
+		{{#macroLibs}}
+		{{Name}} = new {{Type}}() { Story = this };
+		{{/macroLibs}}
 	}
 	
 	void Awake() {

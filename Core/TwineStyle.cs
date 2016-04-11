@@ -24,6 +24,12 @@ namespace UnityTwine
 			_appliedValues[name] = value;
 		}
 
+		public static implicit operator TwineStyle(TwineVar styleVar)
+		{
+			return TwineVar.ConvertTo<TwineStyle>(styleVar);
+		}
+
+
 		public object this[string name]
 		{
 			get
@@ -60,7 +66,7 @@ namespace UnityTwine
 				return null;
 		}
 
-		public void Apply(TwineStyle style)
+		public TwineStyle Apply(TwineStyle style)
 		{
 			if (IsReadOnly)
 				throw new TwineException("This style object is a copy and cannot be modified.");
@@ -75,14 +81,14 @@ namespace UnityTwine
 			_appliedStyles.Add(style);
 
 			Recalculate();
+			return style;
 		}
 
 		public TwineStyle Apply(string key, object value)
 		{
 			var newStyle = new TwineStyle();
 			newStyle[key] = value;
-			Apply(newStyle);
-			return newStyle;
+			return Apply(newStyle);
 		}
 
 		public void Unapply(TwineStyle style)

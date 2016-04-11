@@ -224,8 +224,11 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		public static CodeGenMacro RuntimeMacro = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken macroToken = tokens[tokenIndex];
+			MacroDef macroDef;
+			if (!transcoder.Importer.Macros.TryGetValue(macroToken.name, out macroDef))
+				throw new TwineImportException(string.Format("Macro '{0}' is not defined as a UnityTwine runtime macro.", macroToken.name));
 
-			transcoder.Code.Buffer.AppendFormat("Macros.{0}(", HarloweTranscoder.EscapeCSharpWord(macroToken.name));
+			transcoder.Code.Buffer.AppendFormat("{0}.{1}(", macroDef.Lib.Name, HarloweTranscoder.EscapeReservedWord(macroDef.Name));
 			transcoder.GenerateExpression(macroToken.tokens, 1);
 			transcoder.Code.Buffer.Append(")");
 
