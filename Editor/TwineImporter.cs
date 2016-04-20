@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System;
 using System.Reflection;
@@ -10,7 +11,7 @@ namespace UnityTwine.Editor
 {
 	public abstract class TwineImporter
 	{
-		public readonly string AssetPath;
+		public string AssetPath { get; internal set; }
 		public StoryFormatTranscoder Transcoder {get; protected set;}
 		public TwinePassageData CurrentPassage { get; private set; }
 
@@ -18,23 +19,27 @@ namespace UnityTwine.Editor
 		public readonly HashSet<string> Vars = new HashSet<string>();
 		public HashSet<MacroLib> MacroLibs { get; private set; }
 		public Dictionary<string,MacroDef> Macros { get; private set; }
+		public StoryFormatMetadata Metadata { get; protected set; }
 
-		public TwineImporter(string assetPath)
+		public virtual bool IsAssetRelevant()
 		{
-			this.AssetPath = assetPath;
+			return true;
+		}
+		
+		public virtual void Initialize()
+		{
 		}
 
-		public virtual bool Validate() { return true; }
-		public abstract void Load();
-		
 		public void Transcode()
 		{
 			if (this.Transcoder == null)
 				throw new System.NotImplementedException("TwineImporter.Transcoder must be set by the importer implementation.");
 
+			this.Metadata = this.Transcoder.GetMetadata();
+
 			// Load macro types 
 			Macros = new Dictionary<string, MacroDef>(StringComparer.OrdinalIgnoreCase);
-			MacroLibs = new HashSet<MacroLib>(LoadMacros<TwineRuntimeMacros>(Macros));
+			MacroLibs = new HashSet<MacroLib>(LoadMacrosInto(Macros, this.Metadata.StoryBaseType));
 
 			this.Transcoder.Init();
 
@@ -48,7 +53,7 @@ namespace UnityTwine.Editor
 				{
 					CurrentPassage.Code = this.Transcoder.PassageToCode(CurrentPassage);
 				}
-				catch(TwineTranscodingException ex)
+				catch(TwineTranscodeException ex)
 				{
 					ex.Passage = CurrentPassage.Name;
 					throw;
@@ -61,10 +66,10 @@ namespace UnityTwine.Editor
 			Vars.Add(name);
 		}
 
-		IEnumerable<MacroLib> LoadMacros<T>(Dictionary<string, MacroDef> macros)
+		IEnumerable<MacroLib> LoadMacrosInto(Dictionary<string, MacroDef> macros, Type storyType)
 		{
 			string projectDir = Directory.GetParent((Path.GetFullPath(Application.dataPath))).FullName;
-			Type baseType = typeof(T);
+			Type baseType = typeof(TwineRuntimeMacros);
 
 			int libIndex = 0;
 			foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -76,6 +81,11 @@ namespace UnityTwine.Editor
 				foreach(Type type in assembly.GetTypes())
 				{
 					if (type.IsAbstract || type.IsNested || !baseType.IsAssignableFrom(type))
+						continue;
+
+					// Ensure that only macro libraries for this story type are loaded
+					object[] classAttributes = type.GetCustomAttributes(typeof(TwineMacroLibraryAttribute), true);
+					if (classAttributes.Length > 0 && !classAttributes.Any(attr => ((TwineMacroLibraryAttribute)attr).StoryType.IsAssignableFrom(storyType)))
 						continue;
 
 					MacroLib macroLib = new MacroLib()

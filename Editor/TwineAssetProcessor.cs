@@ -16,6 +16,7 @@ namespace UnityTwine.Editor
     public class TwineAssetProcessor: AssetPostprocessor
     {
 		static Regex NameSanitizer = new Regex(@"([^a-z0-9_]|^[0-9])", RegexOptions.IgnoreCase);
+		static Dictionary<string, Type> ImporterTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
 
 		public class TemplatePassageData : TwinePassageData
 		{
@@ -30,6 +31,11 @@ namespace UnityTwine.Editor
 			public string[] Code;
 		}
 
+		public static void RegisterImporter<T>(string extenstion) where T: TwineImporter, new()
+		{
+			ImporterTypes[extenstion] = typeof(T);
+		}
+
         static void OnPostprocessAllAssets (
             string[] importedAssets,
             string[] deletedAssets,
@@ -39,22 +45,31 @@ namespace UnityTwine.Editor
             foreach(string assetPath in importedAssets)
 			{
 				// ======================================
-				// STEP 1: Validate
-
-				TwineImporter importer = null;
+				// Choose the Twine importer for this file type
 
                 string ext = Path.GetExtension(assetPath).ToLower();
+				if (string.IsNullOrEmpty(ext))
+					continue;
 
-				if (ext == ".twee")
-					importer = new Importers.TweeImporter(assetPath);
-				else if (ext == ".html")
-					importer = new Importers.PublishedHtmlImporter(assetPath);
-				else
+				// Get the right importer for this type
+				ext = ext.Substring(1);
+				TwineImporter importer = null;
+				Type importerType;
+				if (!ImporterTypes.TryGetValue(ext, out importerType))
+					continue;
+
+				importer = (TwineImporter)Activator.CreateInstance(importerType);
+				importer.AssetPath = assetPath;
+
+				// ======================================
+				// Validate the file
+
+				// Check that the file is relevant
+				if (!importer.IsAssetRelevant())
 					return;
 
-				if (!importer.Validate())
-					return;
-
+				// Check that the story name is valid
+				string fileNameExt = Path.GetFileName(assetPath);
 				string fileName = Path.GetFileNameWithoutExtension(assetPath);
 				string storyName = NameSanitizer.Replace(fileName, string.Empty);
 				if (storyName != fileName)
@@ -64,28 +79,45 @@ namespace UnityTwine.Editor
 				}
 
 				// ======================================
-				// STEP 2: Load and transcode
+				// Initialize the importer - load data and choose transcoder
 
 				try
 				{
-					importer.Load();
-					importer.Transcode();
+					importer.Initialize();
 				}
-				catch(TwineTranscodingException ex)
+				catch (TwineImportException ex)
 				{
-					Debug.LogErrorFormat("Transcoding failed: {0} (passage: {1})", ex.Message, ex.Passage);
+					Debug.LogErrorFormat("Twine import failed: {0} ({1})", fileNameExt, ex.Message);
 					continue;
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					Debug.LogException(ex);
 					continue;
 				}
 
 				// ======================================
-				// STEP 3: Generate code
+				// Run the transcoder
 
-				StoryFormatMetadata storyFormatMetadata = importer.Transcoder.Metadata;
+				try
+				{
+					importer.Transcode();
+				}
+				catch (TwineTranscodeException ex)
+				{
+					Debug.LogErrorFormat("Twine transcoding failed at passage {0}: {1} ({2})", ex.Passage, ex.Message, fileNameExt);
+					continue;
+				}
+				catch (Exception ex)
+				{
+					Debug.LogException(ex);
+					continue;
+				}
+
+				// ======================================
+				// Generate code
+
+				StoryFormatMetadata storyFormatMetadata = importer.Metadata;
 
 				// Get template file from this editor script's directory
 				string output = Nustache.Core.Render.FileToString(
@@ -99,7 +131,6 @@ namespace UnityTwine.Editor
 						{"storyFormatNamespace", storyFormatMetadata.StoryBaseType.Namespace},
 						{"storyFormatClass", storyFormatMetadata.StoryBaseType.FullName},
 						{"storyName", storyName},
-						{"runtimeMacrosClass", storyFormatMetadata.RuntimeMacrosType.FullName},
 						{"vars", importer.Vars},
 						{"macroLibs", importer.MacroLibs},
 						{"strictMode", storyFormatMetadata.StrictMode ? "true" : "false"},
@@ -136,35 +167,41 @@ namespace UnityTwine.Editor
 
 					if (results.Errors.Count > 0)
 					{
-						StringBuilder errors = null;
+						bool errors = false;
 						string[] lines = null;
 						for (int i = 0; i < results.Errors.Count; i++)
 						{
 							CompilerError error = results.Errors[i];
 
-							// Ignore missing reference errors, we just want syntax
-							if (error.ErrorNumber == "CS0246")
-								continue;
-
-							if (errors == null)
+							switch (error.ErrorNumber)
 							{
-								errors = new StringBuilder();
-								lines = output.Replace("\r", "").Split('\n');
+								// Ignore missing reference errors, we just want syntax
+								case "CS0246":
+									continue;
+								
+								// Single quotes instead of double quotes
+								case "CS1012":
+									error.ErrorText = "UnityTwine requires strings to use double-quotes, not single-quotes.";
+									break;
+							}
+							
+
+							if (!errors)
+							{
+								errors = true;
+								lines = output.Replace("\r", "").Split('\n'); // TODO: split by proper line ending
 							}
 
-							errors.AppendFormat("Line {0:000} - error {1} - {2}\n\t{3}\n",
-								error.Line,
-								error.ErrorNumber,
+							Debug.LogErrorFormat("{0}\n\n{1}",
 								error.ErrorText,
 								error.Line > 0 && error.Line < lines.Length ? lines[error.Line - 1].Trim() : null
 							);
 						}
 
-						if (errors != null)
+						if (errors)
 						{
-							Debug.LogErrorFormat("The Twine story {0} could not be imported due to syntax errors.\n\n{1}",
-								Path.GetFileName(assetPath),
-								errors
+							Debug.LogErrorFormat("The Twine story {0} could not be imported due to syntax errors.",
+								Path.GetFileName(assetPath)
 							);
 							//Debug.LogError(output);
 							//continue;
@@ -195,6 +232,7 @@ namespace UnityTwine.Editor
 				AssetDatabase.ImportAsset(csFile, ImportAssetOptions.ForceSynchronousImport);
             }
         }
+
     }
 }
 #endif
