@@ -7,7 +7,7 @@ using System.Text;
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class HarloweArray: TwineType
+	public class HarloweArray: HarloweCollection
 	{
 		internal List<TwineVar> Values;
 
@@ -33,6 +33,17 @@ namespace UnityTwine.StoryFormats.Harlowe
 		public bool Contains(object value)
 		{
 			return Values.Contains(value is TwineVar ? (TwineVar)value : new TwineVar(value));
+		}
+
+		public override IEnumerable<TwineVar> Flatten()
+		{
+			foreach (TwineVar val in this.Values)
+				yield return val.Clone();
+		}
+
+		public override ITwineType Clone()
+		{
+			return new HarloweArray(this.Flatten());
 		}
 
 		public override string ToString()
@@ -70,7 +81,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 					throw new TwineTypeMemberException(string.Format("The array doesn't have a member called {0}.", memberName));
 			}
 
-			return new TwineVar(this, memberName, val);
+			return new TwineVar(val);
 		}
 
 		public override void SetMember(string memberName, TwineVar value)
@@ -81,7 +92,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 			int index;
 			if (HarloweUtils.TryPositionToIndex(memberName, Values.Count, out index))
 			{
-				try { Values[index] = value; }
+				try { Values[index] = value.Clone(); }
 				catch (System.IndexOutOfRangeException)
 				{
 					throw new TwineTypeMemberException(string.Format("The array doesn't have a {0} position.", memberName));

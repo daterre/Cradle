@@ -176,5 +176,10 @@ namespace UnityTwine
 			result = null;
 			return false;
 		}
+
+		public override ITwineType Clone()
+		{
+			return this.GetCopy();
+		}
 	}
 }

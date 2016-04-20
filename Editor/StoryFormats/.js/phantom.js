@@ -40,7 +40,7 @@ page.onCallback = function(data){
 };
 
 if (system.args.length < 2) {
-	page.onError("Missing file path argument");
+	page.onError("Missing URL");
 	end(1);
 }
 
@@ -59,7 +59,7 @@ if (bridgeJsPath) {
 
 page.open(filePath, function(status) {
 	if (status !== 'success') {
-		page.onError('Story file could not be loaded');
+		page.onError('URL failed to load');
 		end(1);
 		return;
 	}
@@ -67,12 +67,7 @@ page.open(filePath, function(status) {
 	if (bridgeJS) {
 		page.evaluate(
 			function(bridgeJS) {
-				var req = $('<script/>')
-					.attr('role', 'script')
-					.attr('id', 'unitytwine-bridge')
-					.attr('type', 'text/twine-javascript')
-					.html(bridgeJS)
-					.insertBefore('#twine-user-script');
+				eval(bridgeJS);
 			},
 			bridgeJS
 		);
@@ -80,6 +75,6 @@ page.open(filePath, function(status) {
 });
 
 setTimeout(function(){
-	page.onError("Timeout while waiting for the window.callPhantom callback.");
+	page.onError("Timeout while trying to extract the story data.");
 	end(1);
 },5000);

@@ -7,14 +7,16 @@ namespace UnityTwine.StoryFormats.Harlowe
 {
 	public class HarloweSpread: TwineType
 	{
-		public HarloweArray Target;
+		public HarloweCollection Target;
 
-		public HarloweSpread(TwineVar val)
+		public HarloweSpread(object val)
 		{
-			if (!(val.Value is HarloweArray))
+			object v = val is TwineVar ? ((TwineVar)val).Value : val;
+
+			if (!(val is HarloweCollection))
 				throw new TwineTypeException("Only an array, datamap or dataset can be spread");
 
-			this.Target = (HarloweArray) val.Value;
+			this.Target = (HarloweCollection)val;
 		}
 
 		public static IEnumerable<TwineVar> Flatten(IEnumerable<TwineVar> vals)
@@ -24,7 +26,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 				if (val.Value is HarloweSpread)
 				{
 					var spread = (HarloweSpread)val.Value;
-					foreach (TwineVar innerVal in spread.Target.Values)
+					foreach (TwineVar innerVal in spread.Target.Flatten())
 						yield return innerVal;
 
 				}
@@ -71,6 +73,11 @@ namespace UnityTwine.StoryFormats.Harlowe
 		public override bool ConvertTo(System.Type t, out object result, bool strict = false)
 		{
 			throw new System.NotSupportedException();
+		}
+
+		public override ITwineType Clone()
+		{
+			return new HarloweSpread(this.Target);
 		}
 	}
 }

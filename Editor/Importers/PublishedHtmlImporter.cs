@@ -11,16 +11,52 @@ using UnityTwine.Editor.StoryFormats.Harlowe;
 
 namespace UnityTwine.Editor.Importers
 {
+	[InitializeOnLoad]
 	public class PublishedHtmlImporter : TwineImporter
 	{
-		public PublishedHtmlImporter(string assetPath) : base(assetPath)
+		static PublishedHtmlImporter()
 		{
+			TwineAssetProcessor.RegisterImporter<PublishedHtmlImporter>("html");
 		}
 
-		public override void Load()
+		#region Transcoder handling
+		// --------------------------
+
+		static List<TranscoderDef> _transcoders = new List<TranscoderDef>();
+		
+		class TranscoderDef
 		{
-			// TODO: sniff story format
-			this.Transcoder = new HarloweTranscoder(this);
+			public int Weight;
+			public Type Type;
+		}
+		
+		public static void RegisterTranscoder<T>(int weight = -1) where T: StoryFormatTranscoder, new()
+		{
+			_transcoders.Add(new TranscoderDef()
+			{
+				Weight = weight >= 0 ? weight : _transcoders.Count,
+				Type = typeof(T)
+			});
+		}
+		// --------------------------
+		#endregion
+
+		public override bool IsAssetRelevant()
+		{
+			foreach(TranscoderDef entry in _transcoders.OrderBy(ent => ent.Weight))
+			{
+				var transcoder = (StoryFormatTranscoder)Activator.CreateInstance(entry.Type);
+				transcoder.Importer = this;
+
+				if (transcoder.RecognizeFormat())
+				{
+					this.Transcoder = transcoder;
+					break;
+				}
+			}
+
+			// If a transcoder recognized the format, use it. Otherwise this asset is not relevant
+			return this.Transcoder != null;
 		}
 	}
 }

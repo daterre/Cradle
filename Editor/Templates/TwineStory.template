@@ -17,21 +17,20 @@ using {{storyFormatNamespace}};
 
 public partial class @{{storyName}}: {{storyFormatClass}}
 {
+	#region Variables
+	// ---------------
+
 	public class VarDefs: TwineRuntimeVars
 	{
-		public VarDefs(): base(new string[] {
-			{{#vars}}
-			"{{.}}",
-			{{/vars}}
-		}) {}
-
-		{{#vars}}
-		public TwineVar @{{.}}
+		public VarDefs()
 		{
-			get { return GetMember("{{.}}"); }
-			set { SetMember("{{.}}", value); }
+			{{#vars}}
+			VarDef("{{.}}", () => this.@{{.}}, val => this.@{{.}} = val);
+			{{/vars}}
 		}
 
+		{{#vars}}
+		public TwineVar @{{.}};
 		{{/vars}}
 	}
 
@@ -39,6 +38,12 @@ public partial class @{{storyName}}: {{storyFormatClass}}
 	{
 		get { return (VarDefs) base.Vars; }
 	}
+
+	// ---------------
+	#endregion
+
+	#region Initialization
+	// ---------------
 
 	{{#macroLibs}}
 	public readonly {{Type}} {{Name}};
@@ -59,6 +64,9 @@ public partial class @{{storyName}}: {{storyFormatClass}}
 		passage{{Pid}}_Init();
 		{{/passages}}
 	}
+
+	// ---------------
+	#endregion
 
 	{{#passages}}
 	// .............

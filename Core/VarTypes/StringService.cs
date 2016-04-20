@@ -22,7 +22,7 @@ namespace UnityTwine
 					value = containerString[Int32.Parse(memberName)]; break;
 			}
 
-			return new TwineVar(container, memberName, value);
+			return new TwineVar(value);
 		}
 
 		public override void SetMember(string container, string memberName, TwineVar value)
@@ -150,6 +150,23 @@ namespace UnityTwine
 				return false;
 
 			return true;
+		}
+
+		public override bool ConvertFrom(object a, out string result, bool strict = false)
+		{
+			result = null;
+
+			if (a == null)
+			{
+				return true;
+			}
+			else
+				return false;
+		}
+
+		public override string Clone(string value)
+		{
+			return value;
 		}
 	}
 }

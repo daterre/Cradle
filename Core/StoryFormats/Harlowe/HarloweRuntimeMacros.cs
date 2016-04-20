@@ -2,9 +2,11 @@
 using System.Collections;
 using System.Linq;
 using System;
+using UnityTwine;
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
+	[TwineMacroLibrary(typeof(HarloweStory))]
 	public class HarloweRuntimeMacros: TwineRuntimeMacros
 	{
 		// ------------------------------------

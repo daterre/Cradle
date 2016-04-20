@@ -6,27 +6,29 @@ using System.Text.RegularExpressions;
 
 namespace UnityTwine.Editor.StoryFormats.Sugar
 {
-	public delegate CodeGenMacroOutput CodeGenMacro(SugarTranscoder parser, string macro, string argument);
+	//public delegate CodeGenMacroOutput SugarCodeGenMacro(SugarTranscoder parser, string macro, string argument);
 
-	public struct CodeGenMacroOutput
-	{
-		public int IndentChangeBefore;
-		public int IndentChangeAfter;
-		public string Code;
+	//public struct CodeGenMacroOutput
+	//{
+	//	public int IndentChangeBefore;
+	//	public int IndentChangeAfter;
+	//	public string Code;
 
-		public CodeGenMacroOutput(string code, int indentChangeBefore = 0, int indentChangeAfter = 0)
-		{
-			this.IndentChangeBefore = indentChangeBefore;
-			this.IndentChangeAfter = indentChangeAfter;
-			this.Code = code;
-		}
+	//	public CodeGenMacroOutput(string code, int indentChangeBefore = 0, int indentChangeAfter = 0)
+	//	{
+	//		this.IndentChangeBefore = indentChangeBefore;
+	//		this.IndentChangeAfter = indentChangeAfter;
+	//		this.Code = code;
+	//	}
 
-		public static implicit operator CodeGenMacroOutput(string code)
-		{
-			return new CodeGenMacroOutput(code);
-		}
+	//	public static implicit operator CodeGenMacroOutput(string code)
+	//	{
+	//		return new CodeGenMacroOutput(code);
+	//	}
 		
-	}
+	//}
+
+	public delegate void SugarCodeGenMacro(SugarTranscoder transcoder, string macro, string argument);
 
 	public static class BuiltInCodeGenMacros
 	{
@@ -47,71 +49,143 @@ namespace UnityTwine.Editor.StoryFormats.Sugar
 		}
 
 		// ......................
-		public static CodeGenMacro Set = (parser, macro, argument) =>
+		public static SugarCodeGenMacro Silent = (transcoder, macro, argument) =>
 		{
-			return string.Format("{0};", parser.ParseVars(argument));
+			transcoder.NoOutput = macro == "silently";
 		};
 
 		// ......................
-		public static CodeGenMacro Display = (parser, macro, argument) =>
+		public static SugarCodeGenMacro Collapse = (transcoder, macro, argument) =>
 		{
-			return string.Format("yield return new TwineEmbedPassage({0});", parser.ParseVars(argument));
+			transcoder.Code.Collapsed = macro == "nobr";
+		};
+
+		// ......................
+		public static SugarCodeGenMacro LineBreak = (transcoder, macro, argument) =>
+		{
+			transcoder.Code.Indent();
+			transcoder.Code.Buffer
+				.AppendLine("yield return lineBreak();");
+		};
+
+		// ......................
+		public static SugarCodeGenMacro Assignment = (transcoder, macro, argument) =>
+		{
+			transcoder.Code.Indent();
+			transcoder.Code.Buffer
+				.AppendFormat("{0};", transcoder.BuildExpression(argument))
+				.AppendLine();
+		};
+
+		// ......................
+		public static SugarCodeGenMacro Display = (transcoder, macro, argument) =>
+		{
+			transcoder.Code.Indent();
+			transcoder.Code.Buffer
+				.AppendFormat("yield return passage({0});", transcoder.BuildExpression(argument))
+				.AppendLine();
 		};
 		
 		// ......................
 
-		public static CodeGenMacro DisplayShorthand = (parser, macro, argument) =>
+		public static SugarCodeGenMacro DisplayShorthand = (transcoder, macro, argument) =>
 		{
-			string passageExpr = parser.ParseVars(macro);
-			string args = argument != null ? parser.ParseVars(argument) : null;
+			string passageExpr = transcoder.BuildExpression(macro);
+			string args = argument != null ? transcoder.BuildExpression(argument) : null;
 			if (!string.IsNullOrEmpty(args))
 				args = ", " + ParamsWithCommas(args);
-			return string.Format("yield return new TwineEmbedPassage(\"{0}\"{1});", passageExpr, args);
-		};
-		// ......................
-		public static CodeGenMacro Print = (parser, macro, argument) =>
-		{
-			return string.Format("yield return new TwineText({0});", parser.ParseVars(argument));
-		};
-		
-		// ......................
-		
-		public static CodeGenMacro Conditional = (parser, macro, argument) =>
-		{
-			CodeGenMacroOutput logic;
-			bool format = false;
 
+			transcoder.Code.Indent();
+			transcoder.Code.Buffer
+				.AppendFormat("yield return passage(\"{0}\"{1});", passageExpr, args)
+				.AppendLine();
+		};
+		// ......................
+		public static SugarCodeGenMacro Print = (transcoder, macro, argument) =>
+		{
+			transcoder.Code.Indent();
+			transcoder.Code.Buffer
+				.AppendFormat("yield return text({0});", transcoder.BuildExpression(argument))
+				.AppendLine();
+		};
+		
+		// ......................
+		public static SugarCodeGenMacro Conditional = (transcoder, macro, argument) =>
+		{
 			switch (macro)
 			{
 				case "if":
-					logic = "if ({0}) {{";
-					logic.IndentChangeAfter = 1;
-					format = true;
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer
+						.AppendFormat("if ({0})", transcoder.BuildExpression(argument))
+						.AppendLine();
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer.AppendLine("{");
+					transcoder.Code.Indentation++;
 					break;
 				case "elseif":
-					logic = "}} else if ({0}) {{";
-					logic.IndentChangeBefore = -1;
-					logic.IndentChangeAfter = 1;
-					format = true;
+					transcoder.Code.Indentation--;
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer.AppendLine("}");
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer
+						.AppendFormat("else if ({0})", transcoder.BuildExpression(argument))
+						.AppendLine();
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer.AppendLine("{");
+					transcoder.Code.Indentation++;
 					break;
 				case "else":
-					logic = "} else {";
-					logic.IndentChangeBefore = -1;
-					logic.IndentChangeAfter = 1;
+					transcoder.Code.Indentation--;
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer.AppendLine("}");
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer.AppendLine("else");
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer.AppendLine("{");
+					transcoder.Code.Indentation++;
 					break;
 				case "/if":
 				case "endif":
-					logic = "}";
-					logic.IndentChangeBefore = -1;
+					transcoder.Code.Indentation--;
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer.AppendLine("}");
 					break;
 				default:
 					throw new FormatException("Conditional macro doesn't support " + macro);
 			}
+		};
 
-			if (format)
-				logic.Code = string.Format(logic.Code, parser.ParseVars(argument));
-
-			return logic;
+		// ......................
+		public static SugarCodeGenMacro Loop = (transcoder, macro, argument) =>
+		{
+			switch (macro)
+			{
+				case "continue":
+				case "break":
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer
+						.Append(macro)
+						.AppendLine(";");
+					break;
+				case "for":
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer
+						.AppendFormat("for ({0})", transcoder.BuildExpression(argument))
+						.AppendLine();
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer.AppendLine("{");
+					transcoder.Code.Indentation++;
+					break;
+				case "/for":
+				case "endfor":
+					transcoder.Code.Indentation--;
+					transcoder.Code.Indent();
+					transcoder.Code.Buffer.AppendLine("}");
+					break;
+				default:
+					throw new FormatException("Loop macro doesn't support " + macro);
+			}
 		};
 	}
 }

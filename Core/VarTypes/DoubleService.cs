@@ -125,5 +125,20 @@ namespace UnityTwine
 
 			return true;
 		}
+
+		public override bool ConvertFrom(object a, out double result, bool strict = false)
+		{
+			result = 0d;
+			if (a == null)
+				return true;
+			else
+				return false;
+
+		}
+
+		public override double Clone(double value)
+		{
+			return value;
+		}
 	}
 }

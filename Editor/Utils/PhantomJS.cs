@@ -9,7 +9,7 @@ namespace UnityTwine.Editor.Utils
 {
 	public static class PhantomJS
 	{
-		static string BinPath =
+		const string BinPath =
 			#if UNITY_EDITOR_OSX
 			"/Plugins/UnityTwine/Editor/ThirdParty/PhantomJS/bin/osx/phantomjs";
 			#elif UNITY_EDITOR_WIN
@@ -18,7 +18,7 @@ namespace UnityTwine.Editor.Utils
 			null;
 			#endif
 
-		public static PhantomOutput<ResultT> Run<ResultT>(string storyFileUri, string bridgeScriptPath, bool throwExOnError = true)
+		public static PhantomOutput<ResultT> Run<ResultT>(string url, string bridgeScriptPath, bool throwExOnError = true)
 		{
 			if (BinPath == null)
 				throw new NotSupportedException ("Editor platform not supported.");
@@ -32,7 +32,7 @@ namespace UnityTwine.Editor.Utils
 			phantomJS.StartInfo.FileName = Application.dataPath + BinPath;
 			phantomJS.StartInfo.Arguments = string.Format("\"{0}\" \"{1}\" \"{2}\"",
 				"phantom.js",
-				storyFileUri,
+				url,
 				bridgeScriptPath
 			);
 			phantomJS.Start();
@@ -41,21 +41,18 @@ namespace UnityTwine.Editor.Utils
 
 			PhantomOutput<ResultT> output = JsonUtility.FromJson<PhantomOutput<ResultT>>(outputJson);
 
-			if (throwExOnError)
+			bool hasErrors = false;
+			
+			foreach (PhantomConsoleMessage msg in output.console)
 			{
-				StringBuilder errors = null;
-				foreach (PhantomConsoleMessage msg in output.console)
-				{
-					if (msg.type == "message")
-						continue;
-					errors = errors ?? new StringBuilder("Errors while parsing the story file:\n\n");
-					errors.AppendLine(msg.value);
-					if (msg.trace != null)
-						errors.AppendLine(msg.trace);
-				}
-				if (errors != null)
-					throw new TwineImportException(errors.ToString());
+				if (msg.type != "error")
+					continue;
+				
+				hasErrors = true;
+				Debug.LogErrorFormat("{0}\n\n{1}\n\n", msg.value, msg.trace);
 			}
+			if (hasErrors && throwExOnError)
+				throw new TwineImportException("HTML errors detected");
 
 			return output;
 		}

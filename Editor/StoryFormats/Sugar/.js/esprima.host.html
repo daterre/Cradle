@@ -1,0 +1,16 @@
+<script src="esprima.js"></script>
+<script>
+var phantomExit = function(result) {
+	if (window.callPhantom)
+		window.callPhantom(result);
+	else
+	{
+		console.log(result);
+		console.error('UnityTwine: PhantomJS context not available.');
+	}de
+};
+
+var urlParts = window.location.href.split('?', 2);
+if (urlParts.length > 1)
+	phantomExit(esprima.parse(decodeURIComponent(urlParts[1])));
+</script>

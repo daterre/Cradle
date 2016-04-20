@@ -104,5 +104,21 @@ namespace UnityTwine
 
 			return true;
 		}
+
+
+		public override bool ConvertFrom(object a, out int result, bool strict = false)
+		{
+			result = 0;
+			if (a == null)
+				return true;
+			else
+				return false;
+
+		}
+
+		public override int Clone(int value)
+		{
+			return value;
+		}
 	}
 }

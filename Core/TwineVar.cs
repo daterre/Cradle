@@ -10,34 +10,16 @@ namespace UnityTwine
 	public struct TwineVar
 	{
 		public static bool StrictMode = false;
-
-		internal object Container;
-		internal string Member;
 		internal object Value;
 
-		public TwineVar(object value): this(null,null,value)
+		public TwineVar(object value)
 		{
-		}
-
-		public TwineVar(object container, string member):this(container, member, null)
-		{
-		}
-
-		public TwineVar(object container, string member, object value)
-		{
-			Container = container;
-			Member = member;
-			this.Value = value is TwineVar ? ((TwineVar)value).Value : value;
+			this.Value = value is TwineVar ? ((TwineVar)value).Clone().Value : value;
 		}
 
 		public Type GetInnerType()
 		{
 			return Value == null ? null : Value.GetType();
-		}
-
-		internal TwineVar ContainerVar
-		{
-			get { return Container is TwineVar ? (TwineVar) Container : new TwineVar(Container); }
 		}
 
 		public override int GetHashCode()
@@ -197,8 +179,6 @@ namespace UnityTwine
 
 			Type t = typeof(void);
 
-			// TODO: null service?
-
 			if (a != null && _typeServices.TryGetValue(a.GetType(), out service) && service.Compare(op, a, b, out result))
 				return result;
 
@@ -207,15 +187,6 @@ namespace UnityTwine
 				if ((a as ITwineType).Compare(op, b, out result))
 					return result;
 			}
-
-			//if (b != null && _typeServices.TryGetValue(b.GetType(), out service) && service.Compare(op, a, b, out result))
-			//	return result;
-
-			//if (b is ITwineType)
-			//{
-			//	if ((b as ITwineType).Compare(op, a, out result))
-			//		return result;
-			//}
 
 			return false;
 		}
@@ -235,15 +206,6 @@ namespace UnityTwine
 				if ((a as ITwineType).Combine(op, b, out result))
 					return true;
 			}
-
-			//if (b != null && _typeServices.TryGetValue(b.GetType(), out service) && service.Combine(op, a, b, out result))
-			//	return true;
-
-			//if (b is ITwineType)
-			//{
-			//	if ((b as ITwineType).Combine(op, a, out result))
-			//		return true;
-			//}
 
 			result = default(TwineVar);
 			return false;
@@ -288,22 +250,33 @@ namespace UnityTwine
 		{
 			object val = obj is TwineVar ? ((TwineVar)obj).Value : obj;
 
-			// Same type
-			if (val != null && t.IsAssignableFrom(val.GetType()))
+			// Source conversion
+			if (val != null)
 			{
-				result = val;
-				return true;
-			}
-
-			ITwineTypeService service = val == null ? null : GetTypeService(val.GetType());
-			if (service != null && service.ConvertTo(val, t, out result, strict))
-				return true;
-
-			if (val is ITwineType)
-			{
-				if ((val as ITwineType).ConvertTo(t, out result, strict))
+				// Same type
+				if (t.IsAssignableFrom(val.GetType()))
+				{
+					result = val;
 					return true;
+				}
+
+				// Service type
+				ITwineTypeService service = GetTypeService(val.GetType());
+				if (service != null && service.ConvertTo(val, t, out result, strict))
+					return true;
+
+				// Twine type 
+				if (val is ITwineType)
+				{
+					if ((val as ITwineType).ConvertTo(t, out result, strict))
+						return true;
+				}
 			}
+			
+			// Target converion
+			ITwineTypeService targetService = GetTypeService(t);
+			if (targetService != null && targetService.ConvertFrom(val, out result, strict))
+				return true;
 
 			result = null;
 			return false;
@@ -348,6 +321,30 @@ namespace UnityTwine
 			return ConvertTo<T>(obj, TwineVar.StrictMode);
 		}
 
+		public TwineVar Clone()
+		{
+			object val;
+			if (this.Value == null || this.Value.GetType().IsValueType)
+			{
+				val = this.Value;
+			}
+			else
+			{
+				// Service type
+				ITwineTypeService service = GetTypeService(this.Value.GetType());
+				if (service != null)
+					val = service.Clone(this.Value);
+
+				// Twine type 
+				else if (this.Value is ITwineType)
+					val = (this.Value as ITwineType).Clone();
+
+				val = this.Value;
+			}
+
+			return new TwineVar(val);
+		}
+
 		public bool Contains(object obj)
 		{
 			return Compare(TwineOperator.Contains, this, obj);
@@ -358,28 +355,9 @@ namespace UnityTwine
 			return Compare(TwineOperator.Contains, obj, this);
 		}
 
-		public void ReplaceWith(TwineVar val)
+		public void PutInto(ref TwineVar varRef)
 		{
-			if (this.ContainerVar.Value != null)
-				this.ContainerVar.SetMember(this.Member, val);
-			this.Value = val;
-		}
-
-		public void PutInto(TwineVar varRef)
-		{
-			varRef.ReplaceWith(this);
-		}
-
-		public void MoveInto(TwineVar varRef)
-		{
-			varRef.ReplaceWith(this);
-
-			if (this.ContainerVar.Value != null)
-				this.ContainerVar.RemoveMember(this.Member);
-
-			this.Container = null;
-			this.Member = null;
-			this.Value = default(TwineVar);
+			varRef = this;
 		}
 
 		#region Operators

@@ -47,9 +47,9 @@ namespace UnityTwine
 		Dictionary<string, List<Hook>> _hookCache = new Dictionary<string, List<Hook>>();
 		MonoBehaviour[] _hookTargets = null;
 
-		int _turns;
-		Dictionary<string, int> _visitedCountPassages = new Dictionary<string,int>();
-		Dictionary<string, int> _visitedCountTags = new Dictionary<string,int>();
+		public int NumberOfLinksDone { get; private set; }
+		public Dictionary<string, int> NumberOfVisitsPerPassage { get; private set; }
+		public Dictionary<string, int> NumberOfVisitsPerTag { get; private set; }
 
 		private class Hook
 		{
@@ -67,12 +67,15 @@ namespace UnityTwine
 		public TwineStory()
 		{
 			TwineVar.RegisterTypeService<bool>(new BoolService());
-			TwineVar.RegisterTypeService<int>(new IntService());
+			TwineVar.RegisterTypeService<int>(new IntService()); 
 			TwineVar.RegisterTypeService<double>(new DoubleService());
 			TwineVar.RegisterTypeService<string>(new StringService());
 
 			this.Passages = new Dictionary<string, TwinePassage>();
 			this.Style = new TwineStyle();
+
+			NumberOfVisitsPerPassage = new Dictionary<string, int>();
+			NumberOfVisitsPerTag = new Dictionary<string, int>();
 		}
 
 		protected void Init()
@@ -83,9 +86,9 @@ namespace UnityTwine
 			this.Links = new List<TwineLink>();
 			this.Tags = new string[0];
 
-			_turns = 0;
-			_visitedCountPassages.Clear();
-			_visitedCountTags.Clear();
+			NumberOfLinksDone = 0;
+			NumberOfVisitsPerPassage.Clear();
+			NumberOfVisitsPerTag.Clear();
 			
 			PreviousPassageName = null;
 			CurrentPassageName = null;
@@ -230,17 +233,17 @@ namespace UnityTwine
 
 			// Update visited counters for passages and tags
 			int visitedPassage;
-			if (!_visitedCountPassages.TryGetValue(passageName, out visitedPassage))
+			if (!NumberOfVisitsPerPassage.TryGetValue(passageName, out visitedPassage))
 				visitedPassage = 0;
-			_visitedCountPassages[passageName] = visitedPassage + 1;
+			NumberOfVisitsPerPassage[passageName] = visitedPassage + 1;
 
 			for (int i = 0; i < passage.Tags.Length; i++)
 			{
 				string tag = passage.Tags[i];
 				int visitedTag;
-				if (!_visitedCountTags.TryGetValue(tag, out visitedTag))
+				if (!NumberOfVisitsPerTag.TryGetValue(tag, out visitedTag))
 					visitedTag = 0;
-				_visitedCountTags[tag] = visitedTag + 1;
+				NumberOfVisitsPerTag[tag] = visitedTag + 1;
 			}
 
 			// Add output (and trigger hooks)
@@ -402,6 +405,8 @@ namespace UnityTwine
 			if (OnOutput != null)
 				OnOutput(output);
 		}
+
+
 		
 		// ---------------------------------
 		// Links
@@ -443,7 +448,7 @@ namespace UnityTwine
 			// Continue to the link passage only if a fragment thread (opened by the action) isn't in progress
 			if (link.PassageName != null && _lastThreadResult == ThreadResult.Done)
 			{
-				_turns++;
+				NumberOfLinksDone++;
 				GoTo(link.PassageName);
 			}
 		}
@@ -657,7 +662,7 @@ namespace UnityTwine
 
 
 		// ---------------------------------
-		// Functions
+		// Shorthand functions
 
 		protected TwineVar v(string val)
 		{
@@ -686,7 +691,7 @@ namespace UnityTwine
 
 		protected TwineText text(TwineVar text)
 		{
-			return new TwineText(TwineVar.ConvertTo<string>(text, strict: false));
+			return new TwineText(TwineVar.ConvertTo<string>(text.Value, strict: false));
 		}
 
 		protected TwineLineBreak lineBreak()
@@ -710,94 +715,14 @@ namespace UnityTwine
 			return new TwineEmbedFragment(name);
 		}
 
+		protected TwineEmbedPassage passage(string passageName, params TwineVar[] parameters)
+		{
+			return new TwineEmbedPassage(passageName, parameters);
+		}
+
 		protected TwineVar style(string name, object value)
 		{
 			return new TwineStyle(name, value);
 		}
-
-		// ============================================================== //
-		// OBSOLETE: //
-
-		protected TwineVar either(params TwineVar[] vars)
-		{
-			return vars[UnityEngine.Random.Range(0, vars.Length)];
-		}
-
-		protected int random(int min, int max)
-		{
-			return UnityEngine.Random.Range(min, max + 1);
-		}
-
-		protected string passage()
-		{
-			return this.CurrentPassageName;
-		}
-
-		protected string previous()
-		{
-			return this.PreviousPassageName;
-		}
-
-		protected TwineVar visited(params string[] passageNames)
-		{
-			if (passageNames == null || passageNames.Length == 0)
-				passageNames = new string[] { this.CurrentPassageName };
-
-			int min = int.MaxValue;
-			for(int i = 0; i < passageNames.Length; i++)
-			{
-				string passage = passageNames[i];
-				int count;
-				if (!_visitedCountPassages.TryGetValue(passage, out count))
-					count = 0;
-
-				if (count < min)
-					min = count;
-			}
-
-			if (min == int.MaxValue)
-				min = 0;
-
-			return min;
-		}
-
-		protected TwineVar visitedTag(params string[] tags)
-		{
-			if (tags == null || tags.Length == 0)
-				return 0;
-
-			int min = int.MaxValue;
-			for (int i = 0; i < tags.Length; i++)
-			{
-				string tag = tags[i];
-				int count;
-				if (!_visitedCountTags.TryGetValue(tag, out count))
-					count = 0;
-
-				if (count < min)
-					min = count;
-			}
-
-			if (min == int.MaxValue)
-				min = 0;
-
-			return min;
-		}
-
-		protected int turns()
-		{
-			return _turns;
-		}
-		
-		protected string[] tags()
-		{
-			return this.Tags;
-		}
-
-		//protected TwineVar parameter(int index)
-		//{
-		//	return this.PassageParameters == null || this.PassageParameters.Length-1 < index ? new TwineVar(index) : this.PassageParameters[index];
-		//}
-		
 	}
 }

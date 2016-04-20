@@ -1,33 +1,42 @@
 ﻿#if UNITY_EDITOR
-using UnityEngine;
-using UnityEditor;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.IO;
+using UnityEditor;
+using UnityEngine;
+using UnityTwine.Editor.Importers;
 using UnityTwine.Editor.Utils;
+using UnityTwine.StoryFormats.Harlowe;
 
 namespace UnityTwine.Editor.StoryFormats.Harlowe
 {
+	[InitializeOnLoad]
 	public class HarloweTranscoder : StoryFormatTranscoder
 	{
-		public static Dictionary<string, CodeGenMacro> CodeGenMacros = new Dictionary<string, CodeGenMacro>(StringComparer.OrdinalIgnoreCase);
-
-		HarlowePassageData _input;
-		TwinePassageCode _output;
-		string _lastVariable;
-
-		public GeneratedCode Code { get; private set; }
+		#region Regex 
+		// ---------------------------
 
 		static Regex rx_LinkNames = new Regex(@"((?'linkName'[^|\n]+?)\s*=\s*)?(?'linkText'.*)",
 			RegexOptions.IgnoreCase |
 			RegexOptions.ExplicitCapture);
 
+		// ---------------------------
+		#endregion
+
+		static Dictionary<string, HarloweCodeGenMacro> CodeGenMacros = new Dictionary<string, HarloweCodeGenMacro>(StringComparer.OrdinalIgnoreCase);
+		public GeneratedCode Code { get; private set; }
+		HarlowePassageData _input;
+		TwinePassageCode _output;
+		string _lastVariable;
+
 		static HarloweTranscoder()
 		{
+			PublishedHtmlImporter.RegisterTranscoder<HarloweTranscoder>(weight: 100);
+
 			// Supported macros
 			CodeGenMacros["put"] =
 			CodeGenMacros["move"] = 
@@ -62,31 +71,43 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
 		}
 
-		public HarloweTranscoder(TwineImporter importer) : base(importer)
+		public override StoryFormatMetadata GetMetadata()
 		{
+			return new StoryFormatMetadata()
+			{
+				StoryFormatName = "Harlowe",
+				StoryBaseType = typeof(UnityTwine.StoryFormats.Harlowe.HarloweStory),
+				StrictMode = true
+			};
 		}
 
-		public override StoryFormatMetadata Metadata
+		public override bool RecognizeFormat()
 		{
-			get
-			{
-				return new StoryFormatMetadata()
-				{
-					StoryFormatName = "Harlowe",
-					StoryBaseType = typeof(UnityTwine.StoryFormats.Harlowe.HarloweStory),
-					RuntimeMacrosType = typeof(UnityTwine.StoryFormats.Harlowe.HarloweRuntimeMacros),
-					StrictMode = true
-				};
-			}
+			// If it's not an HTML file, ignore the asset
+			if (!(this.Importer is PublishedHtmlImporter))
+				return false;
+
+			// Otherwise, return true - that means, Harlowe is the default format
+			// (the bridge script should return an error if it's not actually Harlowe)
+			return true;
 		}
 
 		public override void Init()
 		{
 			// Run the story file in PhantomJS, inject the bridge script that invokes the Harlowe lexer and deserialize the JSON output
-			PhantomOutput<HarlowePassageData[]> output = PhantomJS.Run<HarlowePassageData[]>(
-				new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
-				new System.Uri(Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/Harlowe/.js/harlowe.bridge.js").AbsolutePath
-			);
+			PhantomOutput<HarlowePassageData[]> output;
+
+			try
+			{
+				output = PhantomJS.Run<HarlowePassageData[]>(
+					new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
+					new System.Uri(Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/Harlowe/.js/harlowe.bridge.js").AbsolutePath
+				);
+			}
+			catch(TwineImportException)
+			{
+				throw new TwineImportException("HTML or JavaScript errors encountered in the Harlowe story. Does it load properly in a browser?");
+			}
 
 			this.Importer.Passages.AddRange(output.result);
 		}
@@ -248,7 +269,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		public int GenerateMacro(LexerToken[] tokens, int macroTokenIndex, MacroUsage usage)
 		{
 			LexerToken macroToken = tokens[macroTokenIndex];
-			CodeGenMacro macro;
+			HarloweCodeGenMacro macro;
 
 			if (!CodeGenMacros.TryGetValue(macroToken.name, out macro))
 				macro = BuiltInCodeGenMacros.RuntimeMacro;
@@ -264,7 +285,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				return macroTokenIndex;
 		}
 
-		public void GeneratedAssignment(string assignType, LexerToken[] assignTokens, int start, int end)
+		public void GenerateAssignment(string assignType, LexerToken[] assignTokens, int start, int end)
 		{
 			string delimeter = assignType == "set" ? "to" : "into";
 			bool usesPropertyOperator = false;
@@ -277,21 +298,32 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				{
 					bool close;
 					string assignCode;
-					if (assignType == "set")
+
+					if (assignType == "move")
 					{
-						// Special case: when GetMember or AsPropertyOf will be used in the left-side expression, can't use = but must use ReplaceWith
+						//throw new TwineTranscodeException("Harlowe's 'move' macro is not supported.");
+						return;
+					}
+					else if (assignType == "set")
+					{
+						// Special case: when GetMember or AsMemberOf will be used in the left-side expression, can't use = but must use ReplaceWith
 						assignCode = usesPropertyOperator ? ".ReplaceWith(" : "= ";
 						close = usesPropertyOperator;
 					}
 					else
 					{
-						assignCode = assignType == "move" ? ".MoveInto(" : ".PutInto(";
+						assignCode = ".PutInto(ref ";
 						close = true;
 					}
 
-					GenerateExpression(assignTokens, start, t-1);
+					int leftStart = start;
+					int leftEnd = t - 1;
+					int rightStart = t + 1;
+					int rightEnd = end;
+
+					GenerateExpression(assignTokens, leftStart, leftEnd);
 					Code.Buffer.Append(assignCode);
-					GenerateExpression(assignTokens, t+1, end);
+					GenerateExpression(assignTokens, rightStart, rightEnd);
 					if (close)
 						Code.Buffer.Append(")");
 
@@ -306,7 +338,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				}
 			}
 
-			throw new TwineTranscodingException(string.Format("The '{0}' assignment was not written correctly.", assignType));
+			throw new TwineTranscodeException(string.Format("The '{0}' assignment was not written correctly.", assignType));
 		}
 
 		string BuildInverseAssignment(LexerToken[] tokens, ref int tokenIndex, bool moveAssignment)
@@ -326,7 +358,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				return statement;
 			}
 
-			throw new TwineTranscodingException(string.Format("{0} macro was not formatted correctly", moveAssignment ? "Move" : "Put"));
+			throw new TwineTranscodeException(string.Format("{0} macro was not formatted correctly", moveAssignment ? "Move" : "Put"));
 		}
 
 		public void GenerateExpression(LexerToken[] tokens, int start = 0, int end = -1)
@@ -360,7 +392,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					return BuildVariableRef(token);
 				case "identifier":
 					if (_lastVariable == null)
-						throw new TwineTranscodingException("'it' or 'its' used without first mentioning a variable");
+						throw new TwineTranscodeException("'it' or 'its' used without first mentioning a variable");
 					return _lastVariable;
 				case "macro":
 					GenerateMacro(tokens, tokenIndex, MacroUsage.Inline);
@@ -382,7 +414,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					return null;
 				case "itsProperty":
 					if (_lastVariable == null)
-						throw new TwineTranscodingException("'it' or 'its' used without first mentioning a variable");
+						throw new TwineTranscodeException("'it' or 'its' used without first mentioning a variable");
 					return string.Format("{0}[\"{1}\"]", _lastVariable, token.name);
 				case "property":
 					return string.Format("[\"{0}\"]", token.name);
@@ -415,7 +447,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					return "(HarloweSpread)";
 				case "to":
 				case "into":
-					throw new TwineTranscodingException(string.Format("'{0}' is an assignment keyword and cannot be used inside an expression.", token.type));
+					throw new TwineTranscodeException(string.Format("'{0}' is an assignment keyword and cannot be used inside an expression.", token.type));
 				default:
 					return token.text;
 			}
@@ -487,7 +519,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			}
 
 			if (throwException && index < 0)
-				throw new TwineTranscodingException(string.Format(
+				throw new TwineTranscodeException(string.Format(
 					"'{0}' must be followed by a '{1}' ",
 					tokens[tokenIndex].text,
 					tokenType
@@ -513,18 +545,6 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 	public class HarlowePassageData : TwinePassageData
 	{
 		public LexerToken[] Tokens;
-	}
-
-	public class GeneratedCode
-	{
-		public StringBuilder Buffer = new StringBuilder();
-		public int Indentation = 0;
-		public bool Collapsed = false;
-
-		public void Indent()
-		{
-			Utils.CodeGenUtils.Indent(Indentation, Buffer);
-		}
 	}
 }
 #endif

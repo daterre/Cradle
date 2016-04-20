@@ -12,15 +12,15 @@ namespace UnityTwine.Editor
 		public TwineImportException(string message, Exception inner) : base(message, inner) { }
 	}
 
-	public class TwineTranscodingException : Exception
+	public class TwineTranscodeException : Exception
 	{
 		public string Passage;
-		public TwineTranscodingException() { }
-		public TwineTranscodingException(string message, string passageName = null) : base(message)
+		public TwineTranscodeException() { }
+		public TwineTranscodeException(string message, string passageName = null) : base(message)
 		{
 			Passage = passageName;
 		}
-		public TwineTranscodingException(string message, Exception inner, string passageName = null)
+		public TwineTranscodeException(string message, Exception inner, string passageName = null)
 			: base(message, inner)
 		{
 			Passage = passageName;

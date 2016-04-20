@@ -6,43 +6,53 @@ using System.Collections.Generic;
 
 namespace UnityTwine
 {
-	public class TwineRuntimeVars: ITwineType, IDictionary<string, TwineVar>
+	public abstract class TwineRuntimeVars: IDictionary<string, TwineVar>
 	{
 		public TwineStory Story;
 		public bool StrictMode;
 
-		protected Dictionary<string, TwineVar> dictionary = new Dictionary<string,TwineVar>();
-
-		public TwineRuntimeVars(params string[] varNames)
+		protected class Accessor
 		{
-			for (int i = 0; i < varNames.Length; i++)
-				dictionary[varNames[i]] = new TwineVar(this, varNames[i]);
+			public Func<TwineVar> Get;
+			public Action<TwineVar> Set;
+		}
+
+		protected Dictionary<string, Accessor> accessors = new Dictionary<string, Accessor>();
+
+		protected void VarDef(string name, Func<TwineVar> getter, Action<TwineVar> setter)
+		{
+			accessors.Add(name, new Accessor() { Get = getter, Set = setter});
 		}
 
 		internal void Reset()
 		{
-			foreach(string varName in dictionary.Keys)
-				dictionary[varName] = new TwineVar(this, varName);
+			foreach (Accessor accessor in accessors.Values)
+				accessor.Set(default(TwineVar));
 		}
 
 		public bool ContainsKey(string varName)
 		{
-			return dictionary.ContainsKey(varName);
+			return accessors.ContainsKey(varName);
 		}
 
 		public ICollection<string> Keys
 		{
-			get { return dictionary.Keys; }
+			get { return accessors.Keys; }
 		}
 
 		public bool TryGetValue(string varName, out TwineVar value)
 		{
-			return dictionary.TryGetValue(varName, out value);
+			value = default(TwineVar);
+			Accessor accessor;
+			if (accessors.TryGetValue(varName, out accessor))
+				return false;
+
+			return accessor.Get();
 		}
 
 		public ICollection<TwineVar> Values
 		{
-			get { return dictionary.Values; }
+			get { return accessors.Values.Select(accessor => accessor.Get()).ToArray(); }
 		}
 
 		public TwineVar this[string varName]
@@ -68,7 +78,7 @@ namespace UnityTwine
 		public void SetMember(string varName, TwineVar value)
 		{
 			TwineVar prevValue = this[varName];
-			object v = value.Value;
+			object v = value.Clone().Value;
 
 			// Enfore strict mode
 			if (StrictMode)
@@ -82,12 +92,12 @@ namespace UnityTwine
 			}
 
 			// Run the setter
-			dictionary[varName] = new TwineVar(this, varName, v);
+			accessors[varName].Set(new TwineVar(v));
 		}
 
 		public int Count
 		{
-			get { return dictionary.Count; }
+			get { return accessors.Count; }
 		}
 
 		void IDictionary<string, TwineVar>.Add(string key, TwineVar value)
@@ -117,17 +127,17 @@ namespace UnityTwine
 
 		bool ICollection<KeyValuePair<string, TwineVar>>.Contains(KeyValuePair<string, TwineVar> item)
 		{
-			return ((ICollection<KeyValuePair<string, TwineVar>>)dictionary).Contains(item);
+			return ((ICollection<KeyValuePair<string, TwineVar>>)accessors).Contains(item);
 		}
 
 		void ICollection<KeyValuePair<string, TwineVar>>.CopyTo(KeyValuePair<string, TwineVar>[] array, int arrayIndex)
 		{
-			((ICollection<KeyValuePair<string, TwineVar>>)dictionary).CopyTo(array, arrayIndex);
+			((ICollection<KeyValuePair<string, TwineVar>>)accessors).CopyTo(array, arrayIndex);
 		}
 
 		bool ICollection<KeyValuePair<string, TwineVar>>.IsReadOnly
 		{
-			get { return ((ICollection<KeyValuePair<string, TwineVar>>)dictionary).IsReadOnly; }
+			get { return ((ICollection<KeyValuePair<string, TwineVar>>)accessors).IsReadOnly; }
 		}
 
 		bool ICollection<KeyValuePair<string, TwineVar>>.Remove(KeyValuePair<string, TwineVar> item)
@@ -137,35 +147,7 @@ namespace UnityTwine
 
 		IEnumerator<KeyValuePair<string, TwineVar>> IEnumerable<KeyValuePair<string, TwineVar>>.GetEnumerator()
 		{
-			return dictionary.GetEnumerator();
-		}
-
-		void ITwineType.RemoveMember(string varName)
-		{
-			if (!dictionary.ContainsKey(varName))
-				throw new TwineException(string.Format("There is no variable with the name '{0}'.", varName));
-
-			dictionary[varName] = new TwineVar(this, varName);
-		}
-
-		bool ITwineType.Compare(TwineOperator op, object b, out bool result)
-		{
-			throw new NotSupportedException();
-		}
-
-		bool ITwineType.Combine(TwineOperator op, object b, out TwineVar result)
-		{
-			throw new NotSupportedException();
-		}
-
-		bool ITwineType.Unary(TwineOperator op, out TwineVar result)
-		{
-			throw new NotSupportedException();
-		}
-
-		bool ITwineType.ConvertTo(Type t, out object result, bool strict)
-		{
-			throw new NotSupportedException();
+			return accessors.Select(pair => new KeyValuePair<string, TwineVar>(pair.Key, pair.Value.Get())).GetEnumerator();
 		}
 
 		TwineVar IDictionary<string, TwineVar>.this[string key]

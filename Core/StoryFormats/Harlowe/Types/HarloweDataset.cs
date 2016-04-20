@@ -7,7 +7,7 @@ using System.Text;
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class HarloweDataset: TwineType
+	public class HarloweDataset : HarloweCollection
 	{
 		internal HashSet<TwineVar> Values;
 
@@ -33,6 +33,17 @@ namespace UnityTwine.StoryFormats.Harlowe
 		public bool Contains(object value)
 		{
 			return Values.Contains(value is TwineVar ? (TwineVar)value : new TwineVar(value));
+		}
+
+		public override IEnumerable<TwineVar> Flatten()
+		{
+			foreach (TwineVar val in Values)
+				yield return val.Clone();
+		}
+
+		public override ITwineType Clone()
+		{
+			return new HarloweDataset(this.Flatten());
 		}
 
 		public override string ToString()
@@ -68,7 +79,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 				throw new TwineTypeMemberException(string.Format("The dataset doesn't have a member called {0}.", memberName));
 			}
 
-			return new TwineVar(this, memberName, val);
+			return new TwineVar(val);
 		}
 
 		public override void SetMember(string memberName, TwineVar value)

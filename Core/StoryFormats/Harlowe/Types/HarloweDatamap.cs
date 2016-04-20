@@ -7,18 +7,18 @@ using System.Text;
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class HarloweDatamap: TwineType
+	public class HarloweDatamap : HarloweCollection
 	{
-		internal Dictionary<string,TwineVar> Map;
+		internal Dictionary<string,TwineVar> Dictionary;
 
 		public HarloweDatamap()
 		{
-			Map = new Dictionary<string,TwineVar>();
+			Dictionary = new Dictionary<string,TwineVar>();
 		}
 
 		public HarloweDatamap(IDictionary<string,TwineVar> map)
 		{
-			Map = new Dictionary<string, TwineVar>(map);
+			Dictionary = new Dictionary<string, TwineVar>(map);
 		}
 
 		public HarloweDatamap(params TwineVar[] vals):this()
@@ -31,24 +31,39 @@ namespace UnityTwine.StoryFormats.Harlowe
 				if (!TwineVar.TryConvertTo<string>(vals[i], out key))
 					throw new TwineTypeException("To create a datamap, every odd parameter (an entry name) must be string.");
 
-				Map[key] = vals[i + 1];
+				Dictionary[key] = vals[i + 1];
 			}
 		}
 
 		public int Length
 		{
-			get { return Map.Count; }
+			get { return Dictionary.Count; }
 		}
 
 		public bool ContainsKey(string key)
 		{
-			return Map.ContainsKey(key);
+			return Dictionary.ContainsKey(key);
+		}
+
+		public override IEnumerable<TwineVar> Flatten()
+		{
+			foreach(TwineVar val in Dictionary.Values)
+				yield return val.Clone();
+		}
+
+		public override ITwineType Clone()
+		{
+			var clone = new HarloweDatamap();
+			foreach (var pair in this.Dictionary)
+				clone.Dictionary[pair.Key] = pair.Value.Clone();
+
+			return clone;
 		}
 
 		public override string ToString()
 		{
 			var str = new StringBuilder();
-			foreach(var pair in Map.OrderBy(v => v.Key))
+			foreach(var pair in Dictionary.OrderBy(v => v.Key))
 			{
 				if (str.Length > 0)
 					str.Append(',');
@@ -62,20 +77,20 @@ namespace UnityTwine.StoryFormats.Harlowe
 		{
 			TwineVar val;
 			
-			if (!Map.TryGetValue(memberName, out val))
+			if (!Dictionary.TryGetValue(memberName, out val))
 				throw new TwineTypeMemberException(string.Format("The datamap doesn't have an entry under the name '{0}'.", memberName));
 
-			return new TwineVar(this, memberName, val);
+			return new TwineVar(val);
 		}
 
 		public override void SetMember(string memberName, TwineVar value)
 		{
-			Map[memberName] = value;
+			Dictionary[memberName] = value.Clone();
 		}
 
 		public override void RemoveMember(string memberName)
 		{
-			Map.Remove(memberName);
+			Dictionary.Remove(memberName);
 		}
 
 		public override bool Compare(TwineOperator op, object b, out bool result)
@@ -90,8 +105,8 @@ namespace UnityTwine.StoryFormats.Harlowe
 
 					var bMap = (HarloweDatamap)b;
 					result =
-						new HashSet<string>(Map.Keys).SetEquals(bMap.Map.Keys) &&
-						new HashSet<TwineVar>(Map.Values).SetEquals(bMap.Map.Values);
+						new HashSet<string>(Dictionary.Keys).SetEquals(bMap.Dictionary.Keys) &&
+						new HashSet<TwineVar>(Dictionary.Values).SetEquals(bMap.Dictionary.Values);
 					break;
 				}
 				case TwineOperator.Contains: {
@@ -113,8 +128,8 @@ namespace UnityTwine.StoryFormats.Harlowe
 					if (!(b is HarloweDatamap))
 						return false;
 					var bMap = (HarloweDatamap)b;
-					var output = new Dictionary<string, TwineVar>(this.Map);
-					bMap.Map.ToList().ForEach(x => output[x.Key] = x.Value);
+					var output = new Dictionary<string, TwineVar>(this.Dictionary);
+					bMap.Dictionary.ToList().ForEach(x => output[x.Key] = x.Value);
 					result = new HarloweDatamap(output);
 					break;
 				}
@@ -124,7 +139,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 
 					IEnumerable<string> keys;
 					if (b is HarloweDatamap)
-						keys = ((HarloweDatamap)b).Map.Keys;
+						keys = ((HarloweDatamap)b).Dictionary.Keys;
 					else if (b is HarloweDataset)
 						keys = ((HarloweDataset)b).Values.Select(v => v.ToString());
 					else if (b is HarloweArray)
@@ -135,7 +150,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 					var keySet = new HashSet<string>(keys);
 
 					// A little linq-fu
-					result = new HarloweDatamap(this.Map
+					result = new HarloweDatamap(this.Dictionary
 						.Where(pair => !keySet.Contains(pair.Key))
 						.ToDictionary(
 							pair => pair.Key,

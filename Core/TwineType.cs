@@ -16,6 +16,7 @@ namespace UnityTwine
 		bool Combine(TwineOperator op, object b, out TwineVar result);
 		bool Unary(TwineOperator op, out TwineVar result);
 		bool ConvertTo(Type t, out object result, bool strict = false);
+		ITwineType Clone();
 	}
 
 	public abstract class TwineType: ITwineType
@@ -28,6 +29,7 @@ namespace UnityTwine
 		public abstract bool Combine(TwineOperator op, object b, out TwineVar result);
 		public abstract bool Unary(TwineOperator op, out TwineVar result);
 		public abstract bool ConvertTo(Type t, out object result, bool strict = false);
+		public abstract ITwineType Clone();
 	}
 
 	public interface ITwineTypeService
@@ -40,6 +42,8 @@ namespace UnityTwine
 		bool Combine(TwineOperator op, object a, object b, out TwineVar result);
 		bool Unary(TwineOperator op, object a, out TwineVar result);
 		bool ConvertTo(object a, Type t, out object result, bool strict = false);
+		bool ConvertFrom(object a, out object result, bool strict = false);
+		object Clone(object value);
 	}
 
 	public abstract class TwineTypeService<T>: ITwineTypeService
@@ -52,6 +56,8 @@ namespace UnityTwine
 		public abstract bool Combine(TwineOperator op, T a, object b, out TwineVar result);
 		public abstract bool Unary(TwineOperator op, T a, out TwineVar result);
 		public abstract bool ConvertTo(T a, Type t, out object result, bool strict = false);
+		public abstract bool ConvertFrom(object a, out T result, bool strict = false);
+		public abstract T Clone(T value);
 
 		public bool ConvertTo<ResultT>(T a, out ResultT resultT)
 		{
@@ -86,6 +92,14 @@ namespace UnityTwine
 			return ConvertTo((T)a, t, out result, strict);
 		}
 
+		bool ITwineTypeService.ConvertFrom(object a, out object result, bool strict)
+		{
+			T resultT;
+			bool success = ConvertFrom(a, out resultT, strict);
+			result = resultT;
+			return success;
+		}
+
 		TwineVar ITwineTypeService.GetMember(object container, string memberName)
 		{
 			return GetMember((T)container, memberName);
@@ -99,6 +113,11 @@ namespace UnityTwine
 		void ITwineTypeService.RemoveMember(object container, string memberName)
 		{
 			RemoveMember((T)container, memberName);
+		}
+
+		object ITwineTypeService.Clone(object value)
+		{
+			return Clone((T)value);
 		}
 	}
 

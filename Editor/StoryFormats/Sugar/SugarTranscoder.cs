@@ -1,38 +1,60 @@
 ﻿#if UNITY_EDITOR
-using UnityEngine;
-using UnityEditor;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.IO;
-using System.Security.Cryptography;
 using UnityEngine;
-using System.Collections;
+using UnityEditor;
+using UnityTwine.Editor.Importers;
+using UnityTwine.Editor.Utils;
+using UnityTwine.StoryFormats.Sugar;
 
 namespace UnityTwine.Editor.StoryFormats.Sugar
 {
+	[InitializeOnLoad]
 	public class SugarTranscoder : StoryFormatTranscoder
 	{
-		public static Dictionary<string, CodeGenMacro> CodeGenMacros = new Dictionary<string, CodeGenMacro>(StringComparer.OrdinalIgnoreCase);
+		#region Regex
+		// ---------------------------
+
+		static Regex rx_Sniff = new Regex(@"((<!--\s*?SugarCube)|(<!--.*?Sugarcane))",
+			RegexOptions.Singleline |
+			RegexOptions.IgnoreCase |
+			RegexOptions.ExplicitCapture);
+
+		const string RX_NOQUOTES = @"(?=([^""\\]*(\\.|""([^""\\]*\\.)*[^""\\]*""))*[^""]*$)";
 
 		static Regex rx_PassageBody = new Regex(@"
 				(?'macro'
-					(?>(?'open'<<))
+					<<
 						\s*
-						((?'macroName'\/?[a-z_][a-z0-9_]*)\b\s*)?(?'macroArg'(?>(?'q'""))?.*?(?>(?'-q'"")?(?(q)(?!))))?
+						((?'macroName'\/?[a-z_][a-z0-9_]*)\b\s*)?
+						(?'macroArg'
+							(?>(?'quote'""))?
+							.*?
+							(?>(?'close-quote'"")?(?(quote)(?!)))
+						)?
 						\s*
-					(?>(?'-open'>>))
+					>>
 				)
 
 				|
 
 				(?'link'
-					(?>(?'open'\[\[))
-						(((?'linkName'[^|\n]+?)\s*=\s*)?(?'linkText'.*?)\|)?(?'linkTarget'.+?)(\]\[(?'linkSetter'.*?))?
-					(?>(?'-open'\]\]))
+					\[
+						(?>(?'open'\[))
+							((?'linkText'.*?)\|)?
+							(?'linkTarget'.+?)
+						(?>(?'close-open'\])(?(open)(?!)))
+						(
+							(?>(?'open'\[))
+								(?'linkSetter'.*)
+							(?>(?'close-open'\])(?(open)(?!)))
+						)?
+					\]
 				)
 
 				|
@@ -41,238 +63,324 @@ namespace UnityTwine.Editor.StoryFormats.Sugar
 
 				|
 
-				(?'text'(?'char'.)?)
+				(?'text'.+?(?=(<<|\[\[|\$|$)))
+
+				|
+
+				(?'br'$)
 				",
-				RegexOptions.Singleline |
 				RegexOptions.Multiline |
 				RegexOptions.ExplicitCapture |
 				RegexOptions.IgnoreCase |
 				RegexOptions.IgnorePatternWhitespace
 			);
 
-		static Regex rx_Vars = new Regex(
-				@"\$([a-zA-Z_][a-zA-Z0-9_]*)",
+		static Regex rx_Vars = new Regex(string.Format(@"\$([a-zA-Z_][a-zA-Z0-9_]*){0}", RX_NOQUOTES),
 				RegexOptions.Singleline | RegexOptions.Multiline
 			);
-		static Regex rx_Operator = new Regex(
-				@"\b(and|or|is|to|not)\b(?=([^""]*""[^""]*"")*[^""]*$)",
+		static Regex rx_Operator = new Regex(string.Format(
+				@"\b(and|or|is not|is|to|not|eq|gt|gte|lt|lte)\b{0}", RX_NOQUOTES),
 				RegexOptions.Singleline | RegexOptions.Multiline
 			);
 
-		static MD5 _md5 = MD5.Create();
+//		static Regex rx_Array = new Regex(string.Format(@"
+//				(?<=\s*(?:^|[=\-\+\*%&|\(])\s*)
+//				(?'array'
+//					(?'argsOpen'\[)+
+//					.*?{0}
+//					(?'args-argsOpen'\])+
+//					(?(argsOpen)(?!))
+//				)+"
+//				, RX_NOQUOTES),
+//				RegexOptions.ExplicitCapture |
+//				RegexOptions.IgnorePatternWhitespace
+//			);
+
+		// ---------------------------
+		#endregion
+	
+		static Dictionary<string, SugarCodeGenMacro> CodeGenMacros = new Dictionary<string, SugarCodeGenMacro>(StringComparer.OrdinalIgnoreCase);
+		public GeneratedCode Code { get; private set; }
+		TwinePassageData _input;
+		TwinePassageCode _output;
+		internal bool NoOutput = false;
 
         static SugarTranscoder()
         {
-			// Supported macros
-			CodeGenMacros["display"] = BuiltInCodeGenMacros.Display;
-			CodeGenMacros["set"] = BuiltInCodeGenMacros.Set;
-			CodeGenMacros["run"] = BuiltInCodeGenMacros.Set;
-			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
-			CodeGenMacros["if"] = BuiltInCodeGenMacros.Conditional;
-			CodeGenMacros["elseif"] = BuiltInCodeGenMacros.Conditional;
-			CodeGenMacros["else"] = BuiltInCodeGenMacros.Conditional;
+			PublishedHtmlImporter.RegisterTranscoder<SugarTranscoder>();
+
+			CodeGenMacros["set"] = 
+			CodeGenMacros["run"] = BuiltInCodeGenMacros.Assignment;
+			
+			CodeGenMacros["if"] = 
+			CodeGenMacros["elseif"] = 
+			CodeGenMacros["else"] = 
 			CodeGenMacros["endif"] = BuiltInCodeGenMacros.Conditional;
 
-			// TODO:
-			CodeGenMacros["silently"] = null;
-			CodeGenMacros["/silently"] = null;
-			CodeGenMacros["endsilently"] = null;
-			CodeGenMacros["nobr"] = null;
-			CodeGenMacros["/nobr"] = null;
-			CodeGenMacros["endnobr"] = null;
-			CodeGenMacros["script"] = null;
-			CodeGenMacros["/script"] = null;
-			CodeGenMacros["endscript"] = null;
+			CodeGenMacros["for"] =
+			CodeGenMacros["/for"] =
+			CodeGenMacros["continue"] =
+			CodeGenMacros["break"] = 
+			CodeGenMacros["endfor"] = BuiltInCodeGenMacros.Loop;
 
-			// Unsupported macros. Recognize them but don't output anything
-			
+			CodeGenMacros["silently"] =
+			CodeGenMacros["/silently"] =
+			CodeGenMacros["endsilently"] = BuiltInCodeGenMacros.Silent;
+			CodeGenMacros["nobr"] =
+			CodeGenMacros["/nobr"] =
+			CodeGenMacros["endnobr"] = BuiltInCodeGenMacros.Collapse;
+			CodeGenMacros["br"] = BuiltInCodeGenMacros.LineBreak;
+
+			CodeGenMacros["display"] = BuiltInCodeGenMacros.Display;
+			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
+
+			// Unsupported macros. Recognize them but don't output anything	
 			CodeGenMacros["remember"] = null;
 			CodeGenMacros["actions"] = null;
 			CodeGenMacros["choice"] = null;
+			CodeGenMacros["script"] = null;
+			CodeGenMacros["/script"] = null;
+			CodeGenMacros["endscript"] = null;
         }
 
-		public SugarTranscoder(TwineImporter importer): base(importer)
+		public override StoryFormatMetadata GetMetadata()
 		{
-		}
-
-		public override StoryFormatMetadata Metadata
-		{
-			get
+			return new StoryFormatMetadata()
 			{
-				return new StoryFormatMetadata()
-				{
-					StoryFormatName = "Sugar",
-					StrictMode = false
-				};
-			}
+				StoryFormatName = "Sugar",
+				StoryBaseType = typeof(SugarStory),
+				StrictMode = false
+			};
 		}
 
-		// Instance vars
-		int _indent = 0;
+		public override bool RecognizeFormat()
+		{
+			// Validate content only when using the HTML importer
+			if (!(this.Importer is PublishedHtmlImporter))
+				return true;
+
+			// Load the first 2KB of the file, because Sugar themes place a header there
+			var headerBuffer = new char[2048];
+			using (var stream = new StreamReader(Importer.AssetPath))
+				stream.Read(headerBuffer, 0, headerBuffer.Length);
+			string header = new String(headerBuffer);
+
+			// It's relevant if there's a match
+			return rx_Sniff.IsMatch(header);
+		}
+
+		public override void Init()
+		{
+			if (!(this.Importer is PublishedHtmlImporter))
+				return;
+
+			// Run the story file in PhantomJS, inject the bridge script and deserialize the JSON output
+			PhantomOutput<TwinePassageData[]> output;
+
+			try
+			{
+				output = PhantomJS.Run<TwinePassageData[]>(
+					new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
+					new System.Uri(Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/Sugar/.js/sugar.bridge.js").AbsolutePath
+				);
+			}
+			catch (TwineImportException)
+			{
+				throw new TwineImportException("HTML or JavaScript errors encountered in the Sugar story. Does it load properly in a browser?");
+			}
+
+			this.Importer.Passages.AddRange(output.result);
+		}
 
 		public override TwinePassageCode PassageToCode(TwinePassageData passage)
 		{
-			this._indent = 0;
+			_input = passage;
+			_output = new TwinePassageCode();
 
-			var textBuffer = new StringBuilder();
-			var outputBuffer = new StringBuilder();
-			MatchCollection matches = rx_PassageBody.Matches(passage.Body);
+			// Ignore script and stylesheet passages
+			if (passage.Tags.Contains("script") || passage.Tags.Contains("stylesheet"))
+			{
+				_output.Main = "yield break;";
+				return _output;
+			}
 
+			Code = new GeneratedCode();
+			NoOutput = false;
+			if (passage.Tags.Contains("nobr"))
+				Code.Collapsed = true;
+
+			MatchCollection matches = rx_PassageBody.Matches(_input.Body);
+			GenerateBody(matches);
+
+			// Get final string
+			string code = Code.Buffer.ToString();
+			_output.Main = code;
+
+			return _output;
+		}
+
+		void GenerateBody(MatchCollection matches)
+		{
 			foreach (Match match in matches)
 			{
+				// Text
 				if (match.Groups["text"].Success)
 				{
-					// .....................................
-					// TEXT CHARACTER
-
-					// Text characters are buffered independently
-					string character = match.Groups["char"].Value;
-					switch (character)
+					if (!NoOutput)
 					{
-						case "\n": character = "\\n"; break;
-						case "\"": character = "\"\""; break;
+						string text = match.Groups["text"].Value
+							.Replace("\"", "\"\"");
+
+						if (Code.Collapsed)
+							text = Regex.Replace(text, @"(\s)+", " ");
+
+						Code.Indent();
+						Code.Buffer
+							.AppendFormat("yield return text(@\"{0}\");", text)
+							.AppendLine();
 					}
-
-					textBuffer.Append(character);
-				}
-				else
-				{
-					// This is not a text match so output any text previously buffered
-					OutputTextBuffer(outputBuffer, textBuffer);
 				}
 
-				if (match.Groups["macro"].Success)
+				// Line break
+				else if (match.Groups["br"].Success)
 				{
-					// .....................................
-					// MACRO
+					if (!Code.Collapsed && !NoOutput)
+					{
+						Code.Indent();
+						Code.Buffer
+							.AppendLine("yield return lineBreak();");
+					}
+				}
 
+				// Macro
+				else if (match.Groups["macro"].Success)
+				{
 					string macroName = null;
-					CodeGenMacro parseMacro;
+					SugarCodeGenMacro macro;
 					if (match.Groups["macroName"].Success)
 					{
 						macroName = match.Groups["macroName"].Value;
-						if (!CodeGenMacros.TryGetValue(macroName, out parseMacro))
-							parseMacro = BuiltInCodeGenMacros.DisplayShorthand;
+						if (!CodeGenMacros.TryGetValue(macroName, out macro))
+							macro = BuiltInCodeGenMacros.DisplayShorthand;
 					}
 					else
 					{
-						parseMacro = BuiltInCodeGenMacros.Print;
+						macro = BuiltInCodeGenMacros.Print;
 					}
 
-					if (parseMacro != null)
+					if (macro != null)
 					{
-						// Get macro output from macro function. Includes indentation instructions
-						CodeGenMacroOutput macroOutput = parseMacro(this, macroName,
+						macro(this, macroName,
 							match.Groups["macroArg"].Success ? match.Groups["macroArg"].Value : null
 						);
-
-						// Change indentation and output the code
-						this._indent += macroOutput.IndentChangeBefore;
-						OutputAppend(outputBuffer, macroOutput.Code);
-						this._indent += macroOutput.IndentChangeAfter;
 					}
 				}
+
+				// Link
 				else if (match.Groups["link"].Success)
 				{
-					// .....................................
-					// LINK
+					if (!NoOutput)
+					{
+						string linkTarget = match.Groups["linkTarget"].Value;
 
-					string linkTarget = match.Groups["linkTarget"].Value;
+						bool hasText = match.Groups["linkText"].Success;
+						string text = hasText ? match.Groups["linkText"].Value : linkTarget;
+						//if (hasText)
+						//{
+						//	text = rx_Macro.Replace(text, m =>
+						//	{
+						//		if (m.Groups["macro"].Success)
+						//			return null;
+						//		else
+						//		{
+						//			Debug.Log(m.Groups["argument"].Value);
+						//			return "\" + " + ParseVars(m.Groups["argument"].Value) + " + \"";
+						//		}
+						//	});
+						//}
 
-					bool hasText = match.Groups["linkText"].Success;
-					string text = hasText ? match.Groups["linkText"].Value : linkTarget;
-					//if (hasText)
-					//{
-					//	text = rx_Macro.Replace(text, m =>
-					//	{
-					//		if (m.Groups["macro"].Success)
-					//			return null;
-					//		else
-					//		{
-					//			Debug.Log(m.Groups["argument"].Value);
-					//			return "\" + " + ParseVars(m.Groups["argument"].Value) + " + \"";
-					//		}
-					//	});
-					//}
+						string name = match.Groups["linkName"].Success ? match.Groups["linkName"].Value : text;
+						string setters = match.Groups["linkSetter"].Length > 0 ?
+							string.Format("() =>{{ {0}; return null; }}", BuildExpression(match.Groups["linkSetter"].Value)) : // stick the setter into a lambda
+							null;
 
-					string name = match.Groups["linkName"].Success ? match.Groups["linkName"].Value : text;
-					string setters = match.Groups["linkSetter"].Length > 0 ?
-						string.Format("() =>{{ {0}; return null; }}", ParseVars(match.Groups["linkSetter"].Value)) : // stick the setter into a lambda
-						null;
-					
-					OutputAppend(outputBuffer, "yield return new TwineLink(@\"{0}\", @\"{1}\", {2}, {3});",
-						name.Replace("\"", "\"\""),
-						text.Replace("\"", "\"\""),
-						linkTarget.IndexOf('(') >= 1 ? linkTarget : string.Format("@\"{0}\"", linkTarget.Replace("\"", "\"\"")), // if a peren is present, treat as a function
-						setters == null ? "null" : setters
-					);
+						Code.Indent();
+						Code.Buffer
+							.AppendFormat("yield return link(@\"{0}\", @\"{1}\", {2}, {3});",
+								name.Replace("\"", "\"\""),
+								text.Replace("\"", "\"\""),
+								linkTarget.IndexOf('(') >= 1 ? linkTarget : string.Format("@\"{0}\"", linkTarget.Replace("\"", "\"\"")), // if a peren is present, treat as a function
+								setters == null ? "null" : setters
+							)
+							.AppendLine();
+					}
 				}
+
+				// Naked var
 				else if (match.Groups["nakedVar"].Success)
 				{
-					// .....................................
-					// NAKED VAR
-					OutputAppend(outputBuffer, "yield return new TwineText({0});", match.Groups["nakedVar"].Value); ;
+					if (!NoOutput)
+					{
+						Code.Indent();
+						Code.Buffer
+							.AppendFormat("yield return text({0});", BuildVariableRef(match.Groups["nakedVar"].Value))
+							.AppendLine();
+					}
 				}
 			};
 
-			// Output any leftover buffered text
-			OutputTextBuffer(outputBuffer, textBuffer);
-
-			// Get final string
-			string output = outputBuffer.ToString();
-			if (output == null || output.Trim().Length == 0)
-				output = "yield break;";
-
-			return new TwinePassageCode() { Main = output };
+			Code.Indent();
+			Code.Buffer.Append("yield break;");
 		}
 
-		void OutputAppend(StringBuilder outputBuffer, string format, params object[] args)
+		string BuildVariableRef(string varName)
 		{
-			var tabsTemp = new StringBuilder();
-			for (int i = 0; i < Math.Max(0, this._indent); i++)
-				tabsTemp.Append('\t');
-			string tabs = tabsTemp.ToString();
-
-			if (outputBuffer.Length > 0 && outputBuffer[outputBuffer.Length - 1] == '\n')
-				outputBuffer.Append(tabs);
-			string indented = Regex.Replace(format, "\\n", newline => newline.Value + tabs) + '\n';
-			if (args != null && args.Length > 0)
-				outputBuffer.AppendFormat(indented, args);
-			else
-				outputBuffer.Append(indented);
+			Importer.RegisterVar(varName);
+			return string.Format("Vars.{0}", EscapeReservedWord(varName));
 		}
 
-		void OutputTextBuffer(StringBuilder outputBuffer, StringBuilder textBuffer)
+		//string CleanupArrays(string expression)
+		//{
+		//	return rx_Array.Replace(expression, array =>
+		//	{
+		//		return string.Format("array({0})", CleanupArrays(array.Groups["args"].Value));
+		//	});
+		//}
+
+		internal string BuildExpression(string expression)
 		{
-			if (textBuffer.Length > 0)
+			string parsed = expression;
+
+			parsed = rx_Vars.Replace(parsed, varName =>
 			{
-				OutputAppend(outputBuffer, "yield return new TwineText(@\"{0}\");", textBuffer.ToString());
-				textBuffer.Length = 0;
-			}
-		}
-
-		internal string ParseVars(string expression)
-		{
-			string parsed = rx_Vars.Replace(expression, varName =>
-			{
-				string val = varName.Groups[1].Value;
-				Importer.RegisterVar(val);
-				return val;
+				return BuildVariableRef(varName.Groups[1].Value);
 			});
 
-			return rx_Operator.Replace(parsed, op =>
+			parsed = rx_Operator.Replace(parsed, op =>
 			{
 				switch (op.Value)
 				{
 					case "and": return "&&";
 					case "or": return "||";
+					case "eq":
+					case "is not": return "!=";
 					case "is": return "==";
+					case "lt": return "<";
+					case "lte": return "<=";
+					case "gt": return ">";
+					case "gte": return ">=";
 					case "to": return "=";
 					case "not": return "!";
 				};
 				return string.Empty;
 			});
-		}   
+
+			PhantomJS.Run<string>(
+				new System.Uri(Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/Sugar/.js/esprima.host.js").AbsoluteUri,
+
+
+			return parsed;
+		} 
 	}
 }
 #endif

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace UnityTwine.Editor.StoryFormats.Harlowe
 {
-	public delegate int CodeGenMacro(HarloweTranscoder transcoder, LexerToken[] tokens, int macroTokenIndex, MacroUsage usage);
+	public delegate int HarloweCodeGenMacro(HarloweTranscoder transcoder, LexerToken[] tokens, int macroTokenIndex, MacroUsage usage);
 
 	public enum MacroUsage
 	{
@@ -18,12 +18,12 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 	public static class BuiltInCodeGenMacros
 	{
 		// ......................
-		public static CodeGenMacro Assignment = (transcoder, tokens, tokenIndex, usage) =>
+		public static HarloweCodeGenMacro Assignment = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken assignToken = tokens[tokenIndex];
 
 			if (usage == MacroUsage.Inline)
-				throw new TwineTranscodingException(string.Format("'{0}' macro cannot be used inside another macro", assignToken.name));
+				throw new TwineTranscodeException(string.Format("'{0}' macro cannot be used inside another macro", assignToken.name));
 
 			int start = 1;
 			int end = start;
@@ -32,14 +32,14 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				LexerToken token = assignToken.tokens[end];
 				if (token.type == "comma")
 				{
-					transcoder.GeneratedAssignment(assignToken.name.ToLower(), assignToken.tokens, start, end - 1);
+					transcoder.GenerateAssignment(assignToken.name.ToLower(), assignToken.tokens, start, end - 1);
 					transcoder.Code.Buffer.Append("; ");
 					start = end + 1;
 				}
 			}
 			if (start < end)
 			{
-				transcoder.GeneratedAssignment(assignToken.name.ToLower(), assignToken.tokens, start, end - 1);
+				transcoder.GenerateAssignment(assignToken.name.ToLower(), assignToken.tokens, start, end - 1);
 				transcoder.Code.Buffer.Append(";");
 			}
 
@@ -49,14 +49,14 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		};
 
 		// ......................
-		public static CodeGenMacro Conditional = (transcoder, tokens, tokenIndex, usage) =>
+		public static HarloweCodeGenMacro Conditional = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken token = tokens[tokenIndex];
 
 			if (usage == MacroUsage.Line)
-				throw new TwineTranscodingException("'" + token.name + "' must be followed by a Harlowe-hook.");
+				throw new TwineTranscodeException("'" + token.name + "' must be followed by a Harlowe-hook.");
 			if (usage == MacroUsage.Inline)
-				throw new TwineTranscodingException("'" + token.name + "' cannot be used inline.");
+				throw new TwineTranscodeException("'" + token.name + "' cannot be used inline.");
 
 			transcoder.Code.Buffer.Append(
 				token.name == "elseif" ? "else if" :
@@ -111,7 +111,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		};
 
 		// ......................
-		public static CodeGenMacro Link = (transcoder, tokens, tokenIndex, usage) =>
+		public static HarloweCodeGenMacro Link = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken linkToken = tokens[tokenIndex];
 
@@ -147,7 +147,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
 				}
 				else
-					throw new TwineTranscodingException("Link macro must be followed by a Harlowe-hook");
+					throw new TwineTranscodeException("Link macro must be followed by a Harlowe-hook");
 			}
 			else
 				transcoder.Code.Buffer.Append("null");
@@ -159,10 +159,10 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		};
 
 		// ......................
-		public static CodeGenMacro GoTo = (transcoder, tokens, tokenIndex, usage) =>
+		public static HarloweCodeGenMacro GoTo = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			if (usage == MacroUsage.Inline)
-				throw new TwineTranscodingException("GoTo macro cannot be used inside another macro");
+				throw new TwineTranscodeException("GoTo macro cannot be used inside another macro");
 
 			transcoder.Code.Buffer.Append("yield return abort(goToPassage: ");
 			transcoder.GenerateExpression(tokens[tokenIndex].tokens, 1);
@@ -172,7 +172,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		};
 
 		// ......................
-		public static CodeGenMacro Style = (transcoder, tokens, tokenIndex, usage) =>
+		public static HarloweCodeGenMacro Style = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken macroToken = tokens[tokenIndex];
 
@@ -199,13 +199,13 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				transcoder.Code.Buffer.AppendLine("}");
 			}
 			else
-				throw new TwineTranscodingException(string.Format("The '{0}' macro must either be attached to a Harlowe-hook or assigned to a variable.", macroToken.name));		
+				throw new TwineTranscodeException(string.Format("The '{0}' macro must either be attached to a Harlowe-hook or assigned to a variable.", macroToken.name));		
 
 			return tokenIndex;
 		};
 
 		// ......................
-		public static CodeGenMacro Print = (transcoder, tokens, tokenIndex, usage) =>
+		public static HarloweCodeGenMacro Print = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			if (usage != MacroUsage.Inline)
 			{
@@ -221,7 +221,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 		// ......................
 
-		public static CodeGenMacro RuntimeMacro = (transcoder, tokens, tokenIndex, usage) =>
+		public static HarloweCodeGenMacro RuntimeMacro = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken macroToken = tokens[tokenIndex];
 			MacroDef macroDef;
