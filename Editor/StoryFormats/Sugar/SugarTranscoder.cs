@@ -349,14 +349,14 @@ namespace UnityTwine.Editor.StoryFormats.Sugar
 
 		internal string BuildExpression(string expression)
 		{
-			string parsed = expression;
+			string clean = expression;
 
-			parsed = rx_Vars.Replace(parsed, varName =>
-			{
-				return BuildVariableRef(varName.Groups[1].Value);
-			});
+//			clean = rx_Vars.Replace(parsed, varName =>
+//			{
+//				return BuildVariableRef(varName.Groups[1].Value);
+//			});
 
-			parsed = rx_Operator.Replace(parsed, op =>
+			clean = rx_Operator.Replace(clean, op =>
 			{
 				switch (op.Value)
 				{
@@ -375,11 +375,13 @@ namespace UnityTwine.Editor.StoryFormats.Sugar
 				return string.Empty;
 			});
 
-			PhantomJS.Run<string>(
-				new System.Uri(Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/Sugar/.js/esprima.host.js").AbsoluteUri,
+			UriBuilder uri = new UriBuilder (Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/Sugar/.js/esprima.host.html");
+			uri.Query = Uri.EscapeDataString (clean);
 
+			var output = PhantomJS.Run<string> (uri.Uri.AbsoluteUri);
+			Debug.Log(output);
 
-			return parsed;
+			return clean;
 		} 
 	}
 }

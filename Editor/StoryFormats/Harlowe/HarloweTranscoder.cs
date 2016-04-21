@@ -288,7 +288,6 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		public void GenerateAssignment(string assignType, LexerToken[] assignTokens, int start, int end)
 		{
 			string delimeter = assignType == "set" ? "to" : "into";
-			bool usesPropertyOperator = false;
 
 			int t = start;
 			for (; t <= end; t++)
@@ -296,45 +295,17 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				LexerToken token = assignTokens[t];
 				if (token.type == delimeter)
 				{
-					bool close;
-					string assignCode;
+					bool switchSides = assignType != "set";
 
-					if (assignType == "move")
-					{
-						//throw new TwineTranscodeException("Harlowe's 'move' macro is not supported.");
-						return;
-					}
-					else if (assignType == "set")
-					{
-						// Special case: when GetMember or AsMemberOf will be used in the left-side expression, can't use = but must use ReplaceWith
-						assignCode = usesPropertyOperator ? ".ReplaceWith(" : "= ";
-						close = usesPropertyOperator;
-					}
-					else
-					{
-						assignCode = ".PutInto(ref ";
-						close = true;
-					}
-
-					int leftStart = start;
-					int leftEnd = t - 1;
-					int rightStart = t + 1;
-					int rightEnd = end;
+					int leftStart = !switchSides ? start : t + 1;
+					int leftEnd = !switchSides ? t - 1 : end;
+					int rightStart = !switchSides ? t + 1: start;
+					int rightEnd = !switchSides ? end : t - 1;
 
 					GenerateExpression(assignTokens, leftStart, leftEnd);
-					Code.Buffer.Append(assignCode);
+					Code.Buffer.Append(" = ");
 					GenerateExpression(assignTokens, rightStart, rightEnd);
-					if (close)
-						Code.Buffer.Append(")");
-
 					return;
-				}
-				else
-				{
-					usesPropertyOperator |=
-						token.type == "belongingProperty" ||
-						token.type == "possessiveOperator" ||
-						token.type == "belongingOperator";
 				}
 			}
 
@@ -419,8 +390,13 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				case "property":
 					return string.Format("[\"{0}\"]", token.name);
 				case "belongingProperty":
-					FollowedBy("grouping", tokens, tokenIndex, true, true);
-					return string.Format("v(\"{0}\").AsMemberOf", token.name);
+					//FollowedBy("grouping", tokens, tokenIndex, true, true);
+					//return string.Format("v(\"{0}\").AsMemberOf", token.name);
+					Code.Buffer.AppendFormat("v(\"{0}\").AsMemberOf[", token.name);
+					AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
+					GenerateExpressionSegment(tokens, ref tokenIndex);
+					Code.Buffer.Append("]");
+					return null;
 				case "contains":
 					FollowedBy("grouping", tokens, tokenIndex, true, true);
 					return ".Contains";
@@ -428,11 +404,21 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					FollowedBy("grouping", tokens, tokenIndex, true, true);
 					return ".ContainedBy";
 				case "possessiveOperator":
-					FollowedBy("grouping", tokens, tokenIndex, true, true);
-					return ".GetMember";
+					//FollowedBy("grouping", tokens, tokenIndex, true, true);
+					//return ".GetMember";
+					Code.Buffer.Append("[");
+					AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
+					GenerateExpressionSegment(tokens, ref tokenIndex);
+					Code.Buffer.Append("]");
+					return null;
 				case "belongingOperator":
-					FollowedBy("grouping", tokens, tokenIndex, true, true);
-					return ".AsMemberOf";
+					//FollowedBy("grouping", tokens, tokenIndex, true, true);
+					//return ".AsMemberOf";
+					Code.Buffer.Append(".AsMemberOf[");
+					AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
+					GenerateExpressionSegment(tokens, ref tokenIndex);
+					Code.Buffer.Append("]");
+					return null;
 				case "and":
 					return "&&";
 				case "or":
@@ -451,6 +437,27 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				default:
 					return token.text;
 			}
+		}
+
+		void GenerateExpressionSegment(LexerToken[] tokens, ref int tokenIndex)
+		{
+			string segment = BuildExpressionSegment (tokens, ref tokenIndex);
+			if (segment != null)
+				Code.Buffer.Append (segment);
+		}
+
+		void AdvanceToNextNonWhitespaceToken(LexerToken[] tokens, ref int tokenIndex)
+		{
+			for (int t = tokenIndex + 1; t < tokens.Length; t++)
+			{
+				if (tokens[t].type == "whitespace")
+					continue;
+
+				tokenIndex = t;
+				return;
+			}
+
+			throw new TwineTranscodeException("There is an incomplete expession in your code. Does it work in the browser?");
 		}
 
 		bool WrapInVarRequired(LexerToken[] tokens, int tokenIndex)
@@ -536,8 +543,8 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		public string name;
 		public string text;
 		public string innerText;
-		public string value;
-		public string passage;
+		public double value;
+		public string passage; 
 		public LexerToken[] tokens;
 	}
 

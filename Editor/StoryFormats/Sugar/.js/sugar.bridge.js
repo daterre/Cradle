@@ -62,7 +62,7 @@
 		for (var i = 0; i < passages.length; i++) {
 			var p = passages[i];
 			result.push({
-				Pid: i,
+				Pid: i.toString(),
 				Name: p.getAttribute('tiddler'),
 				Tags: p.getAttribute('tags'),
 				Body: htmlDecode(p.innerHTML)

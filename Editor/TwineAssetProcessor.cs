@@ -6,6 +6,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -87,7 +88,7 @@ namespace UnityTwine.Editor
 				}
 				catch (TwineImportException ex)
 				{
-					Debug.LogErrorFormat("Twine import failed: {0} ({1})", fileNameExt, ex.Message);
+					Debug.LogErrorFormat("Twine import failed: {0} ({1})", ex.Message, fileNameExt);
 					continue;
 				}
 				catch (Exception ex)
@@ -118,6 +119,19 @@ namespace UnityTwine.Editor
 				// Generate code
 
 				StoryFormatMetadata storyFormatMetadata = importer.Metadata;
+                TemplatePassageData[] passageData = importer.Passages.Select(p => new TemplatePassageData()
+                    {
+                        Pid = p.Pid,
+                        Name = p.Name,
+                        Tags = p.Tags,
+                        Code = p.Code.Main.Split(new string[]{ Environment.NewLine }, StringSplitOptions.None),
+                        Fragments = p.Code.Fragments.Select((frag, i) => new TemplatePassageFragment()
+                            {
+                                Pid = p.Pid,
+                                FragId = i,
+                                Code = frag.Split(new string[]{ Environment.NewLine }, StringSplitOptions.None)
+                            }).ToArray()
+                    }).ToArray();
 
 				// Get template file from this editor script's directory
 				string output = Nustache.Core.Render.FileToString(
@@ -134,18 +148,7 @@ namespace UnityTwine.Editor
 						{"vars", importer.Vars},
 						{"macroLibs", importer.MacroLibs},
 						{"strictMode", storyFormatMetadata.StrictMode ? "true" : "false"},
-						{"passages", importer.Passages.Select(p => new TemplatePassageData(){
-								Pid = p.Pid,
-								Name = p.Name,
-								Tags = p.Tags,
-								Code = p.Code.Main.Split(new string[]{Environment.NewLine}, StringSplitOptions.None),
-								Fragments = p.Code.Fragments.Select((frag,i) => new TemplatePassageFragment(){
-									Pid = p.Pid,
-									FragId = i,
-									Code = frag.Split(new string[]{Environment.NewLine}, StringSplitOptions.None)
-								}).ToArray()
-							}).ToArray()
-						}
+                        {"passages", passageData}
 					}
 				);
 
@@ -159,52 +162,64 @@ namespace UnityTwine.Editor
 				// Detect syntax errors
 				try
 				{
-					var results = new CSharpCodeProvider().CompileAssemblyFromSource(new CompilerParameters()
-					{
-						GenerateInMemory = true,
-						GenerateExecutable = false
-					}, output);
+                    var compilerSettings = new CompilerParameters()
+                    {
+                        GenerateInMemory = true,
+                        GenerateExecutable = false
+                    };
+                    foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                        if (!string.IsNullOrEmpty(assembly.Location))
+                            compilerSettings.ReferencedAssemblies.Add(assembly.Location);
+
+					var results = new CSharpCodeProvider().CompileAssemblyFromSource(compilerSettings, output);
 
 					if (results.Errors.Count > 0)
 					{
 						bool errors = false;
-						string[] lines = null;
 						for (int i = 0; i < results.Errors.Count; i++)
 						{
 							CompilerError error = results.Errors[i];
 
 							switch (error.ErrorNumber)
 							{
-								// Ignore missing reference errors, we just want syntax
-								case "CS0246":
+								//case "CS0246":
+								case "":
 									continue;
 								
 								// Single quotes instead of double quotes
 								case "CS1012":
-									error.ErrorText = "UnityTwine requires strings to use double-quotes, not single-quotes.";
+									error.ErrorText = "Strings must use \"double-quotes\", not 'single-quotes'.";
+									break;
+
+								// Double var accessor
+								case "CS1612":
+									error.ErrorText = "Can't set a nested property directly like that. Use a temporary variable in-between.";
 									break;
 							}
-							
 
-							if (!errors)
-							{
-								errors = true;
-								lines = output.Replace("\r", "").Split('\n'); // TODO: split by proper line ending
-							}
+							// Get some compilation metadata - depends on the template using the #frag# token
+							errors = true;
+                            string[] errorDirective = error.FileName.Split(new string[]{"#frag#"}, StringSplitOptions.None);
+                            string errorPassage = errorDirective[0];
+                            int errorFragment = errorDirective.Length > 1 ? int.Parse(errorDirective[1]) : -1;
+                            TemplatePassageData passage = passageData.Where( p => p.Name == errorPassage).FirstOrDefault();
+                            string lineCode = passage == null ? "(code not available)" : errorFragment >= 0 ? 
+                                passage.Fragments[errorFragment].Code[error.Line-3] :
+                                passage.Code[error.Line-3];
 
-							Debug.LogErrorFormat("{0}\n\n{1}",
+							Debug.LogErrorFormat("Twine compilation error at passage {0}: {1}\n\n\t{2}\n",
+								errorPassage,
 								error.ErrorText,
-								error.Line > 0 && error.Line < lines.Length ? lines[error.Line - 1].Trim() : null
+                                lineCode
 							);
 						}
 
 						if (errors)
 						{
-							Debug.LogErrorFormat("The Twine story {0} could not be imported due to syntax errors.",
+							Debug.LogErrorFormat("The Twine story {0} has some errors so it couldn't be imported (see console for details).",
 								Path.GetFileName(assetPath)
 							);
-							//Debug.LogError(output);
-							//continue;
+							continue;
 						}
 					};
 				}

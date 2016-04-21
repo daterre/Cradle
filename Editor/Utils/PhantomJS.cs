@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FullSerializer;
 
 namespace UnityTwine.Editor.Utils
 {
@@ -18,7 +19,7 @@ namespace UnityTwine.Editor.Utils
 			null;
 			#endif
 
-		public static PhantomOutput<ResultT> Run<ResultT>(string url, string bridgeScriptPath, bool throwExOnError = true)
+		public static PhantomOutput<ResultT> Run<ResultT>(string url, string bridgeScriptPath = null, bool throwExOnError = true)
 		{
 			if (BinPath == null)
 				throw new NotSupportedException ("Editor platform not supported.");
@@ -30,16 +31,17 @@ namespace UnityTwine.Editor.Utils
 			phantomJS.StartInfo.RedirectStandardOutput = true;
 			phantomJS.StartInfo.WorkingDirectory = Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/.js";
 			phantomJS.StartInfo.FileName = Application.dataPath + BinPath;
-			phantomJS.StartInfo.Arguments = string.Format("\"{0}\" \"{1}\" \"{2}\"",
+			phantomJS.StartInfo.Arguments = string.Format ("\"{0}\" \"{1}\"{2}",
 				"phantom.js",
 				url,
-				bridgeScriptPath
+				bridgeScriptPath == null ? null : string.Format(" \"{0}\"",bridgeScriptPath)
 			);
 			phantomJS.Start();
 			string outputJson = phantomJS.StandardOutput.ReadToEnd();
 			phantomJS.WaitForExit();
 
-			PhantomOutput<ResultT> output = JsonUtility.FromJson<PhantomOutput<ResultT>>(outputJson);
+			//PhantomOutput<ResultT> output = JsonUtility.FromJson<PhantomOutput<ResultT>>(outputJson);
+			var output = (PhantomOutput<ResultT>) FullSerializerWrapper.Deserialize(typeof(PhantomOutput<ResultT>), outputJson);
 
 			bool hasErrors = false;
 			
@@ -71,5 +73,31 @@ namespace UnityTwine.Editor.Utils
 		public string type;
 		public string value;
 		public string trace;
+	}
+
+	
+
+	public static class FullSerializerWrapper {
+		private static readonly fsSerializer _serializer = new fsSerializer();
+
+		public static string Serialize(Type type, object value) {
+			// serialize the data
+			fsData data;
+			_serializer.TrySerialize(type, value, out data).AssertSuccessWithoutWarnings();
+
+			// emit the data via JSON
+			return fsJsonPrinter.CompressedJson(data);
+		}
+
+		public static object Deserialize(Type type, string serializedState) {
+			// step 1: parse the JSON data
+			fsData data = fsJsonParser.Parse(serializedState);
+
+			// step 2: deserialize the data
+			object deserialized = null;
+			_serializer.TryDeserialize(data, type, ref deserialized).AssertSuccessWithoutWarnings();
+
+			return deserialized;
+		}
 	}
 }

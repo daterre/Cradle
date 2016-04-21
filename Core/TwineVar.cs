@@ -12,6 +12,22 @@ namespace UnityTwine
 		public static bool StrictMode = false;
 		internal object Value;
 
+		public struct MemberLookup
+		{
+			public string MemberName;
+
+			public MemberLookup(string memberName)
+			{
+				MemberName = memberName;
+			}
+
+			public TwineVar this[TwineVar parent]
+			{
+				get { return parent.GetMember (MemberName); }
+				set { parent.SetMember (MemberName, value); }
+			}
+		}
+
 		public TwineVar(object value)
 		{
 			this.Value = value is TwineVar ? ((TwineVar)value).Clone().Value : value;
@@ -88,9 +104,9 @@ namespace UnityTwine
 			}
 		}
 
-		public TwineVar AsMemberOf(TwineVar val)
+		public MemberLookup AsMemberOf
 		{
-			return val.GetMember(this);
+			get { return new MemberLookup (this); }
 		}
 
 		public TwineVar GetMember(string memberName)
@@ -176,8 +192,6 @@ namespace UnityTwine
 
 			bool result;
 			ITwineTypeService service;
-
-			Type t = typeof(void);
 
 			if (a != null && _typeServices.TryGetValue(a.GetType(), out service) && service.Compare(op, a, b, out result))
 				return result;
