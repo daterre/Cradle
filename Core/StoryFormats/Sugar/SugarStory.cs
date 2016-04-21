@@ -42,10 +42,7 @@ namespace UnityTwine.StoryFormats.Sugar
 			for (int i = 0; i < passageNames.Length; i++)
 			{
 				string passage = passageNames[i];
-				int count;
-				if (!NumberOfVisitsPerPassage.TryGetValue(passage, out count))
-					count = 0;
-
+                int count = PassageHistory.Where(p => p == passage).Count();
 				if (count < min)
 					min = count;
 			}
@@ -65,10 +62,7 @@ namespace UnityTwine.StoryFormats.Sugar
 			for (int i = 0; i < tags.Length; i++)
 			{
 				string tag = tags[i];
-				int count;
-				if (!NumberOfVisitsPerTag.TryGetValue(tag, out count))
-					count = 0;
-
+                int count = PassageHistory.Where(p => Passages[p].Tags.Contains(tag)).Count();
 				if (count < min)
 					min = count;
 			}

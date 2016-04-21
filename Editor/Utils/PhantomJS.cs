@@ -75,8 +75,6 @@ namespace UnityTwine.Editor.Utils
 		public string trace;
 	}
 
-	
-
 	public static class FullSerializerWrapper {
 		private static readonly fsSerializer _serializer = new fsSerializer();
 

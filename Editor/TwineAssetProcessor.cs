@@ -153,9 +153,10 @@ namespace UnityTwine.Editor
 				);
 
 				// ======================================
-				// STEP 4: Compile
+				// Compile
 
 				#if UNITY_EDITOR_OSX
+                // This environment variable is not set on Mac for some reason
 				Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ":/Applications/Unity/Unity.app/Contents/Frameworks/Mono/bin");
 				#endif
 
@@ -204,8 +205,8 @@ namespace UnityTwine.Editor
                             int errorFragment = errorDirective.Length > 1 ? int.Parse(errorDirective[1]) : -1;
                             TemplatePassageData passage = passageData.Where( p => p.Name == errorPassage).FirstOrDefault();
                             string lineCode = passage == null ? "(code not available)" : errorFragment >= 0 ? 
-                                passage.Fragments[errorFragment].Code[error.Line-3] :
-                                passage.Code[error.Line-3];
+                                passage.Fragments[errorFragment].Code[error.Line-4] :
+                                passage.Code[error.Line-4];
 
 							Debug.LogErrorFormat("Twine compilation error at passage {0}: {1}\n\n\t{2}\n",
 								errorPassage,
@@ -244,7 +245,49 @@ namespace UnityTwine.Editor
 				// Need to do it twice - on the second time it compiles the script
 				// http://answers.unity3d.com/questions/14367/how-can-i-wait-for-unity-to-recompile-during-the-e.html
 				AssetDatabase.ImportAsset(csFile, ImportAssetOptions.ForceSynchronousImport);
-				AssetDatabase.ImportAsset(csFile, ImportAssetOptions.ForceSynchronousImport);
+                AssetDatabase.ImportAsset(csFile, ImportAssetOptions.ForceSynchronousImport);
+
+                // ======================================
+                // Organize the assets
+
+                #region Disabled prefab creation because the story class can't be added during this asset import
+                /*
+                // Find the story class
+                string projectDir = Directory.GetParent((Path.GetFullPath(Application.dataPath))).FullName;
+                Type storyClass = null;
+                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    // Skip references external to the project
+                    if (!string.IsNullOrEmpty(assembly.Location) && !Path.GetFullPath(assembly.Location).StartsWith(projectDir, StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    foreach (Type type in assembly.GetTypes())
+                    {
+                        if (type.Name == storyName)
+                        {
+                            storyClass = type;
+                            break;
+                        }
+                    }
+
+                    if (storyClass != null)
+                        break;
+                }
+
+                if (storyClass == null)
+                {
+                    Debug.LogWarning("UnityTwine successfully imported the story, but a prefab couldn't be made for you. Sorry :(");
+                    continue;
+                }
+
+                // Create a prefab
+                var prefab = new GameObject();
+                prefab.name = storyName;
+                prefab.AddComponent(storyClass);
+
+                PrefabUtility.CreatePrefab(Path.Combine(Path.GetDirectoryName(assetPath), Path.GetFileNameWithoutExtension(assetPath) + ".prefab"), prefab, ReplacePrefabOptions.Default);
+                */
+                #endregion
+
             }
         }
 

@@ -25,6 +25,9 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			if (usage == MacroUsage.Inline)
 				throw new TwineTranscodeException(string.Format("'{0}' macro cannot be used inside another macro", assignToken.name));
 
+            //if (assignToken.name.ToLower() == "move")
+             //   throw new TwineTranscodeException(string.Format("The 'move' macro is not currently supported. Use 'set' or 'put'.", assignToken.name));
+
 			int start = 1;
 			int end = start;
 			for (; end < assignToken.tokens.Length; end++)
@@ -170,6 +173,19 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 			return tokenIndex;
 		};
+
+        // ......................
+        public static HarloweCodeGenMacro Display = (transcoder, tokens, tokenIndex, usage) =>
+        {
+            if (usage == MacroUsage.Inline)
+                throw new TwineTranscodeException("Display macro cannot be used inside another macro");
+
+            transcoder.Code.Buffer.Append("yield return passage(");
+            transcoder.GenerateExpression(tokens[tokenIndex].tokens, 1);
+            transcoder.Code.Buffer.AppendLine(");");
+
+            return tokenIndex;
+        };
 
 		// ......................
 		public static HarloweCodeGenMacro Style = (transcoder, tokens, tokenIndex, usage) =>

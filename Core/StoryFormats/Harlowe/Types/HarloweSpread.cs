@@ -26,12 +26,12 @@ namespace UnityTwine.StoryFormats.Harlowe
 				if (val.Value is HarloweSpread)
 				{
 					var spread = (HarloweSpread)val.Value;
-					foreach (TwineVar innerVal in spread.Target.Flatten())
-						yield return innerVal;
+                    foreach (TwineVar innerVal in spread.Target.GetValues())
+                        yield return innerVal.Clone();
 
 				}
 				else
-					yield return val;
+                    yield return val.Clone();
 			}
 		}
 

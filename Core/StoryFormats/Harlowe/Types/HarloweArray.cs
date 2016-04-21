@@ -35,7 +35,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return Values.Contains(value is TwineVar ? (TwineVar)value : new TwineVar(value));
 		}
 
-		public override IEnumerable<TwineVar> Flatten()
+        public override IEnumerable<TwineVar> GetValues()
 		{
 			foreach (TwineVar val in this.Values)
 				yield return val.Clone();
@@ -43,7 +43,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 
 		public override ITwineType Clone()
 		{
-			return new HarloweArray(this.Flatten());
+            return new HarloweArray(this.GetValues().Select(v => v.Clone()));
 		}
 
 		public override string ToString()

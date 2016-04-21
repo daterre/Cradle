@@ -77,4 +77,4 @@ page.open(filePath, function(status) {
 setTimeout(function(){
 	page.onError("Timeout while trying to extract the story data.");
 	end(1);
-},5000);
+},12000);

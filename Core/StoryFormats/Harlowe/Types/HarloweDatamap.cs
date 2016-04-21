@@ -45,10 +45,10 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return Dictionary.ContainsKey(key);
 		}
 
-		public override IEnumerable<TwineVar> Flatten()
+        public override IEnumerable<TwineVar> GetValues()
 		{
-			foreach(TwineVar val in Dictionary.Values)
-				yield return val.Clone();
+            foreach (TwineVar val in Dictionary.Values)
+                yield return val;
 		}
 
 		public override ITwineType Clone()

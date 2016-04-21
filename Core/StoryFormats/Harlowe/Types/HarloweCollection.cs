@@ -9,6 +9,6 @@ namespace UnityTwine.StoryFormats.Harlowe
 {
 	public abstract class HarloweCollection : TwineType
 	{
-		public abstract IEnumerable<TwineVar> Flatten();
+		public abstract IEnumerable<TwineVar> GetValues();
 	}
 }

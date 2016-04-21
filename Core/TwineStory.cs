@@ -36,7 +36,7 @@ namespace UnityTwine
 		
 		public string PreviousPassageName { get; private set; }
 
-		protected Dictionary<string, TwinePassage> Passages { get; private set; }
+        public Dictionary<string, TwinePassage> Passages { get; private set; }
 		protected Dictionary<string, TwineNamedFragment> Fragments = new Dictionary<string, TwineNamedFragment>();
 		TwineStoryState _state = TwineStoryState.Idle;
 		IEnumerator<TwineOutput> _currentThread = null;
@@ -48,8 +48,9 @@ namespace UnityTwine
 		MonoBehaviour[] _hookTargets = null;
 
 		public int NumberOfLinksDone { get; private set; }
-		public Dictionary<string, int> NumberOfVisitsPerPassage { get; private set; }
-		public Dictionary<string, int> NumberOfVisitsPerTag { get; private set; }
+		//public Dictionary<string, int> NumberOfVisitsPerPassage { get; private set; }
+		//public Dictionary<string, int> NumberOfVisitsPerTag { get; private set; }
+        public List<string> PassageHistory {get; private set; }
 
 		private class Hook
 		{
@@ -74,8 +75,7 @@ namespace UnityTwine
 			this.Passages = new Dictionary<string, TwinePassage>();
 			this.Style = new TwineStyle();
 
-			NumberOfVisitsPerPassage = new Dictionary<string, int>();
-			NumberOfVisitsPerTag = new Dictionary<string, int>();
+            this.PassageHistory = new List<string>();
 		}
 
 		protected void Init()
@@ -87,8 +87,7 @@ namespace UnityTwine
 			this.Tags = new string[0];
 
 			NumberOfLinksDone = 0;
-			NumberOfVisitsPerPassage.Clear();
-			NumberOfVisitsPerTag.Clear();
+			PassageHistory.Clear();
 			
 			PreviousPassageName = null;
 			CurrentPassageName = null;
@@ -231,20 +230,7 @@ namespace UnityTwine
 			this.PreviousPassageName = this.CurrentPassageName;
 			this.CurrentPassageName = passage.Name;
 
-			// Update visited counters for passages and tags
-			int visitedPassage;
-			if (!NumberOfVisitsPerPassage.TryGetValue(passageName, out visitedPassage))
-				visitedPassage = 0;
-			NumberOfVisitsPerPassage[passageName] = visitedPassage + 1;
-
-			for (int i = 0; i < passage.Tags.Length; i++)
-			{
-				string tag = passage.Tags[i];
-				int visitedTag;
-				if (!NumberOfVisitsPerTag.TryGetValue(tag, out visitedTag))
-					visitedTag = 0;
-				NumberOfVisitsPerTag[tag] = visitedTag + 1;
-			}
+            PassageHistory.Add(passageName);
 
 			// Add output (and trigger hooks)
 			this.Output.Add(passage);

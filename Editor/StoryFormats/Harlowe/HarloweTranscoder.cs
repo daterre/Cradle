@@ -390,30 +390,34 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				case "property":
 					return string.Format("[\"{0}\"]", token.name);
 				case "belongingProperty":
-					//FollowedBy("grouping", tokens, tokenIndex, true, true);
-					//return string.Format("v(\"{0}\").AsMemberOf", token.name);
 					Code.Buffer.AppendFormat("v(\"{0}\").AsMemberOf[", token.name);
 					AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
 					GenerateExpressionSegment(tokens, ref tokenIndex);
 					Code.Buffer.Append("]");
 					return null;
 				case "contains":
-					FollowedBy("grouping", tokens, tokenIndex, true, true);
-					return ".Contains";
-				case "isIn":
-					FollowedBy("grouping", tokens, tokenIndex, true, true);
-					return ".ContainedBy";
-				case "possessiveOperator":
 					//FollowedBy("grouping", tokens, tokenIndex, true, true);
-					//return ".GetMember";
+					//return ".Contains";
+                    Code.Buffer.Append(".Contains(");
+                    AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
+                    GenerateExpressionSegment(tokens, ref tokenIndex);
+                    Code.Buffer.Append(")");
+                    return null;
+                case "isIn":
+					//FollowedBy("grouping", tokens, tokenIndex, true, true);
+					//return ".ContainedBy";
+                    Code.Buffer.Append(".ContainedBy(");
+                    AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
+                    GenerateExpressionSegment(tokens, ref tokenIndex);
+                    Code.Buffer.Append(")");
+                    return null;
+				case "possessiveOperator":
 					Code.Buffer.Append("[");
 					AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
 					GenerateExpressionSegment(tokens, ref tokenIndex);
 					Code.Buffer.Append("]");
 					return null;
 				case "belongingOperator":
-					//FollowedBy("grouping", tokens, tokenIndex, true, true);
-					//return ".AsMemberOf";
 					Code.Buffer.Append(".AsMemberOf[");
 					AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
 					GenerateExpressionSegment(tokens, ref tokenIndex);
