@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     // While the generic IEnumerable converter can handle dictionaries, we process them separately here because
     // we support a few more advanced use-cases with dictionaries, such as inline strings. Further, dictionary
     // processing in general is a bit more advanced because a few of the collection implementations are buggy.

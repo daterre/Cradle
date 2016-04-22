@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     public class fsKeyValuePairConverter : fsConverter {
         public override bool CanProcess(Type type) {
             return

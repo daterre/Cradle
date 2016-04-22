@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// The serialization converter allows for customization of the serialization process.
     /// </summary>

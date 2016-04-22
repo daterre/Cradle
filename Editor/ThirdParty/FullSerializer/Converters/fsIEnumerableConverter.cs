@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     /// <summary>
     /// Provides serialization support for anything which extends from `IEnumerable` and has an `Add` method.
     /// </summary>

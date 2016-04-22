@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     partial class fsConverterRegistrar {
         public static Internal.DirectConverters.LayerMask_DirectConverter Register_LayerMask_DirectConverter;
     }
 }
 
-namespace FullSerializer.Internal.DirectConverters {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal.DirectConverters {
     public class LayerMask_DirectConverter : fsDirectConverter<LayerMask> {
         protected override fsResult DoSerialize(LayerMask model, Dictionary<string, fsData> serialized) {
             var result = fsResult.Success;

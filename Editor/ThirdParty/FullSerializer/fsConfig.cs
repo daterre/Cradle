@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// Enables some top-level customization of Full Serializer.
     /// </summary>

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     public class fsPrimitiveConverter : fsConverter {
         public override bool CanProcess(Type type) {
             return

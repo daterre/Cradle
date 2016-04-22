@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using FullSerializer.Internal;
+using UnityTwine.Editor.ThirdParty.FullSerializer.Internal;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// This class allows arbitrary code to easily register global converters. To add a converter,
     /// simply declare a new field called "Register_*" that stores the type of converter you would

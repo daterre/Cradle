@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     /// <summary>
     /// The reflected converter will properly serialize nullable types. However, we do it here
     /// instead as we can emit less serialization data.

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// fsContext stores global metadata that can be used to customize how fsConverters operate
     /// during serialization.

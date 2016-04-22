@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     /// <summary>
     /// Simple option type. This is akin to nullable types.
     /// </summary>

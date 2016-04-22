@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using FullSerializer.Internal;
+using UnityTwine.Editor.ThirdParty.FullSerializer.Internal;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// The AOT compilation manager
     /// </summary>
@@ -83,13 +83,13 @@ namespace FullSerializer {
             sb.AppendLine("using System;");
             sb.AppendLine("using System.Collections.Generic;");
             sb.AppendLine();
-            sb.AppendLine("namespace FullSerializer {");
+            sb.AppendLine("namespace UnityTwine.Editor.ThirdParty.FullSerializer {");
             sb.AppendLine("    partial class fsConverterRegistrar {");
             sb.AppendLine("        public static Speedup." + typeNameSafeDecl + "_DirectConverter " + "Register_" + typeNameSafeDecl + ";");
             sb.AppendLine("    }");
             sb.AppendLine("}");
             sb.AppendLine();
-            sb.AppendLine("namespace FullSerializer.Speedup {");
+            sb.AppendLine("namespace UnityTwine.Editor.ThirdParty.FullSerializer.Speedup {");
             sb.AppendLine("    public class " + typeNameSafeDecl + "_DirectConverter : fsDirectConverter<" + typeName + "> {");
             sb.AppendLine("        protected override fsResult DoSerialize(" + typeName + " model, Dictionary<string, fsData> serialized) {");
             sb.AppendLine("            var result = fsResult.Success;");

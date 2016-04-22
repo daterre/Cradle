@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     /// <summary>
     /// A property or field on a MetaType. This unifies the FieldInfo and PropertyInfo classes.
     /// </summary>

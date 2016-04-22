@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using FullSerializer.Internal;
+using UnityTwine.Editor.ThirdParty.FullSerializer.Internal;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// MetaType contains metadata about a type. This is used by the reflection serializer.
     /// </summary>

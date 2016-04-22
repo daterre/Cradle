@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     public static class fsReflectionUtility {
         /// <summary>
         /// Searches for a particular implementation of the given interface type inside of the type.

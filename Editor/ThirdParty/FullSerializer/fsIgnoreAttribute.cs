@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// The given property or field annotated with [JsonIgnore] will not be serialized.
     /// </summary>

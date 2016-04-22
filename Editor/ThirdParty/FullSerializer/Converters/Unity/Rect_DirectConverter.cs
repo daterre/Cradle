@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     partial class fsConverterRegistrar {
         public static Internal.DirectConverters.Rect_DirectConverter Register_Rect_DirectConverter;
     }
 }
 
-namespace FullSerializer.Internal.DirectConverters {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal.DirectConverters {
     public class Rect_DirectConverter : fsDirectConverter<Rect> {
         protected override fsResult DoSerialize(Rect model, Dictionary<string, fsData> serialized) {
             var result = fsResult.Success;

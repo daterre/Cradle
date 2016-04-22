@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     public class fsArrayConverter : fsConverter {
         public override bool CanProcess(Type type) {
             return type.IsArray;

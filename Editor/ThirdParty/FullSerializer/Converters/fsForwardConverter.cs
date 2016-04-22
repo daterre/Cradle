@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// This allows you to forward serialization of an object to one of its members. For example,
     /// 
@@ -29,7 +29,7 @@ namespace FullSerializer {
     }
 }
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     public class fsForwardConverter : fsConverter {
         private string _memberName;
 

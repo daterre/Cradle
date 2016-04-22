@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     partial class fsConverterRegistrar {
         public static Internal.DirectConverters.Gradient_DirectConverter Register_Gradient_DirectConverter;
     }
 }
 
-namespace FullSerializer.Internal.DirectConverters {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal.DirectConverters {
     public class Gradient_DirectConverter : fsDirectConverter<Gradient> {
         protected override fsResult DoSerialize(Gradient model, Dictionary<string, fsData> serialized) {
             var result = fsResult.Success;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     /// <summary>
     /// Supports serialization for DateTime, DateTimeOffset, and TimeSpan.
     /// </summary>

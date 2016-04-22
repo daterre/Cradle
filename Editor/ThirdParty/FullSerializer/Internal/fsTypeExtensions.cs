@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 // Needed for WinRT compatibility
-using FullSerializer.Internal;
+using UnityTwine.Editor.ThirdParty.FullSerializer.Internal;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     public static class fsTypeExtensions {
         /// <summary>
         /// Returns a pretty name for the type in the style of one that you'd see in C# without the namespace.

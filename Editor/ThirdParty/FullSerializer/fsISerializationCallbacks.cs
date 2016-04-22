@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 #endif
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// Extend this interface on your type to receive notifications about serialization/deserialization events. If you don't
     /// have access to the type itself, then you can write an fsObjectProcessor instead.
@@ -37,7 +37,7 @@ namespace FullSerializer {
     }
 }
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     public class fsSerializationCallbackProcessor : fsObjectProcessor {
         public override bool CanProcess(Type type) {
             return typeof(fsISerializationCallbacks).IsAssignableFrom(type);

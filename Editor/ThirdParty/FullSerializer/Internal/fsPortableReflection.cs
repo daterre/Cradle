@@ -34,7 +34,7 @@ namespace System {
 }
 #endif
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     /// <summary>
     /// This wraps reflection types so that it is portable across different Unity runtimes.
     /// </summary>

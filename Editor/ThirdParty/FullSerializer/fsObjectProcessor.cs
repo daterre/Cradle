@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// <para>
     /// Enables injecting code before/after an object has been serialized. This is most

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FullSerializer.Internal {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer.Internal {
     public struct fsVersionedType {
         /// <summary>
         /// The direct ancestors that this type can import.

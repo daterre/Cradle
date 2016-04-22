@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using FullSerializer.Internal;
+using UnityTwine.Editor.ThirdParty.FullSerializer.Internal;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     /// <summary>
     /// The serialization converter allows for customization of the serialization process.
     /// </summary>

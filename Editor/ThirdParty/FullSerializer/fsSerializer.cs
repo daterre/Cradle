@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using FullSerializer.Internal;
+using UnityTwine.Editor.ThirdParty.FullSerializer.Internal;
 
-namespace FullSerializer {
+namespace UnityTwine.Editor.ThirdParty.FullSerializer {
     public class fsSerializer {
         #region Keys
         private static HashSet<string> _reservedKeywords;
