@@ -29,7 +29,6 @@ namespace UnityTwine
 			return TwineVar.ConvertTo<TwineStyle>(styleVar);
 		}
 
-
 		public object this[string name]
 		{
 			get

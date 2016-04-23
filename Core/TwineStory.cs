@@ -37,7 +37,6 @@ namespace UnityTwine
 		public string PreviousPassageName { get; private set; }
 
         public Dictionary<string, TwinePassage> Passages { get; private set; }
-		protected Dictionary<string, TwineNamedFragment> Fragments = new Dictionary<string, TwineNamedFragment>();
 		TwineStoryState _state = TwineStoryState.Idle;
 		IEnumerator<TwineOutput> _currentThread = null;
 		TwineLink _currentLinkInAction = null;
@@ -241,9 +240,6 @@ namespace UnityTwine
 			// Prepare the thread enumerator
 			_currentThread = CollapseThread(passage.GetMainThread()).GetEnumerator();
 			_currentLinkInAction = null;
-			
-			// Clear any named fragments
-			Fragments.Clear();
 
 			this.State = TwineStoryState.Playing;
 			SendOutput(passage);
@@ -362,11 +358,7 @@ namespace UnityTwine
 					else if (embed is TwineEmbedFragment)
 					{
 						var embedInfo = (TwineEmbedFragment)embed;
-						TwineNamedFragment namedFragment;
-						if (Fragments.TryGetValue(embedInfo.Name, out namedFragment))
-							embeddedThread = namedFragment.GetThread();
-						else
-							continue;
+                        embeddedThread = embedInfo.GetThread();
 					}
 					else
 						continue;
@@ -685,14 +677,10 @@ namespace UnityTwine
 			return new TwineLineBreak();
 		}
 
-		protected TwineLink link(string text, string passageName, Func<ITwineThread> action)
+		protected TwineLink link(string text, string passageName, Func<ITwineThread> action, TwineStyle style = null)
 		{
-			return new TwineLink(text, passageName, action, null);
-		}
-
-		protected TwineLink link(string text, string passageName, TwineVar parameter, Func<ITwineThread> action)
-		{
-			return new TwineLink(text, passageName, action, null);
+            using(style != null ? Style.Apply(style) : null)
+			    return new TwineLink(text, passageName, action);
 		}
 
 		protected TwineAbort abort(string goToPassage)
@@ -700,10 +688,9 @@ namespace UnityTwine
 			return new TwineAbort(goToPassage);
 		}
 
-		protected TwineEmbedFragment fragment(string name, Func<ITwineThread> thread)
+		protected TwineEmbedFragment fragment(Func<ITwineThread> action)
 		{
-			this.Fragments[name] = new TwineNamedFragment(name, thread);
-			return new TwineEmbedFragment(name);
+			return new TwineEmbedFragment(action);
 		}
 
 		protected TwineEmbedPassage passage(string passageName, params TwineVar[] parameters)

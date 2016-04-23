@@ -119,7 +119,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			LexerToken linkToken = tokens[tokenIndex];
 
 			// Text
-			transcoder.Code.Buffer.AppendFormat("yield return link(text: ");
+			transcoder.Code.Buffer.AppendFormat("yield return link(");
 			int start = 1;
 			int end = start;
 			for (; end < linkToken.tokens.Length; end++)
@@ -128,7 +128,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			transcoder.GenerateExpression(linkToken.tokens, start: start, end: end - 1);
 
 			// Passage
-			transcoder.Code.Buffer.Append(", passageName: ");
+			transcoder.Code.Buffer.Append(", ");
 			start = ++end;
 			for (; end < linkToken.tokens.Length; end++)
 				if (linkToken.tokens[end].type == "comma")
@@ -139,7 +139,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				transcoder.Code.Buffer.Append("null");
 
 			// Action
-			transcoder.Code.Buffer.Append(", action: ");
+			transcoder.Code.Buffer.Append(", ");
 			if (linkToken.name != "linkgoto")
 			{
 				if (usage == MacroUsage.LineAndHook)
@@ -154,11 +154,9 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			else
 				transcoder.Code.Buffer.Append("null");
 
-			// Parameters
+			// Style
 			transcoder.Code.Buffer
-				.Append(", new parameters(){ ")
-				.AppendFormat("{\"macro\", \"{0}\"},", linkToken.name)
-				.Append("}");
+                    .AppendFormat(", style(\"link-type\", \"{0}\")", linkToken.name);
 
 			// Done
 			transcoder.Code.Buffer.AppendLine(");");
@@ -169,54 +167,33 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		// ......................
 		public static HarloweCodeGenMacro Enchant = (transcoder, tokens, tokenIndex, usage) =>
 		{
-			LexerToken linkToken = tokens[tokenIndex];
+            LexerToken enchantToken = tokens[tokenIndex];
 
-			// Text
-			transcoder.Code.Buffer.AppendFormat("yield return enchant(text: null, ");
-			int start = 1;
-			int end = start;
-			for (; end < linkToken.tokens.Length; end++)
-				if (linkToken.tokens[end].type == "comma")
-					break;
-			transcoder.GenerateExpression(linkToken.tokens, start: start, end: end - 1);
+			// Open
+			transcoder.Code.Buffer.AppendFormat("yield return enchant(");
 
-			// Passage
-			transcoder.Code.Buffer.Append(", passageName: ");
-			start = ++end;
-			for (; end < linkToken.tokens.Length; end++)
-				if (linkToken.tokens[end].type == "comma")
-					break;
-			if (start < end)
-				transcoder.GenerateExpression(linkToken.tokens, start: start, end: end - 1);
-			else
-				transcoder.Code.Buffer.Append("null");
+            // Reference
+            transcoder.GenerateExpression(enchantToken.tokens, 1, enchantToken.tokens.Length-1);
 
-			// Action
-			transcoder.Code.Buffer.Append(", action: ");
-			if (linkToken.name != "linkgoto")
-			{
-				if (usage == MacroUsage.LineAndHook)
-				{
-					tokenIndex++; // advance
-					LexerToken hookToken = tokens[tokenIndex];
-					transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
-				}
-				else
-					throw new TwineTranscodeException(string.Format("'{0}' macro must be followed by a Harlowe-hook", linkToken.name));
-			}
-			else
-				transcoder.Code.Buffer.Append("null");
+            // Action
+            transcoder.Code.Buffer.Append(", ");
+            if (usage == MacroUsage.LineAndHook)
+            {
+                tokenIndex++; // advance
+                LexerToken hookToken = tokens[tokenIndex];
+                transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
+            }
+            else
+                throw new TwineTranscodeException(string.Format("'{0}' macro must be followed by a Harlowe-hook", enchantToken.name));
 
-			// Parameters
-			transcoder.Code.Buffer
-				.Append(", new parameters(){ ")
-				.AppendFormat("{\"macro\", \"{0}\"},", linkToken.name)
-				.Append("}");
+            // Style
+            transcoder.Code.Buffer
+                .AppendFormat(", style(\"enchant-type\", \"{0}\")", enchantToken.name);
 
-			// Done
-			transcoder.Code.Buffer.AppendLine(");");
+            // Close
+            transcoder.Code.Buffer.AppendLine(");");
 
-			return tokenIndex;
+            return tokenIndex;
 		};
 
 		// ......................

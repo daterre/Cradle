@@ -13,22 +13,21 @@ namespace UnityTwine
 		public Dictionary<string,object> Parameters;
 		public Func<ITwineThread> Action;
 
-		public TwineLink(string text, string passageName, Func<ITwineThread> action, IDictionary<string,object> parameters = null)
+		public TwineLink(string text, string passageName, Func<ITwineThread> action)
         {
             this.Text = text;
             this.PassageName = passageName;
 			this.Action = action;
-			this.Parameters = parameters == null ? null : new Dictionary<string, object>(parameters);
         }
 
 
 		public TwineLink(string text, string passageName) :
-			this( text, passageName, null,null)
+			this( text, passageName, null)
 		{
 		}
 
 		public TwineLink(string text, Func<ITwineThread> action) :
-			this( text, null, action,null)
+			this( text, null, action)
 		{
 		}
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutput>;
 
 namespace UnityTwine
 {
@@ -21,9 +22,10 @@ namespace UnityTwine
 
 	public class TwineEmbedFragment : TwineEmbed
 	{
-		public TwineEmbedFragment(string fragmentName)
+        public Func<ITwineThread> GetThread;
+
+        public TwineEmbedFragment(Func<ITwineThread> fragment)
 		{
-			this.Name = fragmentName;
 		}
 	}
 }

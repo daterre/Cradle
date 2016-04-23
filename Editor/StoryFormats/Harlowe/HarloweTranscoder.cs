@@ -54,9 +54,21 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 			CodeGenMacros["goto"] = BuiltInCodeGenMacros.GoTo;
 
-			//CodeGenMacros["replace"] =
-			//CodeGenMacros["append"] =
-			//CodeGenMacros["prepend"] = null;
+            CodeGenMacros["replace"] =
+			CodeGenMacros["append"] = 
+            CodeGenMacros["prepend"] =
+            CodeGenMacros["click"] =
+            CodeGenMacros["clickreplace"] =
+            CodeGenMacros["clickappend"] =
+            CodeGenMacros["clickprepend"] =
+            CodeGenMacros["mouseover"] =
+            CodeGenMacros["mouseoverreplace"] =
+            CodeGenMacros["mouseoverappend"] =
+            CodeGenMacros["mouseoverprepend"] =
+            CodeGenMacros["mouseout"] =
+            CodeGenMacros["mouseoutreplace"] =
+            CodeGenMacros["mouseoutappend"] =
+            CodeGenMacros["mouseoutprepend"] = BuiltInCodeGenMacros.Enchant;
 
 			CodeGenMacros["align"] =
 			CodeGenMacros["font"] =
@@ -64,10 +76,10 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["background"] =
 			CodeGenMacros["color"] =
 				CodeGenMacros["colour"] =
-				CodeGenMacros["text-color"] =
-				CodeGenMacros["text-colour"] =
-			CodeGenMacros["text-style"] =
-			CodeGenMacros["text-rotate"] =
+				CodeGenMacros["textcolor"] =
+				CodeGenMacros["textcolour"] =
+			CodeGenMacros["textstyle"] =
+			CodeGenMacros["textrotate"] =
 			CodeGenMacros["transition"] =
 				CodeGenMacros["t8n"] =
 			CodeGenMacros["hook"] = BuiltInCodeGenMacros.Style;
@@ -215,7 +227,11 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 						break;
 					}
 
-					case "hook":
+                    case "hook":
+                        // This is only for unhandled hooks
+                        // TODO: parse the before or after name tag since the Harlowe lexer doesn't
+                        GenerateStyle("\"anonymousHook\", \"true\"", tokens[t].tokens);
+                        break;
 					default:
 						break;
 				}

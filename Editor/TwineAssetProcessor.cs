@@ -205,8 +205,8 @@ namespace UnityTwine.Editor
                             int errorFragment = errorDirective.Length > 1 ? int.Parse(errorDirective[1]) : -1;
                             TemplatePassageData passage = passageData.Where( p => p.Name == errorPassage).FirstOrDefault();
                             string lineCode = passage == null ? "(code not available)" : errorFragment >= 0 ? 
-                                passage.Fragments[errorFragment].Code[error.Line-4] :
-                                passage.Code[error.Line-4];
+                                passage.Fragments[errorFragment].Code[error.Line-3] :
+                                passage.Code[error.Line-3];
 
 							Debug.LogErrorFormat("Twine compilation error at passage {0}: {1}\n\n\t{2}\n",
 								errorPassage,
