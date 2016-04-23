@@ -54,6 +54,10 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 			CodeGenMacros["goto"] = BuiltInCodeGenMacros.GoTo;
 
+			//CodeGenMacros["replace"] =
+			//CodeGenMacros["append"] =
+			//CodeGenMacros["prepend"] = null;
+
 			CodeGenMacros["align"] =
 			CodeGenMacros["font"] =
 			CodeGenMacros["css"] =
@@ -65,7 +69,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["text-style"] =
 			CodeGenMacros["text-rotate"] =
 			CodeGenMacros["transition"] =
-				CodeGenMacros["t8n"] = 
+				CodeGenMacros["t8n"] =
 			CodeGenMacros["hook"] = BuiltInCodeGenMacros.Style;
 
 			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;

@@ -118,9 +118,8 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		{
 			LexerToken linkToken = tokens[tokenIndex];
 
-			transcoder.Code.Buffer.AppendFormat("yield return link(name: null, text: ");
-			
 			// Text
+			transcoder.Code.Buffer.AppendFormat("yield return link(text: ");
 			int start = 1;
 			int end = start;
 			for (; end < linkToken.tokens.Length; end++)
@@ -150,10 +149,69 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
 				}
 				else
-					throw new TwineTranscodeException("Link macro must be followed by a Harlowe-hook");
+					throw new TwineTranscodeException(string.Format("'{0}' macro must be followed by a Harlowe-hook", linkToken.name));
 			}
 			else
 				transcoder.Code.Buffer.Append("null");
+
+			// Parameters
+			transcoder.Code.Buffer
+				.Append(", new parameters(){ ")
+				.AppendFormat("{\"macro\", \"{0}\"},", linkToken.name)
+				.Append("}");
+
+			// Done
+			transcoder.Code.Buffer.AppendLine(");");
+
+			return tokenIndex;
+		};
+
+		// ......................
+		public static HarloweCodeGenMacro Enchant = (transcoder, tokens, tokenIndex, usage) =>
+		{
+			LexerToken linkToken = tokens[tokenIndex];
+
+			// Text
+			transcoder.Code.Buffer.AppendFormat("yield return enchant(text: null, ");
+			int start = 1;
+			int end = start;
+			for (; end < linkToken.tokens.Length; end++)
+				if (linkToken.tokens[end].type == "comma")
+					break;
+			transcoder.GenerateExpression(linkToken.tokens, start: start, end: end - 1);
+
+			// Passage
+			transcoder.Code.Buffer.Append(", passageName: ");
+			start = ++end;
+			for (; end < linkToken.tokens.Length; end++)
+				if (linkToken.tokens[end].type == "comma")
+					break;
+			if (start < end)
+				transcoder.GenerateExpression(linkToken.tokens, start: start, end: end - 1);
+			else
+				transcoder.Code.Buffer.Append("null");
+
+			// Action
+			transcoder.Code.Buffer.Append(", action: ");
+			if (linkToken.name != "linkgoto")
+			{
+				if (usage == MacroUsage.LineAndHook)
+				{
+					tokenIndex++; // advance
+					LexerToken hookToken = tokens[tokenIndex];
+					transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
+				}
+				else
+					throw new TwineTranscodeException(string.Format("'{0}' macro must be followed by a Harlowe-hook", linkToken.name));
+			}
+			else
+				transcoder.Code.Buffer.Append("null");
+
+			// Parameters
+			transcoder.Code.Buffer
+				.Append(", new parameters(){ ")
+				.AppendFormat("{\"macro\", \"{0}\"},", linkToken.name)
+				.Append("}");
 
 			// Done
 			transcoder.Code.Buffer.AppendLine(");");

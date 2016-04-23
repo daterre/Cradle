@@ -17,5 +17,18 @@ namespace UnityTwine.StoryFormats.Harlowe
 		{
 			return new HarloweHookRef(hookName);
 		}
+
+		//protected TwineEmbedFragment enchant(TwineVar target, Func<ITwineThread> action)
+		//{
+
+		//}
+
+		//protected IEnumerator<TwineOutput> GetEnchantmentTargets(TwineVar target)
+		//{
+		//	foreach(TwineOutput output in this.Output)
+		//	{
+		//		if (output.Style.)
+		//	}
+		//}
 	}
 }

@@ -685,9 +685,14 @@ namespace UnityTwine
 			return new TwineLineBreak();
 		}
 
-		protected TwineLink link(string name, string text, string passageName, Func<ITwineThread> action)
+		protected TwineLink link(string text, string passageName, Func<ITwineThread> action)
 		{
-			return new TwineLink(name, text, passageName, action);
+			return new TwineLink(text, passageName, action, null);
+		}
+
+		protected TwineLink link(string text, string passageName, TwineVar parameter, Func<ITwineThread> action)
+		{
+			return new TwineLink(text, passageName, action, null);
 		}
 
 		protected TwineAbort abort(string goToPassage)

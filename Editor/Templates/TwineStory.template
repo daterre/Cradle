@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityTwine;
 using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutput>;
+using parameters = System.Collections.Generic.Dictionary<string, object>;
 using {{storyFormatNamespace}};
 
 public partial class @{{storyName}}: {{storyFormatClass}}

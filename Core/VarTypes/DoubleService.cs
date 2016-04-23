@@ -8,17 +8,17 @@ namespace UnityTwine
 {
 	public class DoubleService: TwineTypeService<double>
 	{
-		public override TwineVar GetMember(double container, string memberName)
+		public override TwineVar GetMember(double container, TwineVar member)
 		{
 			throw new TwineTypeMemberException("Cannot directly get any members of a number.");
 		}
 
-		public override void SetMember(double container, string memberName, TwineVar value)
+		public override void SetMember(double container, TwineVar member, TwineVar value)
 		{
 			throw new TwineTypeMemberException("Cannot directly set any members of a number.");
 		}
 
-		public override void RemoveMember(double container, string memberName)
+		public override void RemoveMember(double container, TwineVar member)
 		{
 			throw new TwineTypeMemberException("Cannot directly remove any members of a number.");
 		}

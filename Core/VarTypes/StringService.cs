@@ -8,13 +8,14 @@ namespace UnityTwine
 {
 	public class StringService: TwineTypeService<string>
 	{
-		public override TwineVar GetMember(string container, string memberName)
+		public override TwineVar GetMember(string container, TwineVar member)
 		{
 			string containerString = (string)container;
 
 			TwineVar value;
+			string memberName = member.ToString().ToLower();
 
-			switch (memberName.ToLower())
+			switch (memberName)
 			{
 				case "length":
 					value = containerString.Length; break;
@@ -25,12 +26,12 @@ namespace UnityTwine
 			return new TwineVar(value);
 		}
 
-		public override void SetMember(string container, string memberName, TwineVar value)
+		public override void SetMember(string container, TwineVar member, TwineVar value)
 		{
 			throw new TwineTypeMemberException("Cannot directly set any members of a string.");
 		}
 
-		public override void RemoveMember(string container, string memberName)
+		public override void RemoveMember(string container, TwineVar member)
 		{
 			throw new TwineTypeMemberException("Cannot directly remove any members of a string.");
 		}

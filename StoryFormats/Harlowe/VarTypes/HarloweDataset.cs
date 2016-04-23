@@ -66,34 +66,30 @@ namespace UnityTwine.StoryFormats.Harlowe
 				throw new TwineTypeMemberException("Datasets can't be accessed by position.");
 		}
 
-		public override TwineVar GetMember(string memberName)
+		public override TwineVar GetMember(TwineVar member)
 		{
-			TwineVar val;
-			if (memberName.ToLower() == "length")
-			{
-				val = this.Length;
-			}
-			else
-			{
-				EnsureNotPosition(memberName);
-				throw new TwineTypeMemberException(string.Format("The dataset doesn't have a member called {0}.", memberName));
-			}
+			var memberName = member.ToString().ToLower();
+			if (memberName == "length")
+				return this.Length;
 
-			return new TwineVar(val);
+			EnsureNotPosition(memberName);
+			throw new TwineTypeMemberException(string.Format("The dataset doesn't have a member called {0}.", memberName));
 		}
 
-		public override void SetMember(string memberName, TwineVar value)
+		public override void SetMember(TwineVar member, TwineVar value)
 		{
-			if (memberName.ToLower() == "length")
+			var memberName = member.ToString().ToLower();
+			if (memberName == "length")
 				throw new TwineTypeMemberException("'length' cannot be modified.");
 
 			EnsureNotPosition(memberName);
 			throw new TwineTypeMemberException(string.Format("The dataset doesn't have a member called {0}.", memberName));
 		}
 
-		public override void RemoveMember(string memberName)
+		public override void RemoveMember(TwineVar member)
 		{
-			if (memberName.ToLower() == "length")
+			var memberName = member.ToString().ToLower();
+			if (memberName == "length")
 				throw new TwineTypeMemberException("'length' cannot be modified.");
 
 			EnsureNotPosition(memberName);

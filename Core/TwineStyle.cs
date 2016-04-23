@@ -130,17 +130,17 @@ namespace UnityTwine
 			return copy;
 		}
 
-		public override TwineVar GetMember(string memberName)
+		public override TwineVar GetMember(TwineVar member)
 		{
-			throw new NotImplementedException();
+			return new TwineVar(this[member]);
 		}
 
-		public override void SetMember(string memberName, TwineVar value)
+		public override void SetMember(TwineVar member, TwineVar value)
 		{
-			throw new NotImplementedException();
+			this[member] = value.Value;
 		}
 
-		public override void RemoveMember(string memberName)
+		public override void RemoveMember(TwineVar member)
 		{
 			throw new NotImplementedException();
 		}

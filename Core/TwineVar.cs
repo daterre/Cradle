@@ -109,27 +109,25 @@ namespace UnityTwine
 			get { return new MemberLookup (this); }
 		}
 
-		public TwineVar GetMember(string memberName)
+		public TwineVar GetMember(TwineVar member)
 		{
 			if (Value == null)
-				throw new TwineTypeMemberException("Cannot get member of empty Twine var.");
+				throw new TwineTypeMemberException("Cannot get members of an empty Twine variable.");
+
+			if (member.Value == null)
+				throw new TwineTypeMemberException("Cannot treat an empty variable as a member.");
 
 			ITwineTypeService service = GetTypeService(this.Value.GetType());
 			if (service != null)
-				return service.GetMember(this.Value, memberName);
+				return service.GetMember(this.Value, member);
 
 			if (this.Value is ITwineType)
-				return ((ITwineType)this.Value).GetMember(memberName);
+				return ((ITwineType)this.Value).GetMember(member);
 
 			throw new TwineTypeMemberException(string.Format("Cannot get member of a Twine var of type {0}.", this.Value.GetType().Name));
 		}
 
-		public TwineVar GetMember(TwineVar memberName)
-		{
-			return GetMember(memberName.ToString());
-		}
-
-		public void SetMember(string memberName, TwineVar val)
+		public void SetMember(TwineVar member, TwineVar val)
 		{
 			if (Value == null)
 				throw new TwineTypeMemberException("Cannot set member of empty Twine var.");
@@ -137,25 +135,20 @@ namespace UnityTwine
 			ITwineTypeService service = GetTypeService(this.Value.GetType());
 			if (service != null)
 			{
-				service.SetMember(this.Value, memberName, val);
+				service.SetMember(this.Value, member, val);
 				return;
 			}
 
 			if (this.Value is ITwineType)
 			{
-				((ITwineType)this.Value).SetMember(memberName, val);
+				((ITwineType)this.Value).SetMember(member, val);
 				return;
 			}
 
 			throw new TwineTypeMemberException(string.Format("Cannot set member of a Twine var of type {0}.", this.Value.GetType().Name));
 		}
 
-		public void SetMember(TwineVar memberName, TwineVar val)
-		{
-			SetMember(memberName.ToString(), val);
-		}
-
-		public void RemoveMember(string memberName)
+		public void RemoveMember(TwineVar member)
 		{
 			if (Value == null)
 				throw new TwineTypeMemberException("Cannot remove member of empty Twine var.");
@@ -163,22 +156,17 @@ namespace UnityTwine
 			ITwineTypeService service = GetTypeService(this.Value.GetType());
 			if (service != null)
 			{
-				service.RemoveMember(this.Value, memberName);
+				service.RemoveMember(this.Value, member);
 				return;
 			}
 
 			if (this.Value is ITwineType)
 			{
-				((ITwineType)this.Value).RemoveMember(memberName);
+				((ITwineType)this.Value).RemoveMember(member);
 				return;
 			}
 
 			throw new TwineTypeMemberException(string.Format("Cannot remove member of a Twine var of type {0}.", this.Value.GetType().Name));
-		}
-
-		public void RemoveMember(TwineVar memberName)
-		{
-			RemoveMember(memberName.ToString());
 		}
 
 		// ..............

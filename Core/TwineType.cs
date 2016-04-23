@@ -8,9 +8,9 @@ namespace UnityTwine
 {
 	public interface ITwineType
 	{
-		TwineVar GetMember(string memberName);
-		void SetMember(string memberName, TwineVar value);
-		void RemoveMember(string memberName);
+		TwineVar GetMember(TwineVar member);
+		void SetMember(TwineVar member, TwineVar value);
+		void RemoveMember(TwineVar member);
 
 		bool Compare(TwineOperator op, object b, out bool result);
 		bool Combine(TwineOperator op, object b, out TwineVar result);
@@ -21,9 +21,9 @@ namespace UnityTwine
 
 	public abstract class TwineType: ITwineType
 	{
-		public abstract TwineVar GetMember(string memberName);
-		public abstract void SetMember(string memberName, TwineVar value);
-		public abstract void RemoveMember(string memberName);
+		public abstract TwineVar GetMember(TwineVar member);
+		public abstract void SetMember(TwineVar member, TwineVar value);
+		public abstract void RemoveMember(TwineVar member);
 
 		public abstract bool Compare(TwineOperator op, object b, out bool result);
 		public abstract bool Combine(TwineOperator op, object b, out TwineVar result);
@@ -34,9 +34,9 @@ namespace UnityTwine
 
 	public interface ITwineTypeService
 	{
-		TwineVar GetMember(object container, string memberName);
-		void SetMember(object container, string memberName, TwineVar value);
-		void RemoveMember(object container, string memberName);
+		TwineVar GetMember(object container, TwineVar member);
+		void SetMember(object container, TwineVar member, TwineVar value);
+		void RemoveMember(object container, TwineVar member);
 
 		bool Compare(TwineOperator op, object a, object b, out bool result);
 		bool Combine(TwineOperator op, object a, object b, out TwineVar result);
@@ -48,9 +48,9 @@ namespace UnityTwine
 
 	public abstract class TwineTypeService<T>: ITwineTypeService
 	{
-		public abstract TwineVar GetMember(T container, string memberName);
-		public abstract void SetMember(T container, string memberName, TwineVar value);
-		public abstract void RemoveMember(T container, string memberName);
+		public abstract TwineVar GetMember(T container, TwineVar member);
+		public abstract void SetMember(T container, TwineVar member, TwineVar value);
+		public abstract void RemoveMember(T container, TwineVar member);
 
 		public abstract bool Compare(TwineOperator op, T a, object b, out bool result);
 		public abstract bool Combine(TwineOperator op, T a, object b, out TwineVar result);
@@ -100,19 +100,19 @@ namespace UnityTwine
 			return success;
 		}
 
-		TwineVar ITwineTypeService.GetMember(object container, string memberName)
+		TwineVar ITwineTypeService.GetMember(object container, TwineVar member)
 		{
-			return GetMember((T)container, memberName);
+			return GetMember((T)container, member);
 		}
 
-		void ITwineTypeService.SetMember(object container, string memberName, TwineVar value)
+		void ITwineTypeService.SetMember(object container, TwineVar member, TwineVar value)
 		{
-			SetMember((T)container, memberName, value);
+			SetMember((T)container, member, value);
 		}
 
-		void ITwineTypeService.RemoveMember(object container, string memberName)
+		void ITwineTypeService.RemoveMember(object container, TwineVar member)
 		{
-			RemoveMember((T)container, memberName);
+			RemoveMember((T)container, member);
 		}
 
 		object ITwineTypeService.Clone(object value)

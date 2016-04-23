@@ -14,17 +14,17 @@ namespace UnityTwine.StoryFormats.Harlowe
 			this.HookName = hookName;
 		}
 
-		public override TwineVar GetMember(string memberName)
+		public override TwineVar GetMember(TwineVar member)
 		{
 			throw new System.NotSupportedException();
 		}
 
-		public override void SetMember(string memberName, TwineVar value)
+		public override void SetMember(TwineVar member, TwineVar value)
 		{
 			throw new System.NotSupportedException();
 		}
 
-		public override void RemoveMember(string memberName)
+		public override void RemoveMember(TwineVar member)
 		{
 			throw new System.NotSupportedException();
 		}

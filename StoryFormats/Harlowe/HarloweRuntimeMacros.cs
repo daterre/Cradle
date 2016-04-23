@@ -99,6 +99,11 @@ namespace UnityTwine.StoryFormats.Harlowe
             );
         }
 
+		public TwineVar subarray(HarloweArray array, int from, int to)
+		{
+			return array.GetMember(range(from, to));
+		}
+
         // ..........
         // Dataset
 
@@ -177,7 +182,7 @@ namespace UnityTwine.StoryFormats.Harlowe
                 return default(TwineVar);
             else
                 return new HarloweDatamap(
-                    "source", default(TwineVar),
+                    "source", "UnityTwine can't show the source of the passage.",
                     "name", passageName,
                     "tags", sorted(passage.Tags)
                 );

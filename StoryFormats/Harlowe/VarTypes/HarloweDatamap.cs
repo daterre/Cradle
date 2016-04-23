@@ -73,9 +73,13 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return str.ToString();
 		}
 
-		public override TwineVar GetMember(string memberName)
+		public override TwineVar GetMember(TwineVar member)
 		{
 			TwineVar val;
+			if (TryGetMemberArray(member, out val))
+				return val;
+
+			var memberName = member.ToString();
 			
 			if (!Dictionary.TryGetValue(memberName, out val))
 				throw new TwineTypeMemberException(string.Format("The datamap doesn't have an entry under the name '{0}'.", memberName));
@@ -83,13 +87,16 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return new TwineVar(val);
 		}
 
-		public override void SetMember(string memberName, TwineVar value)
+		public override void SetMember(TwineVar member, TwineVar value)
 		{
+			var memberName = member.ToString();
+
 			Dictionary[memberName] = value.Clone();
 		}
 
-		public override void RemoveMember(string memberName)
+		public override void RemoveMember(TwineVar member)
 		{
+			var memberName = member.ToString();
 			Dictionary.Remove(memberName);
 		}
 

@@ -10,39 +10,25 @@ namespace UnityTwine
     public class TwineLink: TwineOutput
     {
         public string PassageName;
+		public Dictionary<string,object> Parameters;
 		public Func<ITwineThread> Action;
 
-		[System.Obsolete]
-		public TwineLink(string name, string text, string passageName, Func<ITwineThread> action, string unused) :
-			this(name,text, passageName, action)
-		{
-		}
-
-		public TwineLink(string name, string text, string passageName, Func<ITwineThread> action)
+		public TwineLink(string text, string passageName, Func<ITwineThread> action, IDictionary<string,object> parameters = null)
         {
-			this.Name = name ?? text;
             this.Text = text;
             this.PassageName = passageName;
 			this.Action = action;
+			this.Parameters = parameters == null ? null : new Dictionary<string, object>(parameters);
         }
 
-		public TwineLink(string name, string text, string passageName):
-			this(name, text, passageName, null)
-		{
-		}
 
 		public TwineLink(string text, string passageName) :
-			this(text, text, passageName, null)
-		{
-		}
-
-		public TwineLink(string name, string text, Func<ITwineThread> action) :
-			this (name, text, null, action)
+			this( text, passageName, null,null)
 		{
 		}
 
 		public TwineLink(string text, Func<ITwineThread> action) :
-			this(text, text, null, action)
+			this( text, null, action,null)
 		{
 		}
 
