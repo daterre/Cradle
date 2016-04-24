@@ -32,7 +32,7 @@ namespace UnityTwine
 		public string[] Tags { get; private set; }
 		public TwineRuntimeVars Vars { get; protected set; }
 		public string CurrentPassageName { get; private set; }
-		public TwineStyle Style { get; private set; }
+		public TwineContext Context { get; private set; }
 		
 		public string PreviousPassageName { get; private set; }
 
@@ -47,8 +47,6 @@ namespace UnityTwine
 		MonoBehaviour[] _cueTargets = null;
 
 		public int NumberOfLinksDone { get; private set; }
-		//public Dictionary<string, int> NumberOfVisitsPerPassage { get; private set; }
-		//public Dictionary<string, int> NumberOfVisitsPerTag { get; private set; }
         public List<string> PassageHistory {get; private set; }
 
 		private class Cue
@@ -72,7 +70,7 @@ namespace UnityTwine
 			TwineVar.RegisterTypeService<string>(new StringService());
 
 			this.Passages = new Dictionary<string, TwinePassage>();
-			this.Style = new TwineStyle();
+			this.Context = new TwineContext();
 
             this.PassageHistory = new List<string>();
 		}
@@ -265,8 +263,8 @@ namespace UnityTwine
 			{
 				TwineOutput output = _currentThread.Current;
 				
-				// Get a copy of the current style
-				output.Style = this.Style.GetCopy();
+				// Get a copy of the current context
+				output.ContextInfo = this.Context.GetCopy();
 
 				// Abort this thread
 				if (output is TwineAbort)
@@ -678,9 +676,9 @@ namespace UnityTwine
 			return new TwineLineBreak();
 		}
 
-		protected TwineLink link(string text, string passageName, Func<ITwineThread> action, TwineStyle style = null)
+		protected TwineLink link(string text, string passageName, Func<ITwineThread> action, TwineContext contextInfo = null)
 		{
-            using(style != null ? Style.Apply(style) : null)
+			using (contextInfo != null ? Context.Apply(contextInfo) : null)
 			    return new TwineLink(text, passageName, action);
 		}
 
@@ -699,9 +697,9 @@ namespace UnityTwine
 			return new TwineEmbedPassage(passageName, parameters);
 		}
 
-		protected TwineVar style(string name, object value)
+		protected TwineVar contextInfo(string name, object value)
 		{
-			return new TwineStyle(name, value);
+			return new TwineContext(name, value);
 		}
 	}
 }

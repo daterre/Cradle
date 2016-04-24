@@ -20,7 +20,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return new HarloweHookRef(hookName);
 		}
 
-        protected Enchantment enchant(TwineVar reference, Func<ITwineThread> action, TwineStyle style = null)
+        protected Enchantment enchant(TwineVar reference, Func<ITwineThread> action, TwineContext contextInfo = null)
 		{
             bool isHookRef = reference.Value is HarloweHookRef;
             string str = isHookRef ? ((HarloweHookRef)reference.Value).HookName : reference.ToString();
@@ -31,7 +31,7 @@ namespace UnityTwine.StoryFormats.Harlowe
                 EnchantmentTarget target = null;
                 if (isHookRef)
                 {
-                    if (output.Style.Get<string>("hook") == str)
+                    if (output.ContextInfo.Get<string>("hook") == str)
                         target = new EnchantmentTarget() { Output = output };
                 }
                 else if (output is TwineText)
@@ -44,7 +44,7 @@ namespace UnityTwine.StoryFormats.Harlowe
                     targets.Add(target);
             }
 
-            using(style != null ? Style.Apply(style) : null)
+            using(contextInfo != null ? Context.Apply(contextInfo) : null)
                 return new Enchantment(this, targets.ToArray(), action);
 		}
 	}

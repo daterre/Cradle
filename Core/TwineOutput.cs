@@ -7,7 +7,7 @@ namespace UnityTwine
 		public string Name;
 		public string Text;
 
-		public TwineStyle Style;
+		public TwineContext ContextInfo;
 		public TwineEmbed EmbedInfo;
 	}
 }

@@ -156,7 +156,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 			// Style
 			transcoder.Code.Buffer
-                    .AppendFormat(", style(\"link-type\", \"{0}\")", linkToken.name);
+                    .AppendFormat(", contextInfo(\"link-type\", \"{0}\")", linkToken.name);
 
 			// Done
 			transcoder.Code.Buffer.AppendLine(");");
@@ -188,7 +188,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
             // Style
             transcoder.Code.Buffer
-                .AppendFormat(", style(\"enchant-type\", \"{0}\")", enchantToken.name);
+				.AppendFormat(", contextInfo(\"enchant-type\", \"{0}\")", enchantToken.name);
 
             // Close
             transcoder.Code.Buffer.AppendLine(");");
@@ -223,19 +223,19 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
         };
 
 		// ......................
-		public static HarloweCodeGenMacro Style = (transcoder, tokens, tokenIndex, usage) =>
+		public static HarloweCodeGenMacro ContextInfo = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken macroToken = tokens[tokenIndex];
 
 			if (usage == MacroUsage.Inline)
 			{
-				transcoder.Code.Buffer.AppendFormat("style(\"{0}\", ", macroToken.name);
+				transcoder.Code.Buffer.AppendFormat("contextInfo(\"{0}\", ", macroToken.name);
 				transcoder.GenerateExpression(macroToken.tokens, start: 1);
 				transcoder.Code.Buffer.Append(")");
 			}
 			else if (usage == MacroUsage.LineAndHook)
 			{
-				transcoder.Code.Buffer.AppendFormat("using (Style.Apply(\"{0}\", ", macroToken.name);
+				transcoder.Code.Buffer.AppendFormat("using (Context.Apply(\"{0}\", ", macroToken.name);
 				transcoder.GenerateExpression(macroToken.tokens, start: 1);
 				transcoder.Code.Buffer.AppendLine(")) {");
 

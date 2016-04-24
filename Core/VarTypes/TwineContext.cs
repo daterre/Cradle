@@ -5,28 +5,28 @@ using System.Text;
 
 namespace UnityTwine
 {
-	public class TwineStyle: TwineType, IDisposable
+	public class TwineContext: TwineType, IDisposable
 	{
-		public event Action<TwineStyle> OnDisposed;
-		public event Action<TwineStyle> OnChanged;
+		public event Action<TwineContext> OnDisposed;
+		public event Action<TwineContext> OnChanged;
 		public bool IsReadOnly { get; private set; }
 
-		List<TwineStyle> _appliedStyles = new List<TwineStyle>();
+		List<TwineContext> _appliedContexts = new List<TwineContext>();
 		Dictionary<string, object> _appliedValues = new Dictionary<string, object>();
 		Dictionary<string, object> _calculatedValues = new Dictionary<string, object>();
 
-		public TwineStyle()
+		public TwineContext()
 		{
 		}
 
-		public TwineStyle(string name, object value)
+		public TwineContext(string name, object value)
 		{
 			_appliedValues[name] = value;
 		}
 
-		public static implicit operator TwineStyle(TwineVar styleVar)
+		public static implicit operator TwineContext(TwineVar contextVar)
 		{
-			return TwineVar.ConvertTo<TwineStyle>(styleVar);
+			return TwineVar.ConvertTo<TwineContext>(contextVar);
 		}
 
 		public object this[string name]
@@ -42,7 +42,7 @@ namespace UnityTwine
 			set
 			{
 				if (IsReadOnly)
-					throw new TwineException("This style object is a copy and cannot be modified.");
+					throw new TwineException("This context is a read-only copy and cannot be modified.");
 
 				_appliedValues[name] = value;
 				Recalculate();
@@ -65,38 +65,38 @@ namespace UnityTwine
 				return null;
 		}
 
-		public TwineStyle Apply(TwineStyle style)
+		public TwineContext Apply(TwineContext context)
 		{
 			if (IsReadOnly)
-				throw new TwineException("This style object is a copy and cannot be modified.");
+				throw new TwineException("This context is a read-only copy and cannot be modified.");
 
-			if (_appliedStyles.Contains(style))
-				throw new InvalidOperationException("This style object has already been applied.");
+			if (_appliedContexts.Contains(context))
+				throw new InvalidOperationException("This context has already been applied.");
 
-			if (style._appliedStyles.Count > 0)
-				throw new InvalidOperationException("Cannot apply a style that has its own applied styles.");
+			if (context._appliedContexts.Count > 0)
+				throw new InvalidOperationException("Cannot apply a context that is itself composed of other contexts.");
 
-			style.OnDisposed += Unapply;
-			_appliedStyles.Add(style);
+			context.OnDisposed += Unapply;
+			_appliedContexts.Add(context);
 
 			Recalculate();
-			return style;
+			return context;
 		}
 
-		public TwineStyle Apply(string key, object value)
+		public TwineContext Apply(string key, object value)
 		{
-			var newStyle = new TwineStyle();
-			newStyle[key] = value;
-			return Apply(newStyle);
+			var newContext = new TwineContext();
+			newContext[key] = value;
+			return Apply(newContext);
 		}
 
-		public void Unapply(TwineStyle style)
+		public void Unapply(TwineContext context)
 		{
-			if (!_appliedStyles.Contains(style))
+			if (!_appliedContexts.Contains(context))
 				return;
 
-			style.OnDisposed -= Unapply;
-			_appliedStyles.Remove(style);
+			context.OnDisposed -= Unapply;
+			_appliedContexts.Remove(context);
 			
 			Recalculate();
 		}
@@ -104,10 +104,10 @@ namespace UnityTwine
 		void Recalculate()
 		{
 			_calculatedValues.Clear();
-			for (int i = 0; i < _appliedStyles.Count; i++)
+			for (int i = 0; i < _appliedContexts.Count; i++)
 			{
-				TwineStyle style = _appliedStyles[i];
-				foreach (var entry in style._appliedValues)
+				TwineContext context = _appliedContexts[i];
+				foreach (var entry in context._appliedValues)
 					_calculatedValues[entry.Key] = entry.Value;
 			}
 
@@ -121,9 +121,9 @@ namespace UnityTwine
 				this.OnDisposed(this);
 		}
 
-		public TwineStyle GetCopy()
+		public TwineContext GetCopy()
 		{
-			var copy = new TwineStyle();
+			var copy = new TwineContext();
 			copy._calculatedValues = new Dictionary<string, object>(this._calculatedValues);
 			copy.IsReadOnly = true;
 			return copy;
@@ -153,14 +153,14 @@ namespace UnityTwine
 		public override bool Combine(TwineOperator op, object b, out TwineVar result)
 		{
 			result = default(TwineVar);
-			if (!(b is TwineStyle) || op != TwineOperator.Add)
+			if (!(b is TwineContext) || op != TwineOperator.Add)
 				return false;
-			TwineStyle bStyle = (TwineStyle)b;
+			TwineContext bContext = (TwineContext)b;
 
-			var combinedStyle = new TwineStyle();
-			combinedStyle.Apply(this);
-			combinedStyle.Apply(bStyle);
-			result = combinedStyle.GetCopy();
+			var combinedContext = new TwineContext();
+			combinedContext.Apply(this);
+			combinedContext.Apply(bContext);
+			result = combinedContext.GetCopy();
 			return true;
 		}
 

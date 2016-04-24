@@ -83,7 +83,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["textrotate"] =
 			CodeGenMacros["transition"] =
 				CodeGenMacros["t8n"] =
-			CodeGenMacros["hook"] = BuiltInCodeGenMacros.Style;
+			CodeGenMacros["hook"] = BuiltInCodeGenMacros.ContextInfo;
 		}
 
 		public override StoryFormatMetadata GetMetadata()
@@ -175,7 +175,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					case "strong":
 					case "sup":
 						Code.Indent();
-						GenerateStyle(string.Format("\"{0}\", true", token.type), token.tokens);
+						GenerateContext(string.Format("\"{0}\", true", token.type), token.tokens);
 						break;
 
 					case "collapsed":
@@ -206,7 +206,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 						int hookIndex = FollowedBy("hook", tokens, t, true, false);
 						if (hookIndex >= 0)
 						{
-							GenerateStyle(BuildVariableRef(token), tokens[hookIndex].tokens);
+							GenerateContext(BuildVariableRef(token), tokens[hookIndex].tokens);
 							t = hookIndex;
 						}
 						else
@@ -229,7 +229,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
                     case "hook":
                         // This is only for unhandled hooks
                         // TODO: parse the before or after name tag since the Harlowe lexer doesn't
-                        GenerateStyle("\"anonymousHook\", \"true\"", tokens[t].tokens);
+                        GenerateContext("\"anonymousHook\", \"true\"", tokens[t].tokens);
                         break;
 					default:
 						break;
@@ -263,10 +263,10 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			Code.Buffer.AppendLine("yield return lineBreak();");
 		}
 
-		public void GenerateStyle(string styleParams, LexerToken[] tokens)
+		public void GenerateContext(string contextParams, LexerToken[] tokens)
 		{
 			Code.Buffer
-				.AppendFormat("using (Style.Apply({0})) {{", styleParams)
+				.AppendFormat("using (Context.Apply({0})) {{", contextParams)
 				.AppendLine();
 			Code.Indentation++;
 			GenerateBody(tokens, breaks: false);
