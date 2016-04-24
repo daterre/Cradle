@@ -22,6 +22,15 @@
 		return;
 	}
 
+	var htmlDecoder = document.createElement('textarea');
+	function htmlDecode(text)
+	{
+		htmlDecoder.innerHTML = text;
+		return htmlDecoder.value
+			.replace(/\\n/g, "\n")
+			.replace(/\\t/g, "\t");
+	}
+
 	window.unityTwineHarloweBridge = function($, require) {
 
 		require(['markup', 'utils'], function(TwineMarkup, utils){
@@ -31,6 +40,7 @@
 				var result = [];
 				for (var i = 0; i < tokens.length; i++) {
 					var complex = tokens[i];
+					var simple = {};
 
 					// special cases
 					switch(complex.type) {
@@ -43,7 +53,7 @@
 						}
 					}
 
-					var simple = {type: complex.type};
+					simple.type = complex.type;
 
 					if (complex.children && complex.children.length && complex.type !== 'string' && complex.type !== 'verbatim')
 						simple.tokens = simplify(complex.children);
@@ -73,7 +83,7 @@
 					Pid: $p.attr('pid'),
 					Name: $p.attr('name'),
 					Tags: $p.attr('tags'),
-					Tokens: simplify(TwineMarkup.lex($p.html()).children)
+					Tokens: simplify(TwineMarkup.lex(htmlDecode($p.html())).children)
 				};
 				result.push(passage);
 			});

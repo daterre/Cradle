@@ -230,8 +230,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 						case "hook":
 							// This is only for unhandled hooks
-							// TODO: parse the before or after name tag since the Harlowe lexer doesn't
-							GenerateContext("\"anonymousHook\", \"true\"", tokens[t].tokens);
+							GenerateContext(string.Format("HarloweContextOptions.Hook, \"{0}\"", token.name), tokens[t].tokens);
 							break;
 						default:
 							break;

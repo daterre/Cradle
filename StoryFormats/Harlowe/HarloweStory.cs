@@ -31,7 +31,7 @@ namespace UnityTwine.StoryFormats.Harlowe
                 EnchantmentTarget target = null;
                 if (isHookRef)
                 {
-                    if (output.ContextInfo.Get<string>("hook") == str)
+                    if (output.ContextInfo.Get<string>(HarloweContextOptions.Hook) == str)
                         target = new EnchantmentTarget() { Output = output };
                 }
                 else if (output is TwineText)

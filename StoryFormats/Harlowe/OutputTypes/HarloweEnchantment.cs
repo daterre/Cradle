@@ -19,7 +19,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 
         ITwineThread EnchantTargets(TwineStory story, Func<ITwineThread> action)
         {
-            using (story.Context.Apply("enchant-source", this))
+            using (story.Context.Apply(HarloweContextOptions.EnchantSource, this))
             {  
                 foreach (TwineOutput output in action())
                     yield return output;  
