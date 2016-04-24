@@ -71,7 +71,6 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
             CodeGenMacros["mouseoutappend"] =
             CodeGenMacros["mouseoutprepend"] = BuiltInCodeGenMacros.Enchant;
 
-			CodeGenMacros["align"] =
 			CodeGenMacros["font"] =
 			CodeGenMacros["css"] =
 			CodeGenMacros["background"] =
@@ -167,9 +166,10 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 						case "bulleted":
 						case "numbered":
-							Debug.LogWarning("Bulleted and numbered lists not currently supported");
+						case "heading":
+							Code.Indent();
+							GenerateContext(string.Format("\"{0}\", {1}", token.type, token.depth), token.tokens);
 							break;
-
 						case "italic":
 						case "bold":
 						case "em":
@@ -569,7 +569,8 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		public string text;
 		public string innerText;
 		public double value;
-		public string passage; 
+		public string passage;
+		public int? depth; 
 		public LexerToken[] tokens;
 	}
 

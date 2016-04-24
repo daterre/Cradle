@@ -50,7 +50,10 @@
 								+ utils.toJSLiteral(complex.innerText) + ","
 								+ utils.toJSLiteral(complex.passage) + ")"
 							).children[0];
+							break;
 						}
+						case "tag":
+							continue;
 					}
 
 					simple.type = complex.type;
@@ -63,6 +66,10 @@
 						simple.innerText = complex.innerText;
 					if (complex.value)
 						simple.value = complex.value;
+					if (complex.align)
+						simple.align = complex.align;
+					if (complex.depth)
+						simple.depth = complex.depth;
 					if (complex.passage)
 						simple.passage = complex.passage;
 					if (complex.name)
