@@ -18,12 +18,6 @@ namespace UnityTwine.StoryFormats.Harlowe
         {
             return vals[UnityEngine.Random.Range(0, vals.Length)];
         }
-
-		[TwineRuntimeMacro]
-		public void click(TwineVar hookRef)
-		{
-			throw new System.NotImplementedException();
-		}
 		
 		// ------------------------------------
         // Data structures
@@ -189,11 +183,123 @@ namespace UnityTwine.StoryFormats.Harlowe
         }
 
 		// ------------------------------------
+		// Math
+
+		[TwineRuntimeMacro]
+		public TwineVar abs(double num)
+		{
+			return Math.Abs(num);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar cos(double num)
+		{
+			return Math.Cos(num);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar exp(double num)
+		{
+			return Math.Exp(num);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar log(double num)
+		{
+			return Math.Log(num);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar log10(double num)
+		{
+			return Math.Log10(num);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar log2(double num)
+		{
+			return Math.Log(num, 2);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar max(params TwineVar[] numbers)
+		{
+			double max = double.NaN;
+			foreach (TwineVar num in HarloweSpread.Flatten(numbers))
+				if (num > max)
+					max = num;
+
+			return max;
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar min(params TwineVar[] numbers)
+		{
+			double min = double.NaN;
+			foreach (TwineVar num in HarloweSpread.Flatten(numbers))
+				if (num < min)
+					min = num;
+
+			return min;
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar pow(double num, double power)
+		{
+			return Math.Pow(num, power);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar sign(double num)
+		{
+			return Math.Sign(num);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar sin(double num)
+		{
+			return Math.Sin(num);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar sqrt(double num)
+		{
+			return Math.Sqrt(num);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar tan(double num)
+		{
+			return Math.Tan(num);
+		}
+
+		// ------------------------------------
+		// Number
 
 		[TwineRuntimeMacro]
 		public TwineVar ceil(double num)
 		{
 			return Mathf.CeilToInt((float)num);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar floor(double num)
+		{
+			return Mathf.FloorToInt((float)num);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar number(TwineVar val)
+		{
+			return TwineVar.ConvertTo<double>(val, false);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar random(double from, double to = 0)
+		{
+			int a = Mathf.CeilToInt((float)from);
+			int b = Mathf.CeilToInt((float)to);
+			return UnityEngine.Random.Range(a < b ? a : b, (b > a ? b : a) + 1);
 		}
 
 		[TwineRuntimeMacro]

@@ -272,12 +272,33 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 		// ......................
 
+		static string[] UnsupportedRuntimeMacros = new string[] {
+			"alert",
+			"prompt",
+			"confirm",
+			"loadgame",
+			"savegame",
+			"savedgames",
+			"gotourl",
+			"openurl",
+			"pageurl",
+			"reload",
+			"live",
+			"stop"
+		};
+
 		public static HarloweCodeGenMacro RuntimeMacro = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken macroToken = tokens[tokenIndex];
 			MacroDef macroDef;
 			if (!transcoder.Importer.Macros.TryGetValue(macroToken.name, out macroDef))
-				throw new TwineImportException(string.Format("Macro '{0}' is not defined as a UnityTwine runtime macro.", macroToken.name));
+			{
+				throw new TwineImportException(string.Format(
+					"Macro '{0}' {1}. You can add it as a custom macro, please see the UnityTwine documentation page.",
+					macroToken.name,
+					UnsupportedRuntimeMacros.Contains(macroToken.name) ? "is not supported in UnityTwine" : "could not be found"
+				));
+			}
 
 			transcoder.Code.Buffer.AppendFormat("{0}.{1}(", macroDef.Lib.Name, HarloweTranscoder.EscapeReservedWord(macroDef.Name));
 			transcoder.GenerateExpression(macroToken.tokens, 1);

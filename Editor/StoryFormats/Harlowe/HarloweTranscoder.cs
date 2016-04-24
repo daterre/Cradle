@@ -37,7 +37,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		{
 			PublishedHtmlImporter.RegisterTranscoder<HarloweTranscoder>(weight: 100);
 
-			// Supported macros
+			// Supported code generation macros
 			CodeGenMacros["put"] =
 			CodeGenMacros["move"] = 
 			CodeGenMacros["set"] = BuiltInCodeGenMacros.Assignment;
@@ -53,6 +53,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["linkrepeat"] = BuiltInCodeGenMacros.Link;
 
 			CodeGenMacros["goto"] = BuiltInCodeGenMacros.GoTo;
+			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
 
             CodeGenMacros["replace"] =
 			CodeGenMacros["append"] = 
@@ -83,8 +84,6 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["transition"] =
 				CodeGenMacros["t8n"] =
 			CodeGenMacros["hook"] = BuiltInCodeGenMacros.Style;
-
-			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
 		}
 
 		public override StoryFormatMetadata GetMetadata()

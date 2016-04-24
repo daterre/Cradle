@@ -21,7 +21,7 @@ namespace UnityTwine
     {
 		public bool AutoPlay = true;
         public string StartPassage = "Start";
-		public GameObject[] AdditionalHooks;
+		public GameObject[] AdditionalCues;
 
 		public event Action<TwineStoryState> OnStateChanged;
 		public event Action<TwineOutput> OnOutput;
@@ -41,17 +41,17 @@ namespace UnityTwine
 		IEnumerator<TwineOutput> _currentThread = null;
 		TwineLink _currentLinkInAction = null;
 		ThreadResult _lastThreadResult = ThreadResult.Done;
-		Hook[] _passageUpdateHooks = null;
+		Cue[] _passageUpdateCues = null;
 		string _passageWaitingToEnter = null;
-		Dictionary<string, List<Hook>> _hookCache = new Dictionary<string, List<Hook>>();
-		MonoBehaviour[] _hookTargets = null;
+		Dictionary<string, List<Cue>> _cueCache = new Dictionary<string, List<Cue>>();
+		MonoBehaviour[] _cueTargets = null;
 
 		public int NumberOfLinksDone { get; private set; }
 		//public Dictionary<string, int> NumberOfVisitsPerPassage { get; private set; }
 		//public Dictionary<string, int> NumberOfVisitsPerTag { get; private set; }
         public List<string> PassageHistory {get; private set; }
 
-		private class Hook
+		private class Cue
 		{
 			public MonoBehaviour target;
 			public MethodInfo method;
@@ -159,8 +159,8 @@ namespace UnityTwine
 			{
 				this.State = TwineStoryState.Exiting;
 
-				// invoke exit hooks
-				HooksInvoke(HooksFind("Exit", reverse: true));
+				// invoke exit cues
+				CuesInvoke(CuesFind("Exit", reverse: true));
 			}
 
 			if (this.State != TwineStoryState.Paused)
@@ -222,7 +222,7 @@ namespace UnityTwine
 			this.Output.Clear();
 			this.Text.Clear();
 			this.Links.Clear();
-			_passageUpdateHooks = null;
+			_passageUpdateCues = null;
 
 			TwinePassage passage = GetPassage(passageName);
 			this.Tags = (string[])passage.Tags.Clone();
@@ -231,11 +231,11 @@ namespace UnityTwine
 
             PassageHistory.Add(passageName);
 
-			// Add output (and trigger hooks)
+			// Add output (and trigger cues)
 			this.Output.Add(passage);
 
-			// Get update hooks for calling during update
-			_passageUpdateHooks = HooksFind("Update", reverse: false, allowCoroutines: false).ToArray();
+			// Get update cues for calling during update
+			_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
 
 			// Prepare the thread enumerator
 			_currentThread = CollapseThread(passage.GetMainThread()).GetEnumerator();
@@ -243,7 +243,7 @@ namespace UnityTwine
 
 			this.State = TwineStoryState.Playing;
 			SendOutput(passage);
-			HooksInvoke(HooksFind("Enter", maxLevels: 1));
+			CuesInvoke(CuesFind("Enter", maxLevels: 1));
 
 			// Story was paused, wait for it to resume
 			if (this.State == TwineStoryState.Paused)
@@ -255,7 +255,7 @@ namespace UnityTwine
 		}
 
 		/// <summary>
-		/// Executes the current thread by advancing its enumerator, sending its output and invoking hooks.
+		/// Executes the current thread by advancing its enumerator, sending its output and invoking cues.
 		/// </summary>
 		void ExecuteCurrentThread()
 		{
@@ -289,18 +289,18 @@ namespace UnityTwine
 					var text = (TwineText)output;
 					this.Text.Add(text);
 				}
-				// Let the handlers and hooks kick in
+				// Let the handlers and cues kick in
 				else if (output is TwinePassage)
 				{
-					HooksInvoke(HooksFind("Enter", reverse: true, maxLevels: 1));
+					CuesInvoke(CuesFind("Enter", reverse: true, maxLevels: 1));
 
-					// Refresh the update hooks
-					_passageUpdateHooks = HooksFind("Update", reverse: false, allowCoroutines: false).ToArray();
+					// Refresh the update cues
+					_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
 				}
 
 				// Send output
 				SendOutput(output);
-				HooksInvoke(HooksFind("Output"), output);
+				CuesInvoke(CuesFind("Output"), output);
 
 				// Story was paused, wait for it to resume
 				if (this.State == TwineStoryState.Paused)
@@ -318,7 +318,7 @@ namespace UnityTwine
 			// Return the appropriate result
 			if (aborted != null)
 			{
-				HooksInvoke(HooksFind("Aborted"));
+				CuesInvoke(CuesFind("Aborted"));
 				if (aborted.GoToPassage != null)
 					this.GoTo(aborted.GoToPassage);
 
@@ -326,11 +326,11 @@ namespace UnityTwine
 			}
 			else
 			{
-				// Invoke the done hook - either for main or for a link
+				// Invoke the done cue - either for main or for a link
 				if (_currentLinkInAction == null)
-					HooksInvoke(HooksFind("Done"));
+					CuesInvoke(CuesFind("Done"));
 				else
-					HooksInvoke(HooksFind("ActionDone"), _currentLinkInAction);
+					CuesInvoke(CuesFind("ActionDone"), _currentLinkInAction);
 
 				_lastThreadResult = ThreadResult.Done;
 			}
@@ -408,7 +408,7 @@ namespace UnityTwine
 			// Process the link action before continuing
 			if (link.Action != null)
 			{
-				// Action might invoke a fragment method, in which case we need to process it with hooks etc.
+				// Action might invoke a fragment method, in which case we need to process it with cues etc.
 				ITwineThread linkActionThread = link.Action.Invoke();
 				if (linkActionThread != null)
 				{
@@ -478,34 +478,34 @@ namespace UnityTwine
 		}
 
 		// ---------------------------------
-		// Hooks
+		// Cues
 
 		static Regex _validPassageNameRegex = new Regex("^[a-z_][a-z0-9_]*$", RegexOptions.IgnoreCase);
 
 		void Update()
 		{
-			HooksInvoke(_passageUpdateHooks);
+			CuesInvoke(_passageUpdateCues);
 		}
 
-		void HooksInvoke(IEnumerable<Hook> hooks, params object[] args)
+		void CuesInvoke(IEnumerable<Cue> cues, params object[] args)
 		{
-			if (hooks == null)
+			if (cues == null)
 				return;
 
-			if (hooks is Hook[])
+			if (cues is Cue[])
 			{
-				var ar = (Hook[]) hooks;
+				var ar = (Cue[]) cues;
 				for (int i = 0; i < ar.Length; i++)
-					HookInvoke(ar[i], args);
+					CueInvoke(ar[i], args);
 			}
 			else
 			{
-				foreach (Hook hook in hooks)
-					HookInvoke(hook, args);
+				foreach (Cue cue in cues)
+					CueInvoke(cue, args);
 			}
 		}
 
-		IEnumerable<Hook> HooksFind(string hookName, int maxLevels = 0, bool reverse = false, bool allowCoroutines = true)
+		IEnumerable<Cue> CuesFind(string cueName, int maxLevels = 0, bool reverse = false, bool allowCoroutines = true)
 		{
 			int c = 0;
 			for(
@@ -520,17 +520,18 @@ namespace UnityTwine
 				var passage = (TwinePassage)this.Output[i];
 				
 				// Ensure hookable passage
+				// TODO: use attribute when passage is named this way
 				if (!_validPassageNameRegex.IsMatch(passage.Name))
 				{
-					Debug.LogWarning(string.Format("Passage \"{0}\" is not hookable because it does not follow C# variable naming rules.", passage.Name));
+					Debug.LogWarning(string.Format("Passage \"{0}\" cannot use cues because it does not follow C# variable naming rules.", passage.Name));
 					continue;
 				}
 
-				List<Hook> hooks = HookGetMethods(passage.Name + '_' + hookName, allowCoroutines);
-				if (hooks != null)
+				List<Cue> cues = CueGetMethods(passage.Name + '_' + cueName, allowCoroutines);
+				if (cues != null)
 				{
-					for (int h = 0; h < hooks.Count; h++)
-						yield return hooks[h];
+					for (int h = 0; h < cues.Count; h++)
+						yield return cues[h];
 					
 					if (maxLevels > 0 && c == maxLevels-1)
 						yield break;
@@ -538,14 +539,14 @@ namespace UnityTwine
 			}
 		}
 
-		void HookInvoke(Hook hook, object[] args)
+		void CueInvoke(Cue cue, object[] args)
 		{
 			object result = null;
-			try { result = hook.method.Invoke(hook.target, args); }
+			try { result = cue.method.Invoke(cue.target, args); }
 			catch(TargetParameterCountException)
 			{
-				Debug.LogErrorFormat("The hook {0} doesn't have the right parameters so it is being ignored.",
-					hook.method.Name
+				Debug.LogWarningFormat("The cue {0} doesn't have the right parameters so it is being ignored.",
+					cue.method.Name
 				);
 				return;
 			}
@@ -554,39 +555,39 @@ namespace UnityTwine
 				StartCoroutine(((IEnumerator)result));
 		}
 
-		MonoBehaviour[] HookGetTargets()
+		MonoBehaviour[] CueGetTargets()
 		{
-			if (_hookTargets == null)
+			if (_cueTargets == null)
 			{
 				// ...................
 				// Get all hook targets
-				GameObject[] hookTargets;
-				if (this.AdditionalHooks != null)
+				GameObject[] cueTargets;
+				if (this.AdditionalCues != null)
 				{
-					hookTargets = new GameObject[this.AdditionalHooks.Length + 1];
-					hookTargets[0] = this.gameObject;
-					this.AdditionalHooks.CopyTo(hookTargets, 1);
+					cueTargets = new GameObject[this.AdditionalCues.Length + 1];
+					cueTargets[0] = this.gameObject;
+					this.AdditionalCues.CopyTo(cueTargets, 1);
 				}
 				else
-					hookTargets = new GameObject[] { this.gameObject };
+					cueTargets = new GameObject[] { this.gameObject };
 
 				// Get all types
 				var sources = new List<MonoBehaviour>();
-				for (int i = 0; i < hookTargets.Length; i++)
-					sources.AddRange(hookTargets[i].GetComponents<MonoBehaviour>());
+				for (int i = 0; i < cueTargets.Length; i++)
+					sources.AddRange(cueTargets[i].GetComponents<MonoBehaviour>());
 
-				_hookTargets = sources.ToArray();
+				_cueTargets = sources.ToArray();
 			}
 
-			return _hookTargets;
+			return _cueTargets;
 		}
 
-		List<Hook> HookGetMethods(string methodName, bool allowCoroutines = true)
+		List<Cue> CueGetMethods(string methodName, bool allowCoroutines = true)
 		{
-			List<Hook> hooks = null;
-			if (!_hookCache.TryGetValue(methodName, out hooks))
+			List<Cue> cues = null;
+			if (!_cueCache.TryGetValue(methodName, out cues))
 			{
-				MonoBehaviour[] targets = HookGetTargets();
+				MonoBehaviour[] targets = CueGetTargets();
 				for (int i = 0; i < targets.Length; i++)
 				{
 					Type targetType = targets[i].GetType();
@@ -601,7 +602,7 @@ namespace UnityTwine
 					{
 						if (method.ReturnType != typeof(void) && !typeof(IEnumerator).IsAssignableFrom(method.ReturnType))
 						{
-							Debug.LogError(targetType.Name + "." + methodName + " must return void or IEnumerator in order to hook this story event.");
+							Debug.LogError(targetType.Name + "." + methodName + " must return void or IEnumerator in order to be used as a cue.");
 							method = null;
 						}
 					}
@@ -609,7 +610,7 @@ namespace UnityTwine
 					{
 						if (method.ReturnType != typeof(void))
 						{
-							Debug.LogError(targetType.Name + "." + methodName + " must return void in order to hook to this story event.");
+							Debug.LogError(targetType.Name + "." + methodName + " must return void in order to be used as a cue.");
 							method = null;
 						}
 					}
@@ -619,23 +620,23 @@ namespace UnityTwine
 						continue;
 
 					// Init the method list
-					if (hooks == null)
-						hooks = new List<Hook>();
+					if (cues == null)
+						cues = new List<Cue>();
 
-					hooks.Add(new Hook() { method = method, target = targets[i] } );
+					cues.Add(new Cue() { method = method, target = targets[i] } );
 				}
 
 				// Cache the method list even if it's null so we don't do another lookup next time around (lazy load)
-				_hookCache.Add(methodName, hooks);
+				_cueCache.Add(methodName, cues);
 			}
 
-			return hooks;
+			return cues;
 		}
 
-		public void HooksClear()
+		public void CuesClear()
 		{
-			_hookCache.Clear();
-			_hookTargets = null;
+			_cueCache.Clear();
+			_cueTargets = null;
 		}
 
 
