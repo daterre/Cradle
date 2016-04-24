@@ -83,10 +83,10 @@ namespace UnityTwine
 			return context;
 		}
 
-		public TwineContext Apply(string key, object value)
+		public TwineContext Apply(string option, object value)
 		{
 			var newContext = new TwineContext();
-			newContext[key] = value;
+			newContext[option] = value;
 			return Apply(newContext);
 		}
 

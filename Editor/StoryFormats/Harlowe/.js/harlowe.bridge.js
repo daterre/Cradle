@@ -27,12 +27,10 @@
 		require(['markup', 'utils'], function(TwineMarkup, utils){
 			"use strict";
 
-			function simplify(tokens, collapsed) {
+			function simplify(tokens) {
 				var result = [];
 				for (var i = 0; i < tokens.length; i++) {
 					var complex = tokens[i];
-					
-					var simple = {type: complex.type};
 
 					// special cases
 					switch(complex.type) {
@@ -41,13 +39,14 @@
 							complex = TwineMarkup.lex("(link-goto:"
 								+ utils.toJSLiteral(complex.innerText) + ","
 								+ utils.toJSLiteral(complex.passage) + ")"
-							);
-							continue;
+							).children[0];
 						}
 					}
 
+					var simple = {type: complex.type};
+
 					if (complex.children && complex.children.length && complex.type !== 'string' && complex.type !== 'verbatim')
-						simple.tokens = simplify(complex.children, collapsed);
+						simple.tokens = simplify(complex.children);
 					if (complex.text)
 						simple.text = $('<div/>').html(complex.text).text();
 					if (complex.innerText)

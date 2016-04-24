@@ -46,8 +46,6 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return new HarloweArray(values);
 		}
 
-
-
 		[TwineRuntimeMacro]
 		public TwineVar rotated(int shift, params TwineVar[] vals)
 		{
@@ -107,6 +105,12 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return new HarloweDataset(vals);
 		}
 
+		[TwineRuntimeMacro]
+		public TwineVar ds(params TwineVar[] vals)
+		{
+			return dataset(vals);
+		}
+
         // ..........
         // Datamap
 
@@ -114,6 +118,12 @@ namespace UnityTwine.StoryFormats.Harlowe
 		public TwineVar datamap(params TwineVar[] vals)
 		{
 			return new HarloweDatamap(vals);
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar dm(params TwineVar[] vals)
+		{
+			return datamap(vals);
 		}
 
         [TwineRuntimeMacro]

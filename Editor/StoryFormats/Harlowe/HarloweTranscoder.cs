@@ -147,92 +147,95 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 		public void GenerateBody(LexerToken[] tokens, bool breaks = true)
 		{
-			for (int t = 0; t < tokens.Length; t++)
-			{
-				LexerToken token = tokens[t];
-
-				switch (token.type)
+			if (tokens != null)
+			{ 
+				for (int t = 0; t < tokens.Length; t++)
 				{
-					case "text":
-						Code.Indent();
-						GenerateText(token.text, true);
-						break;
+					LexerToken token = tokens[t];
 
-					case "verbatim":
-						Code.Indent();
-						GenerateText(token.innerText, true);
-						break;
-
-					case "bulleted":
-					case "numbered":
-						Debug.LogWarning("Bulleted and numbered lists not currently supported");
-						break;
-
-					case "italic":
-					case "bold":
-					case "em":
-					case "del":
-					case "strong":
-					case "sup":
-						Code.Indent();
-						GenerateContext(string.Format("\"{0}\", true", token.type), token.tokens);
-						break;
-
-					case "collapsed":
-						bool wasCollapsed = Code.Collapsed;
-						Code.Collapsed = true;
-						GenerateBody(token.tokens, false);
-						Code.Collapsed = wasCollapsed;
-						break;
-
-					case "br":
-						if (!Code.Collapsed)
-						{
-							Code.Indent();
-							GenerateLineBreak();
-						}
-						break;
-
-					case "whitespace":
-						if (!Code.Collapsed)
-						{
+					switch (token.type)
+					{
+						case "text":
 							Code.Indent();
 							GenerateText(token.text, true);
+							break;
+
+						case "verbatim":
+							Code.Indent();
+							GenerateText(token.innerText, true);
+							break;
+
+						case "bulleted":
+						case "numbered":
+							Debug.LogWarning("Bulleted and numbered lists not currently supported");
+							break;
+
+						case "italic":
+						case "bold":
+						case "em":
+						case "del":
+						case "strong":
+						case "sup":
+							Code.Indent();
+							GenerateContext(string.Format("\"{0}\", true", token.type), token.tokens);
+							break;
+
+						case "collapsed":
+							bool wasCollapsed = Code.Collapsed;
+							Code.Collapsed = true;
+							GenerateBody(token.tokens, false);
+							Code.Collapsed = wasCollapsed;
+							break;
+
+						case "br":
+							if (!Code.Collapsed)
+							{
+								Code.Indent();
+								GenerateLineBreak();
+							}
+							break;
+
+						case "whitespace":
+							if (!Code.Collapsed)
+							{
+								Code.Indent();
+								GenerateText(token.text, true);
+							}
+							break;
+
+						case "variable":
+							Code.Indent();
+							int hookIndex = FollowedBy("hook", tokens, t, true, false);
+							if (hookIndex >= 0)
+							{
+								GenerateContext(BuildVariableRef(token), tokens[hookIndex].tokens);
+								t = hookIndex;
+							}
+							else
+								GenerateText(BuildVariableRef(token), false);
+							break;
+
+						case "macro": {
+
+							// Can't reference variables from other macros
+							_lastVariable = null;
+
+							// If macro is followed by a hook, tell the macro
+							t = GenerateMacro(tokens, t, FollowedBy("hook", tokens, t, true, false) >= 0 ?
+								MacroUsage.LineAndHook :
+								MacroUsage.Line
+							);
+							break;
 						}
-						break;
 
-					case "variable":
-						Code.Indent();
-						int hookIndex = FollowedBy("hook", tokens, t, true, false);
-						if (hookIndex >= 0)
-						{
-							GenerateContext(BuildVariableRef(token), tokens[hookIndex].tokens);
-							t = hookIndex;
-						}
-						else
-							GenerateText(BuildVariableRef(token), false);
-						break;
-
-					case "macro": {
-
-						// Can't reference variables from other macros
-						_lastVariable = null;
-
-						// If macro is followed by a hook, tell the macro
-						t = GenerateMacro(tokens, t, FollowedBy("hook", tokens, t, true, false) >= 0 ?
-							MacroUsage.LineAndHook :
-							MacroUsage.Line
-						);
-						break;
+						case "hook":
+							// This is only for unhandled hooks
+							// TODO: parse the before or after name tag since the Harlowe lexer doesn't
+							GenerateContext("\"anonymousHook\", \"true\"", tokens[t].tokens);
+							break;
+						default:
+							break;
 					}
-
-                    case "hook":
-                        // This is only for unhandled hooks
-                        // TODO: parse the before or after name tag since the Harlowe lexer doesn't
-                        GenerateContext("\"anonymousHook\", \"true\"", tokens[t].tokens);
-                        break;
-					default:
-						break;
 				}
 			}
 
@@ -279,7 +282,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		{
 			GeneratedCode outer = Code;
 			Code = new GeneratedCode();
-			GenerateBody(tokens);
+			GenerateBody(tokens, true );
 			_output.Fragments.Add(Code.Buffer.ToString());
 			Code = outer;
 			return string.Format("passage{0}_Fragment_{1}", _input.Pid, _output.Fragments.Count - 1);

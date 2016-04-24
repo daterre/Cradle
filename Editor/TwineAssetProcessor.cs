@@ -91,11 +91,6 @@ namespace UnityTwine.Editor
 					Debug.LogErrorFormat("Twine import failed: {0} ({1})", ex.Message, fileNameExt);
 					continue;
 				}
-				catch (Exception ex)
-				{
-					Debug.LogException(ex);
-					continue;
-				}
 
 				// ======================================
 				// Run the transcoder
@@ -107,11 +102,6 @@ namespace UnityTwine.Editor
 				catch (TwineTranscodeException ex)
 				{
 					Debug.LogErrorFormat("Twine transcoding failed at passage {0}: {1} ({2})", ex.Passage, ex.Message, fileNameExt);
-					continue;
-				}
-				catch (Exception ex)
-				{
-					Debug.LogException(ex);
 					continue;
 				}
 
@@ -161,86 +151,71 @@ namespace UnityTwine.Editor
 				#endif
 
 				// Detect syntax errors
-				try
+				
+                var compilerSettings = new CompilerParameters()
+                {
+                    GenerateInMemory = true,
+                    GenerateExecutable = false
+                };
+                foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                    if (!string.IsNullOrEmpty(assembly.Location))
+                        compilerSettings.ReferencedAssemblies.Add(assembly.Location);
+
+				var results = new CSharpCodeProvider().CompileAssemblyFromSource(compilerSettings, output);
+
+				if (results.Errors.Count > 0)
 				{
-                    var compilerSettings = new CompilerParameters()
-                    {
-                        GenerateInMemory = true,
-                        GenerateExecutable = false
-                    };
-                    foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-                        if (!string.IsNullOrEmpty(assembly.Location))
-                            compilerSettings.ReferencedAssemblies.Add(assembly.Location);
-
-					var results = new CSharpCodeProvider().CompileAssemblyFromSource(compilerSettings, output);
-
-					if (results.Errors.Count > 0)
+					bool errors = false;
+					for (int i = 0; i < results.Errors.Count; i++)
 					{
-						bool errors = false;
-						for (int i = 0; i < results.Errors.Count; i++)
-						{
-							CompilerError error = results.Errors[i];
+						CompilerError error = results.Errors[i];
 
-							switch (error.ErrorNumber)
-							{
-								//case "CS0246":
-								case "":
-									continue;
+						switch (error.ErrorNumber)
+						{
+							//case "CS0246":
+							case "":
+								continue;
 								
-								// Single quotes instead of double quotes
-								case "CS1012":
-									error.ErrorText = "Strings must use \"double-quotes\", not 'single-quotes'.";
-									break;
+							// Single quotes instead of double quotes
+							case "CS1012":
+								error.ErrorText = "Strings must use \"double-quotes\", not 'single-quotes'.";
+								break;
 
-								// Double var accessor
-								case "CS1612":
-									error.ErrorText = "Can't set a nested property directly like that. Use a temporary variable in-between.";
-									break;
-							}
-
-							// Get some compilation metadata - depends on the template using the #frag# token
-							errors = true;
-                            string[] errorDirective = error.FileName.Split(new string[]{"#frag#"}, StringSplitOptions.None);
-                            string errorPassage = errorDirective[0];
-                            int errorFragment = errorDirective.Length > 1 ? int.Parse(errorDirective[1]) : -1;
-                            TemplatePassageData passage = passageData.Where( p => p.Name == errorPassage).FirstOrDefault();
-                            string lineCode = passage == null ? "(code not available)" : errorFragment >= 0 ? 
-                                passage.Fragments[errorFragment].Code[error.Line-3] :
-                                passage.Code[error.Line-3];
-
-							Debug.LogErrorFormat("Twine compilation error at passage {0}: {1}\n\n\t{2}\n",
-								errorPassage,
-								error.ErrorText,
-                                lineCode
-							);
+							// Double var accessor
+							case "CS1612":
+								error.ErrorText = "Can't set a nested property directly like that. Use a temporary variable in-between.";
+								break;
 						}
 
-						if (errors)
-						{
-							Debug.LogErrorFormat("The Twine story {0} has some errors so it couldn't be imported (see console for details).",
-								Path.GetFileName(assetPath)
-							);
-							continue;
-						}
-					};
-				}
-				catch (Exception ex)
-				{
-					Debug.LogError(ex);
-					continue;
+						// Get some compilation metadata - depends on the template using the #frag# token
+						errors = true;
+                        string[] errorDirective = error.FileName.Split(new string[]{"#frag#"}, StringSplitOptions.None);
+                        string errorPassage = errorDirective[0];
+                        int errorFragment = errorDirective.Length > 1 ? int.Parse(errorDirective[1]) : -1;
+                        TemplatePassageData passage = passageData.Where( p => p.Name == errorPassage).FirstOrDefault();
+                        string lineCode = passage == null || error.Line < 3 ? "(code not available)" : errorFragment >= 0 ? 
+                            passage.Fragments[errorFragment].Code[error.Line-3] :
+                            passage.Code[error.Line-3];
+
+						Debug.LogErrorFormat("Twine compilation error at passage {0}: {1}\n\n\t{2}\n",
+							errorPassage,
+							error.ErrorText,
+                            lineCode
+						);
+					}
+
+					if (errors)
+					{
+						Debug.LogErrorFormat("The Twine story {0} has some errors so it couldn't be imported (see console for details).",
+							Path.GetFileName(assetPath)
+						);
+						continue;
+					}
 				}
 
 				// Passed syntax check, save to file
 				string csFile = Path.Combine(Path.GetDirectoryName(assetPath), Path.GetFileNameWithoutExtension(assetPath) + ".cs");
-				try
-				{
-					File.WriteAllText(csFile, output, Encoding.UTF8);
-				}
-				catch (Exception ex)
-				{
-					Debug.LogError(ex);
-					continue;
-				}
+				File.WriteAllText(csFile, output, Encoding.UTF8);
 
 				// Need to do it twice - on the second time it compiles the script
 				// http://answers.unity3d.com/questions/14367/how-can-i-wait-for-unity-to-recompile-during-the-e.html
