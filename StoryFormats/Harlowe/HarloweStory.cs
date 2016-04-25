@@ -8,7 +8,7 @@ using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutp
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class HarloweStory: TwineStory
+	public abstract class HarloweStory: TwineStory
 	{
 		public HarloweStory()
 		{

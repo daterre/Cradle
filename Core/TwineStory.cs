@@ -262,9 +262,6 @@ namespace UnityTwine
 			while (_currentThread.MoveNext())
 			{
 				TwineOutput output = _currentThread.Current;
-				
-				// Get a copy of the current context
-				output.ContextInfo = this.Context.GetCopy();
 
 				// Abort this thread
 				if (output is TwineAbort)
@@ -378,6 +375,9 @@ namespace UnityTwine
 
 		void SendOutput(TwineOutput output)
 		{
+			// Get a copy of the current context
+			output.ContextInfo = this.Context.GetCopy();
+
 			if (OnOutput != null)
 				OnOutput(output);
 		}

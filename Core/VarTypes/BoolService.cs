@@ -27,16 +27,24 @@ namespace UnityTwine
 
 		public override bool Compare(TwineOperator op, bool a, object b, out bool result)
 		{
-			if (op == TwineOperator.Equals && b is bool)
+			result = false;
+
+			if (op == TwineOperator.Equals)
 			{
-				result = a == (bool)b;
+				// Equaliy, evaluate as bools
+				bool bBool;
+				if (!TwineVar.TryConvertTo<bool>(b, out bBool))
+					return false;
+
+				result = a == bBool;
 				return true;
 			}
-
-			// Use double comparison for other operators
-			result = false;
-			double aDouble;
-			return ConvertTo<double>(a, out aDouble) && TwineVar.GetTypeService<double>(true).Compare(op, aDouble, b, out result);
+			else
+			{
+				// Evaluate as numbers for other operators
+				double aDouble;
+				return ConvertTo<double>(a, out aDouble) && TwineVar.GetTypeService<double>(true).Compare(op, aDouble, b, out result);
+			}
 		}
 
 		public override bool Combine(TwineOperator op, bool a, object b, out TwineVar result)

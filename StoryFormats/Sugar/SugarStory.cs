@@ -6,7 +6,7 @@ using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutp
 
 namespace UnityTwine.StoryFormats.Sugar
 {
-	public class SugarStory: TwineStory
+	public abstract class SugarStory: TwineStory
 	{
 		protected TwineVar array(params TwineVar[] vars)
 		{
