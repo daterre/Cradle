@@ -129,7 +129,6 @@ namespace UnityTwine
 		LessThan,
 		LessThanOrEquals,
 		Contains,
-		//ContainedBy,
 		Add,
 		Subtract,
 		Multiply,

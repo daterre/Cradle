@@ -71,6 +71,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
             CodeGenMacros["mouseoutappend"] =
             CodeGenMacros["mouseoutprepend"] = BuiltInCodeGenMacros.Enchant;
 
+			CodeGenMacros["align"] =
 			CodeGenMacros["font"] =
 			CodeGenMacros["css"] =
 			CodeGenMacros["background"] =

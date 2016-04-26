@@ -25,8 +25,8 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			if (usage == MacroUsage.Inline)
 				throw new TwineTranscodeException(string.Format("'{0}' macro cannot be used inside another macro", assignToken.name));
 
-            //if (assignToken.name.ToLower() == "move")
-             //   throw new TwineTranscodeException(string.Format("The 'move' macro is not currently supported. Use 'set' or 'put'.", assignToken.name));
+            if (assignToken.name.ToLower() == "move")
+                throw new TwineTranscodeException(string.Format("The 'move' macro is not supported. Use 'set' or 'put'.\nTo remove members from arrays and datamaps, use subtraction or subarray.", assignToken.name));
 
 			int start = 1;
 			int end = start;
@@ -298,7 +298,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				throw new TwineImportException(string.Format(
 					"Macro '{0}' {1}. You can add it as a custom macro, please see the UnityTwine documentation page.",
 					macroToken.name,
-					UnsupportedRuntimeMacros.Contains(macroToken.name) ? "is not supported in UnityTwine" : "could not be found"
+					UnsupportedRuntimeMacros.Contains(macroToken.name) ? "is not supported in UnityTwine" : "does not exist"
 				));
 			}
 

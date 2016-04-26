@@ -10,27 +10,43 @@ namespace UnityTwine.StoryFormats.Harlowe
 	{
 		static Regex rx_Position = new Regex(@"^(?'index'\d+)?(st|nd|rd|th)?(?'last'last)?$", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
-		public static bool TryPositionToIndex(string position, int total, out int index)
+		public static bool TryPositionToIndex(TwineVar position, int total, out int index)
 		{
 			index = -1;
+			bool fromEnd = false;
 
-			Match match = rx_Position.Match(position);
-			if (!match.Success)
-				return false;
-
-			bool fromEnd = match.Groups["last"].Success;
-			
-			if (match.Groups["index"].Success)
-				index = int.Parse(match.Groups["index"].Value) - 1;
-			else if (fromEnd)
-				index = 0;
+			if (TwineVar.TryConvertTo<int>(position, out index))
+			{
+				if (index <= 0)
+				{
+					index = Math.Abs(index);
+					fromEnd = true;
+				}
+				else
+					index -= 1;
+			}
 			else
-				return false;
+			{
+				string str;
+				if (!TwineVar.TryConvertTo<string>(position, out str))
+					return false;
+
+				Match match = rx_Position.Match(str);
+				if (!match.Success)
+					return false;
+
+				fromEnd = match.Groups["last"].Success;
+
+				if (match.Groups["index"].Success)
+					index = int.Parse(match.Groups["index"].Value) - 1;
+				else if (fromEnd)
+					index = 0;
+				else
+					return false;
+			}
 
 			if (fromEnd)
-			{
 				index = total - 1 - index;
-			}
 
 			return true;
 		}

@@ -13,17 +13,16 @@ namespace UnityTwine
 			string containerString = (string)container;
 
 			TwineVar value;
-			string memberName = member.ToString().ToLower();
 
-			switch (memberName)
-			{
-				case "length":
-					value = containerString.Length; break;
-				default:
-					value = containerString[Int32.Parse(memberName)]; break;
-			}
+			int pos;
+			if (TwineVar.TryConvertTo<int>(member, out pos))
+				value = containerString[pos];
+			else if (member.ToString() == "length")
+				value = containerString.Length;
+			else
+				value = default(TwineVar);
 
-			return new TwineVar(value);
+			return value;
 		}
 
 		public override void SetMember(string container, TwineVar member, TwineVar value)

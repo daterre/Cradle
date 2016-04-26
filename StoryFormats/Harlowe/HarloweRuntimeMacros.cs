@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using UnityTwine;
+using System.Text;
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
@@ -32,14 +33,17 @@ namespace UnityTwine.StoryFormats.Harlowe
 		}
 
 		[TwineRuntimeMacro]
-		public TwineVar count(HarloweArray array, TwineVar item)
+		public TwineVar count(TwineVar array, TwineVar item)
 		{
-			return array.Values.Where(elem => elem == item).Count();
+			return TwineVar.ConvertTo<HarloweArray>(array).Values.Where(elem => elem == item).Count();
 		}
 
 		[TwineRuntimeMacro]
 		public TwineVar range(int start, int end)
 		{
+			start = Math.Min(start, end);
+			end = Math.Max(start, end);
+
 			TwineVar[] values = new TwineVar[end - start + 1];
 			for (int i = 0; i < values.Length; i++)
 				values[i] = start + i;
@@ -83,6 +87,7 @@ namespace UnityTwine.StoryFormats.Harlowe
             return array;
         }
 
+		 [TwineRuntimeMacro]
         public TwineVar sorted(params string[] values)
         {
             return new HarloweArray(values
@@ -91,9 +96,10 @@ namespace UnityTwine.StoryFormats.Harlowe
             );
         }
 
-		public TwineVar subarray(HarloweArray array, int from, int to)
+		 [TwineRuntimeMacro]
+		 public TwineVar subarray(TwineVar array, int from, int to)
 		{
-			return array.GetMember(range(from, to));
+			return array[range(from, to)];
 		}
 
         // ..........
@@ -305,6 +311,12 @@ namespace UnityTwine.StoryFormats.Harlowe
 		}
 
 		[TwineRuntimeMacro]
+		public TwineVar num(TwineVar val)
+		{
+			return number(val);
+		}
+
+		[TwineRuntimeMacro]
 		public TwineVar random(double from, double to = 0)
 		{
 			int a = Mathf.CeilToInt((float)from);
@@ -322,6 +334,30 @@ namespace UnityTwine.StoryFormats.Harlowe
 		public TwineVar round(double num, int precision)
 		{
 			return Math.Round(num, precision);
+		}
+
+		// ------------------------------------
+		// String
+
+		[TwineRuntimeMacro]
+		public TwineVar substring(string str, int from, int to)
+		{
+			return new TwineVar(str).GetMember(range(from, to));
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar text(params TwineVar[] vals)
+		{
+			var buffer = new StringBuilder();
+			foreach (TwineVar val in HarloweSpread.Flatten(vals))
+				buffer.Append(TwineVar.ConvertTo<string>(val, false));
+			return buffer.ToString();
+		}
+
+		[TwineRuntimeMacro]
+		public TwineVar @string(params TwineVar[] vals)
+		{
+			return text(vals);
 		}
 	}
 }

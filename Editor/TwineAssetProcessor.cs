@@ -145,10 +145,9 @@ namespace UnityTwine.Editor
 				// ======================================
 				// Compile
 
-				#if UNITY_EDITOR_OSX
                 // This environment variable is not set on Mac for some reason
-				Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ":/Applications/Unity/Unity.app/Contents/Frameworks/Mono/bin");
-				#endif
+				if (Application.platform == RuntimePlatform.OSXEditor)
+					Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ":/Applications/Unity/Unity.app/Contents/Frameworks/Mono/bin");
 
 				// Detect syntax errors
 				
@@ -165,6 +164,8 @@ namespace UnityTwine.Editor
 
 				if (results.Errors.Count > 0)
 				{
+					int errorLineOffset = Application.platform == RuntimePlatform.OSXEditor ? 3 : 4;
+
 					bool errors = false;
 					for (int i = 0; i < results.Errors.Count; i++)
 					{
@@ -193,9 +194,9 @@ namespace UnityTwine.Editor
                         string errorPassage = errorDirective[0];
                         int errorFragment = errorDirective.Length > 1 ? int.Parse(errorDirective[1]) : -1;
                         TemplatePassageData passage = passageData.Where( p => p.Name == errorPassage).FirstOrDefault();
-                        string lineCode = passage == null || error.Line < 3 ? "(code not available)" : errorFragment >= 0 ? 
-                            passage.Fragments[errorFragment].Code[error.Line-3] :
-                            passage.Code[error.Line-3];
+						string lineCode = passage == null || error.Line < errorLineOffset ? "(code not available)" : errorFragment >= 0 ?
+							passage.Fragments[errorFragment].Code[error.Line - errorLineOffset] :
+							passage.Code[error.Line - errorLineOffset];
 
 						Debug.LogErrorFormat("Twine compilation error at passage {0}: {1}\n\n\t{2}\n",
 							errorPassage,

@@ -13,10 +13,10 @@ namespace UnityTwine.StoryFormats.Harlowe
 		{
 			object v = val is TwineVar ? ((TwineVar)val).Value : val;
 
-			if (!(val is HarloweCollection))
+			if (!(v is HarloweCollection))
 				throw new TwineTypeException("Only an array, datamap or dataset can be spread");
 
-			this.Target = (HarloweCollection)val;
+			this.Target = (HarloweCollection)v;
 		}
 
 		public static IEnumerable<TwineVar> Flatten(IEnumerable<TwineVar> vals)
