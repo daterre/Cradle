@@ -116,7 +116,7 @@ namespace UnityTwine
 
 		}
 
-		public override int Clone(int value)
+		public override int Duplicate(int value)
 		{
 			return value;
 		}

@@ -51,11 +51,11 @@ namespace UnityTwine.StoryFormats.Harlowe
                 yield return val;
 		}
 
-		public override ITwineType Clone()
+		public override ITwineType Duplicate()
 		{
 			var clone = new HarloweDatamap();
 			foreach (var pair in this.Dictionary)
-				clone.Dictionary[pair.Key] = pair.Value.Clone();
+				clone.Dictionary[pair.Key] = pair.Value.Duplicate();
 
 			return clone;
 		}
@@ -91,7 +91,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 		{
 			var memberName = member.ToString();
 
-			Dictionary[memberName] = value.Clone();
+			Dictionary[memberName] = value.Duplicate();
 		}
 
 		public override void RemoveMember(TwineVar member)

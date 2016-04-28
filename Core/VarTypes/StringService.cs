@@ -133,8 +133,7 @@ namespace UnityTwine
 					return false;
 				result = d;
 			}
-			result = null;
-			if (t == typeof(int))
+			else if (t == typeof(int))
 			{
 				if (strict)
 					return false;
@@ -164,7 +163,7 @@ namespace UnityTwine
 				return false;
 		}
 
-		public override string Clone(string value)
+		public override string Duplicate(string value)
 		{
 			return value;
 		}

@@ -112,7 +112,7 @@ namespace UnityTwine
 				
 		}
 
-		public override bool Clone(bool value)
+		public override bool Duplicate(bool value)
 		{
 			return value;
 		}

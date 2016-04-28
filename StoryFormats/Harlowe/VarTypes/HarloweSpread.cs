@@ -27,11 +27,11 @@ namespace UnityTwine.StoryFormats.Harlowe
 				{
 					var spread = (HarloweSpread)val.Value;
                     foreach (TwineVar innerVal in spread.Target.GetValues())
-                        yield return innerVal.Clone();
+                        yield return innerVal.Duplicate();
 
 				}
 				else
-                    yield return val.Clone();
+                    yield return val.Duplicate();
 			}
 		}
 
@@ -75,7 +75,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 			throw new System.NotSupportedException();
 		}
 
-		public override ITwineType Clone()
+		public override ITwineType Duplicate()
 		{
 			return new HarloweSpread(this.Target);
 		}

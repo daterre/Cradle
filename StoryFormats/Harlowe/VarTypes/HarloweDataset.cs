@@ -41,9 +41,9 @@ namespace UnityTwine.StoryFormats.Harlowe
                 yield return val;
 		}
 
-		public override ITwineType Clone()
+		public override ITwineType Duplicate()
 		{
-            return new HarloweDataset(this.GetValues().Select(v => v.Clone()));
+            return new HarloweDataset(this.GetValues().Select(v => v.Duplicate()));
 		}
 
 		public override string ToString()

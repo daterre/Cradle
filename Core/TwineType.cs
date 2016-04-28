@@ -16,7 +16,7 @@ namespace UnityTwine
 		bool Combine(TwineOperator op, object b, out TwineVar result);
 		bool Unary(TwineOperator op, out TwineVar result);
 		bool ConvertTo(Type t, out object result, bool strict = false);
-		ITwineType Clone();
+		ITwineType Duplicate();
 	}
 
 	public abstract class TwineType: ITwineType
@@ -29,7 +29,7 @@ namespace UnityTwine
 		public abstract bool Combine(TwineOperator op, object b, out TwineVar result);
 		public abstract bool Unary(TwineOperator op, out TwineVar result);
 		public abstract bool ConvertTo(Type t, out object result, bool strict = false);
-		public abstract ITwineType Clone();
+		public abstract ITwineType Duplicate();
 	}
 
 	public interface ITwineTypeService
@@ -43,7 +43,7 @@ namespace UnityTwine
 		bool Unary(TwineOperator op, object a, out TwineVar result);
 		bool ConvertTo(object a, Type t, out object result, bool strict = false);
 		bool ConvertFrom(object a, out object result, bool strict = false);
-		object Clone(object value);
+		object Duplicate(object value);
 	}
 
 	public abstract class TwineTypeService<T>: ITwineTypeService
@@ -57,7 +57,7 @@ namespace UnityTwine
 		public abstract bool Unary(TwineOperator op, T a, out TwineVar result);
 		public abstract bool ConvertTo(T a, Type t, out object result, bool strict = false);
 		public abstract bool ConvertFrom(object a, out T result, bool strict = false);
-		public abstract T Clone(T value);
+		public abstract T Duplicate(T value);
 
 		public bool ConvertTo<ResultT>(T a, out ResultT resultT)
 		{
@@ -115,9 +115,9 @@ namespace UnityTwine
 			RemoveMember((T)container, member);
 		}
 
-		object ITwineTypeService.Clone(object value)
+		object ITwineTypeService.Duplicate(object value)
 		{
-			return Clone((T)value);
+			return Duplicate((T)value);
 		}
 	}
 

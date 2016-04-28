@@ -49,7 +49,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 			throw new System.NotSupportedException();
 		}
 
-		public override ITwineType Clone()
+		public override ITwineType Duplicate()
 		{
 			return new HarloweHookRef(this.HookName);
 		}

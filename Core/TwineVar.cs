@@ -30,12 +30,28 @@ namespace UnityTwine
 
 		public TwineVar(object value)
 		{
-			this.Value = value is TwineVar ? ((TwineVar)value).Clone().Value : value;
+			this.Value = GetInnerValue(value, true);
 		}
 
 		public Type GetInnerType()
 		{
 			return Value == null ? null : Value.GetType();
+		}
+
+		private static object GetInnerValue(object obj, bool duplicate = false)
+		{
+			var twVar = default(TwineVar);
+			while (obj is TwineVar)
+			{
+				twVar = (TwineVar)obj;
+				obj = twVar.Value;
+			}
+
+			// When a duplicate is needed, duplicate only the last twine var in the chain
+			if (duplicate && twVar.Value != null)
+				obj = twVar.Duplicate().Value;
+
+			return obj;
 		}
 
 		public override int GetHashCode()
@@ -172,11 +188,10 @@ namespace UnityTwine
 		// ..............
 		// OBJECT
 
-
 		public static bool Compare(TwineOperator op, object left, object right)
 		{
-			object a = left is TwineVar ? ((TwineVar)left).Value : left;
-			object b = right is TwineVar ? ((TwineVar)right).Value : right;
+			object a = GetInnerValue(left);
+			object b = GetInnerValue(right);
 
 			bool result;
 			ITwineTypeService service;
@@ -195,8 +210,8 @@ namespace UnityTwine
 
 		public static bool TryCombine(TwineOperator op, object left, object right, out TwineVar result)
 		{
-			object a = left is TwineVar ? ((TwineVar)left).Value : left;
-			object b = right is TwineVar ? ((TwineVar)right).Value : right;
+			object a = GetInnerValue(left);
+			object b = GetInnerValue(right);
 
 			ITwineTypeService service;
 
@@ -215,8 +230,8 @@ namespace UnityTwine
 
 		public static TwineVar Combine(TwineOperator op, object left, object right)
 		{
-			object a = left is TwineVar ? ((TwineVar)left).Value : left;
-			object b = right is TwineVar ? ((TwineVar)right).Value : right;
+			object a = GetInnerValue(left);
+			object b = GetInnerValue(right);
 
 			TwineVar result;
 			if (TryCombine(op, a, b, out result))
@@ -231,7 +246,7 @@ namespace UnityTwine
 
 		public static TwineVar Unary(TwineOperator op, object obj)
 		{
-			object a = obj is TwineVar ? ((TwineVar)obj).Value : obj;
+			object a = GetInnerValue(obj);
 
 			ITwineTypeService service;
 
@@ -250,7 +265,7 @@ namespace UnityTwine
 
 		public static bool TryConvertTo(object obj, Type t, out object result, bool strict)
 		{
-			object val = obj is TwineVar ? ((TwineVar)obj).Value : obj;
+			object val = GetInnerValue(obj);
 
 			// Source conversion
 			if (val != null)
@@ -311,6 +326,8 @@ namespace UnityTwine
 
 		public static T ConvertTo<T>(object obj, bool strict)
 		{
+			obj = GetInnerValue(obj);
+
 			T result;
 			if (TryConvertTo<T>(obj, out result, strict))
 				return result;
@@ -323,7 +340,17 @@ namespace UnityTwine
 			return ConvertTo<T>(obj, TwineVar.StrictMode);
 		}
 
-		public TwineVar Clone()
+		public TwineVar As<T>()
+		{
+			return new TwineVar(TwineVar.ConvertTo<T>(this.Value));
+		}
+
+		public T ValueAs<T>()
+		{
+			return TwineVar.ConvertTo<T>(this.Value);
+		}
+
+		public TwineVar Duplicate()
 		{
 			object val;
 			if (this.Value == null || this.Value.GetType().IsValueType)
@@ -335,11 +362,11 @@ namespace UnityTwine
 				// Service type
 				ITwineTypeService service = GetTypeService(this.Value.GetType());
 				if (service != null)
-					val = service.Clone(this.Value);
+					val = service.Duplicate(this.Value);
 
 				// Twine type 
 				else if (this.Value is ITwineType)
-					val = (this.Value as ITwineType).Clone();
+					val = (this.Value as ITwineType).Duplicate();
 
 				val = this.Value;
 			}

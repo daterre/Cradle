@@ -38,12 +38,12 @@ namespace UnityTwine.StoryFormats.Harlowe
         public override IEnumerable<TwineVar> GetValues()
 		{
 			foreach (TwineVar val in this.Values)
-				yield return val.Clone();
+				yield return val.Duplicate();
 		}
 
-		public override ITwineType Clone()
+		public override ITwineType Duplicate()
 		{
-            return new HarloweArray(this.GetValues().Select(v => v.Clone()));
+            return new HarloweArray(this.GetValues().Select(v => v.Duplicate()));
 		}
 
 		public override string ToString()
@@ -97,7 +97,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 			int index;
 			if (HarloweUtils.TryPositionToIndex(memberName, Values.Count, out index))
 			{
-				try { Values[index] = value.Clone(); }
+				try { Values[index] = value.Duplicate(); }
 				catch (System.IndexOutOfRangeException)
 				{
 					throw new TwineTypeMemberException(string.Format("The array doesn't have a {0} position.", memberName));

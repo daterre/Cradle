@@ -26,7 +26,7 @@ namespace UnityTwine
 
 		public static implicit operator TwineContext(TwineVar contextVar)
 		{
-			return TwineVar.ConvertTo<TwineContext>(contextVar);
+			return contextVar.As<TwineContext>();
 		}
 
 		public object this[string name]
@@ -176,7 +176,7 @@ namespace UnityTwine
 			return false;
 		}
 
-		public override ITwineType Clone()
+		public override ITwineType Duplicate()
 		{
 			return this.GetCopy();
 		}

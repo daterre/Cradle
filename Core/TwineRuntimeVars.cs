@@ -78,7 +78,7 @@ namespace UnityTwine
 		public void SetMember(string varName, TwineVar value)
 		{
 			TwineVar prevValue = this[varName];
-			object v = value.Clone().Value;
+			object v = value.Duplicate().Value;
 
 			// Enfore strict mode
 			if (StrictMode)

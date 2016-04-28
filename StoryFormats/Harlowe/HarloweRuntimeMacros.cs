@@ -35,14 +35,15 @@ namespace UnityTwine.StoryFormats.Harlowe
 		[TwineRuntimeMacro]
 		public TwineVar count(TwineVar array, TwineVar item)
 		{
-			return TwineVar.ConvertTo<HarloweArray>(array).Values.Where(elem => elem == item).Count();
+			return array.ValueAs<HarloweArray>().Values.Where(elem => elem == item).Count();
 		}
 
 		[TwineRuntimeMacro]
 		public TwineVar range(int start, int end)
 		{
+			int temp = start;
 			start = Math.Min(start, end);
-			end = Math.Max(start, end);
+			end = Math.Max(temp, end);
 
 			TwineVar[] values = new TwineVar[end - start + 1];
 			for (int i = 0; i < values.Length; i++)
@@ -59,8 +60,10 @@ namespace UnityTwine.StoryFormats.Harlowe
             for (int i = 0; i < original.Length; i++)
             {
                 int j = i + shift;
-                if (j < 0)
-                    j = original.Length - j;
+				if (j < 0)
+					j += original.Length;
+				else if (j > original.Length - 1)
+					j -= original.Length;
                 copy.Values[j] = original.Values[i];
             }
 
@@ -133,20 +136,20 @@ namespace UnityTwine.StoryFormats.Harlowe
 		}
 
         [TwineRuntimeMacro]
-        public TwineVar datanames(HarloweDatamap datamap)
+        public TwineVar datanames(TwineVar datamap)
         {
-            return new HarloweArray(datamap.Dictionary.Keys
+			return new HarloweArray(datamap.ValueAs<HarloweDatamap>().Dictionary.Keys
                 .OrderBy(key => key, StringComparer.InvariantCulture)
                 .Select(key => new TwineVar(key))
             );
         }
 
         [TwineRuntimeMacro]
-        public TwineVar datavalues(HarloweDatamap datamap)
+		public TwineVar datavalues(TwineVar datamap)
         {
-            return new HarloweArray(datamap.Dictionary.Keys
-                .OrderBy(key => key, StringComparer.InvariantCulture)
-                .Select(key => datamap.Dictionary[key])
+			return new HarloweArray(datamap.ValueAs<HarloweDatamap>().Dictionary
+                .OrderBy(pair => pair.Key, StringComparer.InvariantCulture)
+                .Select(pair => pair.Value)
             );
         }
 
