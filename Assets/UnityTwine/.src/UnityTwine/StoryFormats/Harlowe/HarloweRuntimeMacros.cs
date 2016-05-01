@@ -183,11 +183,13 @@ namespace UnityTwine.StoryFormats.Harlowe
         // ------------------------------------
         // Game state
 
+		[TwineRuntimeMacro]
         public TwineVar history()
         {
             return new HarloweArray(Story.PassageHistory.Select(passageName => new TwineVar(passageName)));
         }
 
+		 [TwineRuntimeMacro]
         public TwineVar passage(string passageName)
         {
             TwinePassage passage;

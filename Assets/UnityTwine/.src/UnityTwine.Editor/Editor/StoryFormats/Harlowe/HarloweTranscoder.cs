@@ -21,6 +21,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		HarlowePassageData _input;
 		TwinePassageCode _output;
 		string _lastVariable;
+		internal int ContextCounter;
 
 		static HarloweTranscoder()
 		{
@@ -43,6 +44,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 			CodeGenMacros["goto"] = BuiltInCodeGenMacros.GoTo;
 			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
+			CodeGenMacros["display"] = BuiltInCodeGenMacros.Display;
 
             CodeGenMacros["replace"] =
 			CodeGenMacros["append"] = 
@@ -59,6 +61,9 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
             CodeGenMacros["mouseoutreplace"] =
             CodeGenMacros["mouseoutappend"] =
             CodeGenMacros["mouseoutprepend"] = BuiltInCodeGenMacros.Enchant;
+
+			CodeGenMacros["live"] = BuiltInCodeGenMacros.Live;
+			CodeGenMacros["stop"] = BuiltInCodeGenMacros.Stop;
 
 			CodeGenMacros["align"] =
 			CodeGenMacros["font"] =
@@ -120,6 +125,8 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		{
 			if (p is HarlowePassageData == false)
 				throw new NotSupportedException("HarloweParser called with incompatible passage data");
+
+			ContextCounter = 0;
 
 			_input = (HarlowePassageData)p;
 			_output = new TwinePassageCode();
@@ -257,8 +264,9 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 		public void GenerateContext(string contextParams, LexerToken[] tokens)
 		{
+			Code.Indent();
 			Code.Buffer
-				.AppendFormat("using (Context.Apply({0})) {{", contextParams)
+				.AppendFormat("var c{0} = Context.Apply({1}); if (c{0}) using (c{0}) {{", ++ContextCounter, contextParams)
 				.AppendLine();
 			Code.Indentation++;
 			GenerateBody(tokens, breaks: false);
@@ -382,13 +390,15 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				case "hookRef":
 					return string.Format("hookRef(\"{0}\")", token.name);
 				case "string":
-					return WrapInVar(string.Format("\"{0}\"", token.innerText), tokens, tokenIndex);
+					return WrapInVarIfNecessary(string.Format("\"{0}\"", token.innerText), tokens, tokenIndex);
 				case "number":
-					return WrapInVar(token.text, tokens, tokenIndex);
+					return WrapInVarIfNecessary(token.text, tokens, tokenIndex);
+				case "cssTime":
+					return WrapInVarIfNecessary(token.value.ToString(), tokens, tokenIndex);
 				case "colour":
-					return WrapInVar(string.Format("\"{0}\"", token.text), tokens, tokenIndex);
+					return WrapInVarIfNecessary(string.Format("\"{0}\"", token.text), tokens, tokenIndex);
 				case "grouping":
-					if(WrapInVarRequired(tokens, tokenIndex))
+					if(IsWrapInVarRequired(tokens, tokenIndex))
 						Code.Buffer.Append(" v");
 					Code.Buffer.Append("(");
 					GenerateExpression(token.tokens);
@@ -475,7 +485,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			throw new TwineTranscodeException("There is an incomplete expession in your code. Does it work in the browser?");
 		}
 
-		bool WrapInVarRequired(LexerToken[] tokens, int tokenIndex)
+		bool IsWrapInVarRequired(LexerToken[] tokens, int tokenIndex)
 		{
 			bool wrap = false;
 
@@ -504,9 +514,9 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			return wrap;
 		}
 
-		string WrapInVar(string expr, LexerToken[] tokens, int tokenIndex)
+		string WrapInVarIfNecessary(string expr, LexerToken[] tokens, int tokenIndex)
 		{
-			return WrapInVarRequired(tokens, tokenIndex) ?
+			return IsWrapInVarRequired(tokens, tokenIndex) ?
 				string.Format("v({0})", expr) :
 				expr;
 		}

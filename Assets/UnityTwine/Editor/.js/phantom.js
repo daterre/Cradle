@@ -15,7 +15,7 @@ function end(result) {
 	var json = JSON.stringify(output,null,4);
 	system.stdout.write(json);
 	if (filePath)
-		fs.write("D:\\Files\\Desktop\\harlowe.json", json, 'w');
+		fs.write("output.json", json, 'w');
 	phantom.exit(result);
 }
 

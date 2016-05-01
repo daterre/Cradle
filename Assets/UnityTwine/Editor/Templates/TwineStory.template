@@ -78,7 +78,7 @@ public partial class @{{storyName}}: {{storyFormatClass}}
 		this.Passages["{{Name}}"] = new TwinePassage("{{Name}}", new string[]{ {{& Tags}} }, passage{{Pid}}_Main);
 	}
 
-	#line 1 "{{Name}}"
+	//#line 1 "{{DirectiveName}}"
 	ITwineThread passage{{Pid}}_Main()
 	{
 		{{#Code}}
@@ -87,7 +87,7 @@ public partial class @{{storyName}}: {{storyFormatClass}}
 	}
 
 	{{#Fragments}}
-	#line 1 "{{Name}}#frag#{{FragId}}"
+	//#line 1 "{{DirectiveName}}#frag#{{FragId}}"
 	ITwineThread passage{{Pid}}_Fragment_{{FragId}}()
 	{
 		{{#Code}}

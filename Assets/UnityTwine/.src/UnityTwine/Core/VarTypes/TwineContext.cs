@@ -8,8 +8,9 @@ namespace UnityTwine
 	public class TwineContext: TwineType, IDisposable
 	{
 		public event Action<TwineContext> OnDisposed;
-		public event Action<TwineContext> OnChanged;
 		public bool IsReadOnly { get; private set; }
+
+		public const string EvaluatedVaContextOption = "evaluated-expression";
 
 		List<TwineContext> _appliedContexts = new List<TwineContext>();
 		Dictionary<string, object> _appliedValues = new Dictionary<string, object>();
@@ -27,6 +28,16 @@ namespace UnityTwine
 		public static implicit operator TwineContext(TwineVar contextVar)
 		{
 			return contextVar.ConvertValueTo<TwineContext>();
+		}
+
+		public static bool operator true(TwineContext context)
+		{
+			return context != null && context._calculatedValues.Count > 0;
+		}
+
+		public static bool operator false(TwineContext context)
+		{
+			return context == null || context._calculatedValues.Count == 0;
 		}
 
 		public object this[string name]
@@ -63,6 +74,17 @@ namespace UnityTwine
 				return val;
 			else
 				return null;
+		}
+
+		public TwineContext Apply(TwineVar val)
+		{
+			if (typeof(TwineContext).IsAssignableFrom(val.GetInnerType()))
+				return Apply(val.ConvertValueTo<TwineContext>());
+
+			if (val.ConvertValueTo<bool>())
+				return Apply(EvaluatedVaContextOption, val);
+			else
+				return new TwineContext();
 		}
 
 		public TwineContext Apply(TwineContext context)

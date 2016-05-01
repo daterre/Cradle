@@ -26,6 +26,7 @@ namespace UnityTwine
 
         public TwineEmbedFragment(Func<ITwineThread> fragment)
 		{
+			GetThread = fragment;
 		}
 	}
 }

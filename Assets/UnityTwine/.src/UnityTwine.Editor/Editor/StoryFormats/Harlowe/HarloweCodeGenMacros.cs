@@ -85,7 +85,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			tokenIndex++;
 
 			LexerToken hookToken = tokens[tokenIndex];
-			transcoder.GenerateBody(hookToken.tokens);
+			transcoder.GenerateBody(hookToken.tokens, false);
 
 			transcoder.Code.Indentation--;
 			transcoder.Code.Indent();
@@ -274,6 +274,41 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 		// ......................
 
+		public static HarloweCodeGenMacro Live = (transcoder, tokens, tokenIndex, usage) =>
+		{
+			LexerToken liveToken = tokens[tokenIndex];
+
+			// Open
+			transcoder.Code.Buffer.AppendFormat("yield return new Live(");
+
+			// Reference
+			transcoder.GenerateExpression(liveToken.tokens, 1, liveToken.tokens.Length - 1);
+
+			// Action
+			transcoder.Code.Buffer.Append(", ");
+			if (usage == MacroUsage.LineAndHook)
+			{
+				tokenIndex++; // advance
+				LexerToken hookToken = tokens[tokenIndex];
+				transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
+			}
+			else
+				throw new TwineTranscodeException(string.Format("'{0}' macro must be followed by a Harlowe-hook", liveToken.name));
+
+			// Close
+			transcoder.Code.Buffer.AppendLine(");");
+
+			return tokenIndex;
+		};
+
+		public static HarloweCodeGenMacro Stop = (transcoder, tokens, tokenIndex, usage) =>
+		{
+			transcoder.Code.Buffer.AppendLine("yield return new LiveStop();");
+			return tokenIndex;
+		};
+
+		// ......................
+
 		static string[] UnsupportedRuntimeMacros = new string[] {
 			"alert",
 			"prompt",
@@ -284,9 +319,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			"gotourl",
 			"openurl",
 			"pageurl",
-			"reload",
-			"live",
-			"stop"
+			"reload"
 		};
 
 		public static HarloweCodeGenMacro RuntimeMacro = (transcoder, tokens, tokenIndex, usage) =>

@@ -109,6 +109,7 @@ public partial class @HarloweTests: UnityTwine.StoryFormats.Harlowe.HarloweStory
 
 	void passage1_Init()
 	{
+
 		this.Passages["Result"] = new TwinePassage("Result", new string[]{  }, passage1_Main);
 	}
 

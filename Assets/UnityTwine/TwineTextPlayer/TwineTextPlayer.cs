@@ -10,9 +10,9 @@ public class TwineTextPlayer : MonoBehaviour {
 	public RectTransform Container;
 	public Button LinkTemplate;
 	public Text TextTemplate;
+	public RectTransform LineBreakTemplate;
 	public bool StartStory = true;
 	public bool AutoDisplay = true;
-	public bool ShowEmptyLines = false;
 	public bool ShowNamedLinks = true;
 
 	bool _clicked = false;
@@ -21,8 +21,10 @@ public class TwineTextPlayer : MonoBehaviour {
 	void Start () {
 		LinkTemplate.gameObject.SetActive(false);
 		TextTemplate.gameObject.SetActive(false);
+		LineBreakTemplate.gameObject.SetActive(false);
 		((RectTransform)LinkTemplate.transform).SetParent(null);
 		TextTemplate.rectTransform.SetParent(null);
+		LineBreakTemplate.SetParent(null);
 
 		if (this.Story == null)
 			this.Story = this.GetComponent<TwineStory>();
@@ -134,11 +136,9 @@ public class TwineTextPlayer : MonoBehaviour {
 		if (output is TwineText)
 		{
 			var text = (TwineText)output;
-			if (!ShowEmptyLines && text.Text.Trim().Length < 1)
-				return;
 
 			Text uiText = (Text)Instantiate(TextTemplate);
-			uiText.gameObject.SetActive(true);
+			uiText.gameObject.SetActive(true); 
 			uiText.text = text.Text;
 			uiText.name =
 				text.Text.Length > maxNameLength-3 ? text.Text.Substring(0,27) + "..." :
@@ -154,12 +154,19 @@ public class TwineTextPlayer : MonoBehaviour {
 
 			Button uiLink = (Button)Instantiate(LinkTemplate);
 			uiLink.gameObject.SetActive(true);
-			uiLink.name = "[[" + (link.Name.Length > maxNameLength - 3 ? link.Name.Substring(0, 27) + "..." : link.Name) + "]]";
+			uiLink.name = "[[" + link.Text + "]]";
 
 			Text uiLinkText = uiLink.GetComponentInChildren<Text>();
 			uiLinkText.text = link.Text;
-			uiLink.onClick.AddListener(() => this.Story.Advance(link));
+			uiLink.onClick.AddListener(() => this.Story.DoLink(link));
 			child = (RectTransform)uiLink.transform;
+		}
+		else if (output is TwineLineBreak)
+		{
+			var br = (RectTransform)Instantiate(LineBreakTemplate);
+			br.gameObject.SetActive(true);
+			br.gameObject.name = "br";
+			child = br;
 		}
 		else
 			return;

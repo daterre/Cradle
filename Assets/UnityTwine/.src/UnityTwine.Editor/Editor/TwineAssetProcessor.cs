@@ -16,25 +16,8 @@ namespace UnityTwine.Editor
     public class TwineAssetProcessor: AssetPostprocessor
     {
 		static Regex NameSanitizer = new Regex(@"([^a-z0-9_]|^[0-9])", RegexOptions.IgnoreCase);
+		static char[] InvalidFileNameChars = System.IO.Path.GetInvalidFileNameChars();
 		static Dictionary<string, Type> ImporterTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
-
-		public class TemplatePassageData : TwinePassageData
-		{
-			public new string[] Code;
-			public TemplatePassageFragment[] Fragments;
-		}
-
-		public class TemplatePassageFragment
-		{
-			public string Pid;
-			public int FragId;
-			public string[] Code;
-		}
-
-		public static void RegisterImporter<T>(string extenstion) where T: TwineImporter, new()
-		{
-			ImporterTypes[extenstion] = typeof(T);
-		}
 
         static void OnPostprocessAllAssets (
             string[] importedAssets,
@@ -187,29 +170,52 @@ namespace UnityTwine.Editor
 								break;
 						}
 
-						// Get some compilation metadata - depends on the template using the #frag# token
-						errors = true;
-                        string[] errorDirective = error.FileName.Split(new string[]{"#frag#"}, StringSplitOptions.None);
-                        string errorPassage = errorDirective[0];
-                        int errorFragment = errorDirective.Length > 1 ? int.Parse(errorDirective[1]) : -1;
-                        TemplatePassageData passage = passageData.Where( p => p.Name == errorPassage).FirstOrDefault();
-						string lineCode = passage == null || error.Line < errorLineOffset ? "(code not available)" : errorFragment >= 0 ?
-							passage.Fragments[errorFragment].Code[error.Line - errorLineOffset] :
-							passage.Code[error.Line - errorLineOffset];
+						// Error only if not a warning
+						errors |= !error.IsWarning;
 
-						Debug.LogErrorFormat("Twine compilation error at passage {0}: {1}\n\n\t{2}\n",
-							errorPassage,
-							error.ErrorText,
-                            lineCode
-						);
+						try
+						{
+							// Get some compilation metadata - depends on the template using the #frag# token
+							string[] errorDirective = error.FileName.Split(new string[] { "#frag#" }, StringSplitOptions.None);
+							string errorPassage = errorDirective[0];
+							int errorFragment = errorDirective.Length > 1 ? int.Parse(errorDirective[1]) : -1;
+							TemplatePassageData passage = passageData.Where(p => p.Name == errorPassage).FirstOrDefault();
+							string lineCode = passage == null || error.Line < errorLineOffset ? "(code not available)" : errorFragment >= 0 ?
+								passage.Fragments[errorFragment].Code[error.Line - errorLineOffset] :
+								passage.Code[error.Line - errorLineOffset];
+
+							if (error.IsWarning)
+								Debug.LogWarningFormat("Twine compilation warning at passage {0}: {1}\n\n\t{2}\n",
+									errorPassage,
+									error.ErrorText,
+									lineCode
+								);
+							else
+								Debug.LogErrorFormat("Twine compilation error at passage {0}: {1}\n\n\t{2}\n",
+									errorPassage,
+									error.ErrorText,
+									lineCode
+								);
+						}
+						catch
+						{
+							if (error.IsWarning)
+								Debug.LogWarningFormat("Twine compilation warning: {0}\n",
+									error.ErrorText
+								);
+							else
+								Debug.LogErrorFormat("Twine compilation error: {0}\n",
+									error.ErrorText
+								);
+						}
 					}
 
 					if (errors)
 					{
-						Debug.LogErrorFormat("The Twine story {0} has some errors so it couldn't be imported (see console for details).",
+						Debug.LogErrorFormat("The Twine story {0} has some errors and can't be imported (see console for details).",
 							Path.GetFileName(assetPath)
 						);
-						continue;
+						//continue;
 					}
 				}
 
@@ -266,5 +272,34 @@ namespace UnityTwine.Editor
             }
         }
 
+
+		public class TemplatePassageData : TwinePassageData
+		{
+			public new string[] Code;
+			public TemplatePassageFragment[] Fragments;
+
+			public string DirectiveName
+			{
+				get
+				{
+
+					string corrected = String.Join("_", this.Name.Split(InvalidFileNameChars, StringSplitOptions.RemoveEmptyEntries)).TrimEnd('.');
+					Debug.Log(corrected);
+					return corrected;
+				}
+			}
+		}
+
+		public class TemplatePassageFragment
+		{
+			public string Pid;
+			public int FragId;
+			public string[] Code;
+		}
+
+		public static void RegisterImporter<T>(string extenstion) where T : TwineImporter, new()
+		{
+			ImporterTypes[extenstion] = typeof(T);
+		}
     }
 }
