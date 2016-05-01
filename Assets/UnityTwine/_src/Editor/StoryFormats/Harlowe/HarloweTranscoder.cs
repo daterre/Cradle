@@ -17,16 +17,6 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 	[InitializeOnLoad]
 	public class HarloweTranscoder : StoryFormatTranscoder
 	{
-		#region Regex 
-		// ---------------------------
-
-		static Regex rx_LinkNames = new Regex(@"((?'linkName'[^|\n]+?)\s*=\s*)?(?'linkText'.*)",
-			RegexOptions.IgnoreCase |
-			RegexOptions.ExplicitCapture);
-
-		// ---------------------------
-		#endregion
-
 		static Dictionary<string, HarloweCodeGenMacro> CodeGenMacros = new Dictionary<string, HarloweCodeGenMacro>(StringComparer.OrdinalIgnoreCase);
 		public GeneratedCode Code { get; private set; }
 		HarlowePassageData _input;
