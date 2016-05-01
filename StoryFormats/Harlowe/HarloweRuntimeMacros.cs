@@ -35,7 +35,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 		[TwineRuntimeMacro]
 		public TwineVar count(TwineVar array, TwineVar item)
 		{
-			return array.ValueAs<HarloweArray>().Values.Where(elem => elem == item).Count();
+			return array.ConvertValueTo<HarloweArray>().Values.Where(elem => elem == item).Count();
 		}
 
 		[TwineRuntimeMacro]
@@ -138,7 +138,7 @@ namespace UnityTwine.StoryFormats.Harlowe
         [TwineRuntimeMacro]
         public TwineVar datanames(TwineVar datamap)
         {
-			return new HarloweArray(datamap.ValueAs<HarloweDatamap>().Dictionary.Keys
+			return new HarloweArray(datamap.ConvertValueTo<HarloweDatamap>().Dictionary.Keys
                 .OrderBy(key => key, StringComparer.InvariantCulture)
                 .Select(key => new TwineVar(key))
             );
@@ -147,7 +147,7 @@ namespace UnityTwine.StoryFormats.Harlowe
         [TwineRuntimeMacro]
 		public TwineVar datavalues(TwineVar datamap)
         {
-			return new HarloweArray(datamap.ValueAs<HarloweDatamap>().Dictionary
+			return new HarloweArray(datamap.ConvertValueTo<HarloweDatamap>().Dictionary
                 .OrderBy(pair => pair.Key, StringComparer.InvariantCulture)
                 .Select(pair => pair.Value)
             );

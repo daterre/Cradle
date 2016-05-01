@@ -340,12 +340,12 @@ namespace UnityTwine
 			return ConvertTo<T>(obj, TwineVar.StrictMode);
 		}
 
-		public TwineVar As<T>()
+		public TwineVar ConvertTo<T>()
 		{
 			return new TwineVar(TwineVar.ConvertTo<T>(this.Value));
 		}
 
-		public T ValueAs<T>()
+		public T ConvertValueTo<T>()
 		{
 			return TwineVar.ConvertTo<T>(this.Value);
 		}

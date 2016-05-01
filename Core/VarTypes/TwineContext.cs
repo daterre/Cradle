@@ -26,7 +26,7 @@ namespace UnityTwine
 
 		public static implicit operator TwineContext(TwineVar contextVar)
 		{
-			return contextVar.As<TwineContext>();
+			return contextVar.ConvertValueTo<TwineContext>();
 		}
 
 		public object this[string name]
