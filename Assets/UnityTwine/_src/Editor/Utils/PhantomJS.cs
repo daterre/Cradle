@@ -29,7 +29,7 @@ namespace UnityTwine.Editor.Utils
 			phantomJS.StartInfo.UseShellExecute = false;
 			phantomJS.StartInfo.CreateNoWindow = true;
 			phantomJS.StartInfo.RedirectStandardOutput = true;
-			phantomJS.StartInfo.WorkingDirectory = Application.dataPath + "/Plugins/UnityTwine/Editor/.js";
+			phantomJS.StartInfo.WorkingDirectory = Application.dataPath + "/UnityTwine/Editor/.js";
 			phantomJS.StartInfo.FileName = Application.dataPath + BinPath;
 			phantomJS.StartInfo.Arguments = string.Format ("\"{0}\" \"{1}\"{2}",
 				"phantom.js",

@@ -181,7 +181,7 @@ namespace UnityTwine.Editor.StoryFormats.Sugar
 			{
 				output = PhantomJS.Run<TwinePassageData[]>(
 					new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
-					new System.Uri(Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/Sugar/.js/sugar.bridge.js").AbsolutePath
+					new System.Uri(Application.dataPath + "/UnityTwine/.js/StoryFormats/Sugar/sugar.bridge.js").AbsolutePath
 				);
 			}
 			catch (TwineImportException)

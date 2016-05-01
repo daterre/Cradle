@@ -116,7 +116,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			{
 				output = PhantomJS.Run<HarlowePassageData[]>(
 					new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
-					new System.Uri(Application.dataPath + "/Plugins/UnityTwine/Editor/StoryFormats/Harlowe/.js/harlowe.bridge.js").AbsolutePath
+					new System.Uri(Application.dataPath + "/UnityTwine/.js/StoryFormats/Harlowe/harlowe.bridge.js").AbsolutePath
 				);
 			}
 			catch(TwineImportException)
