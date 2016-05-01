@@ -57,7 +57,7 @@ If you use UnityTwine in your project or game jam and find bugs, develop extra f
 Two ways to install:
 
 - [Download the latest release](https://github.com/daterre/UnityTwine/releases) and unzip to your Unity project's Assets folder.
-- [Grab a snapshot](https://github.com/daterre/UnityTwine/archive/master.zip) of the entire repository and place it in your project's Assets folder under Plugins/UnityTwine
+- [Grab a snapshot](https://github.com/daterre/UnityTwine/archive/v1.1.0.zip) of the latest release tag and place it in your project's Assets folder under Plugins/UnityTwine
 
 It is recommended to restart Unity after installation in order to make sure that the importer registers correctly.
 
