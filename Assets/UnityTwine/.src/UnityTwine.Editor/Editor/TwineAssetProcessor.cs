@@ -215,7 +215,7 @@ namespace UnityTwine.Editor
 						Debug.LogErrorFormat("The Twine story {0} has some errors and can't be imported (see console for details).",
 							Path.GetFileName(assetPath)
 						);
-						//continue;
+						continue;
 					}
 				}
 
@@ -284,7 +284,6 @@ namespace UnityTwine.Editor
 				{
 
 					string corrected = String.Join("_", this.Name.Split(InvalidFileNameChars, StringSplitOptions.RemoveEmptyEntries)).TrimEnd('.');
-					Debug.Log(corrected);
 					return corrected;
 				}
 			}

@@ -6,14 +6,15 @@ using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutp
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class Enchantment: TwineEmbedFragment
+	public class HarloweEnchantment: TwineOutput
 	{
-        public EnchantmentTarget[] Targets;
+        public HarloweEnchantmentTarget[] Targets;
+		public Func<ITwineThread> Action;
 
-        public Enchantment(TwineStory story, EnchantmentTarget[] targets, Func<ITwineThread> action): base(action)
+        public HarloweEnchantment(TwineStory story, HarloweEnchantmentTarget[] targets, Func<ITwineThread> action)
 		{
             this.Targets = targets;
-            this.GetThread = () => EnchantTargets(story, action);
+            this.Action = () => EnchantTargets(story, action);
 		}
 
         ITwineThread EnchantTargets(TwineStory story, Func<ITwineThread> action)
@@ -26,7 +27,7 @@ namespace UnityTwine.StoryFormats.Harlowe
         }
 	}
 
-    public class EnchantmentTarget
+    public class HarloweEnchantmentTarget
     {
         public TwineOutput Output;
         public Regex Occurences;

@@ -20,32 +20,32 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return new HarloweHookRef(hookName);
 		}
 
-        protected Enchantment enchant(TwineVar reference, Func<ITwineThread> action, TwineContext contextInfo = null)
+        protected HarloweEnchantment enchant(TwineVar reference, Func<ITwineThread> action, TwineContext contextInfo = null)
 		{
             bool isHookRef = reference.Value is HarloweHookRef;
             string str = isHookRef ? ((HarloweHookRef)reference.Value).HookName : reference.ToString();
-            List<EnchantmentTarget> targets = new List<EnchantmentTarget>();
+            List<HarloweEnchantmentTarget> targets = new List<HarloweEnchantmentTarget>();
 
             foreach(TwineOutput output in this.Output)
             {
-                EnchantmentTarget target = null;
+                HarloweEnchantmentTarget target = null;
                 if (isHookRef)
                 {
                     if (output.ContextInfo.Get<string>(HarloweContextOptions.Hook) == str)
-                        target = new EnchantmentTarget() { Output = output };
+                        target = new HarloweEnchantmentTarget() { Output = output };
                 }
                 else if (output is TwineText)
                 {
                     var occurences = new Regex(Regex.Escape(str));
                     if (occurences.IsMatch(output.Text))
-                        target = new EnchantmentTarget { Output = output, Occurences = occurences };
+                        target = new HarloweEnchantmentTarget { Output = output, Occurences = occurences };
                 }
                 if (target != null)
                     targets.Add(target);
             }
 
             using(contextInfo != null ? Context.Apply(contextInfo) : null)
-                return new Enchantment(this, targets.ToArray(), action);
+                return new HarloweEnchantment(this, targets.ToArray(), action);
 		}
 	}
 }

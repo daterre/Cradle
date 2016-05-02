@@ -279,7 +279,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			LexerToken liveToken = tokens[tokenIndex];
 
 			// Open
-			transcoder.Code.Buffer.AppendFormat("yield return new Live(");
+			transcoder.Code.Buffer.AppendFormat("yield return new HarloweLive(");
 
 			// Reference
 			transcoder.GenerateExpression(liveToken.tokens, 1, liveToken.tokens.Length - 1);
@@ -303,7 +303,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 		public static HarloweCodeGenMacro Stop = (transcoder, tokens, tokenIndex, usage) =>
 		{
-			transcoder.Code.Buffer.AppendLine("yield return new LiveStop();");
+			transcoder.Code.Buffer.AppendLine("yield return new HarloweLiveStop();");
 			return tokenIndex;
 		};
 

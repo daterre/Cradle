@@ -6,17 +6,17 @@ using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutp
 
 namespace UnityTwine.StoryFormats.Harlowe
 {
-	public class Live : TwineEmbedFragment
+	public class HarloweLive : TwineEmbedFragment
 	{
 		public float Milliseconds;
 
-		public Live(float ms, Func<ITwineThread> fragment)
+		public HarloweLive(float ms, Func<ITwineThread> fragment)
 			: base(fragment)
 		{
 		}
 	}
 
-	public class LiveStop: TwineOutput
+	public class HarloweLiveStop: TwineOutput
 	{
 	}
 }
