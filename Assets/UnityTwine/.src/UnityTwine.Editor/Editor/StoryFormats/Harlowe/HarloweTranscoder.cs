@@ -47,9 +47,10 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["display"] = BuiltInCodeGenMacros.Display;
 
             CodeGenMacros["replace"] =
-			CodeGenMacros["append"] = 
-            CodeGenMacros["prepend"] =
-            CodeGenMacros["click"] =
+			CodeGenMacros["append"] =
+			CodeGenMacros["prepend"] = BuiltInCodeGenMacros.Enchant;
+            
+			CodeGenMacros["click"] =
             CodeGenMacros["clickreplace"] =
             CodeGenMacros["clickappend"] =
             CodeGenMacros["clickprepend"] =
@@ -60,7 +61,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
             CodeGenMacros["mouseout"] =
             CodeGenMacros["mouseoutreplace"] =
             CodeGenMacros["mouseoutappend"] =
-            CodeGenMacros["mouseoutprepend"] = BuiltInCodeGenMacros.Enchant;
+            CodeGenMacros["mouseoutprepend"] = BuiltInCodeGenMacros.EnchantLink;
 
 			CodeGenMacros["live"] = BuiltInCodeGenMacros.Live;
 			CodeGenMacros["stop"] = BuiltInCodeGenMacros.Stop;
@@ -227,7 +228,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 						case "hook":
 							// This is only for unhandled hooks
-							GenerateContext(string.Format("HarloweContextOptions.Hook, \"{0}\"", token.name), tokens[t].tokens);
+							GenerateContext(string.Format("HarloweContext.Hook, hook(\"{0}\")", token.name), tokens[t].tokens);
 							break;
 						default:
 							break;
@@ -266,7 +267,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		{
 			Code.Indent();
 			Code.Buffer
-				.AppendFormat("var c{0} = Context.Apply({1}); if (c{0}) using (c{0}) {{", ++ContextCounter, contextParams)
+				.AppendFormat("var c{0} = new TwineContext({1}); if (c{0}) using (Context.Apply(c{0})) {{", ++ContextCounter, contextParams)
 				.AppendLine();
 			Code.Indentation++;
 			GenerateBody(tokens, breaks: false);

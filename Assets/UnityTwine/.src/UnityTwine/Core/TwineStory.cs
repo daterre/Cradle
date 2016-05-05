@@ -23,6 +23,7 @@ namespace UnityTwine
         public string StartPassage = "Start";
 		public GameObject[] AdditionalCues;
 
+		public event Action<TwinePassage> OnPassageEnter;
 		public event Action<TwineStoryState> OnStateChanged;
 		public event Action<TwineOutput> OnOutput;
 		
@@ -229,6 +230,10 @@ namespace UnityTwine
 
             PassageHistory.Add(passageName);
 
+			// Invoke the general passage enter event
+			if (this.OnPassageEnter != null)
+				this.OnPassageEnter(passage);
+
 			// Add output (and trigger cues)
 			this.Output.Add(passage);
 
@@ -375,13 +380,17 @@ namespace UnityTwine
 
 		void SendOutput(TwineOutput output)
 		{
+			TwineContext contextInfo = this.Context.GetCopy();
+
 			// Get a copy of the current context
-			output.ContextInfo = this.Context.GetCopy();
+			if (output.ContextInfo != null)
+				output.ContextInfo.Apply(contextInfo);
+			else
+				output.ContextInfo = contextInfo;
 
 			if (OnOutput != null)
 				OnOutput(output);
 		}
-
 
 		
 		// ---------------------------------

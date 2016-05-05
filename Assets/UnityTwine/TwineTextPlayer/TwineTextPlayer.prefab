@@ -30,7 +30,6 @@ GameObject:
   - 114: {fileID: 11453714}
   - 114: {fileID: 11453712}
   - 114: {fileID: 11453716}
-  - 114: {fileID: 11438430}
   m_Layer: 5
   m_Name: TwineTextPlayer
   m_TagString: Untagged
@@ -188,7 +187,7 @@ MonoBehaviour:
     m_Bottom: 0
   m_ChildAlignment: 0
   m_SpacingInline: 4
-  m_SpacingLine: 20
+  m_SpacingLine: 8
   m_IsVertical: 0
 --- !u!114 &11429704
 MonoBehaviour:
@@ -201,20 +200,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b838e7fb7127154581f2b90f6e1aea4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &11438430
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 153722}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d6f1ae9328f1f33478dc5bbf2c077541, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  AutoPlay: 0
-  StartPassage: Title
-  AdditionalCues: []
 --- !u!114 &11442590
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -408,7 +393,7 @@ MonoBehaviour:
     m_RichText: 1
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
-    m_LineSpacing: 1
+    m_LineSpacing: 0
   m_Text: Twine Link
 --- !u!114 &11453726
 MonoBehaviour:

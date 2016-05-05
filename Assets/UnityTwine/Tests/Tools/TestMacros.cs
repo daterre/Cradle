@@ -18,11 +18,11 @@ public class UnityTwineTestMacros: TwineRuntimeMacros
 	public void assertContext(string option, TwineVar value)
 	{
 		IntegrationTest.Assert(
-			value == this.Story.Context[option],
+			value == this.Story.Context.GetValues(option).LastOrDefault(),
 			string.Format("Context option {0} is not {1}", option, value)
 		);
 		IntegrationTest.Assert(
-			this.Story.Output.Reverse<TwineOutput>().Any(output => value == output.ContextInfo[option]),
+			this.Story.Output.Reverse<TwineOutput>().Any(output => value == output.ContextInfo.GetValues(option).LastOrDefault()),
 			string.Format("Context option {0} was not applied to any output", option)
 		);
 	}

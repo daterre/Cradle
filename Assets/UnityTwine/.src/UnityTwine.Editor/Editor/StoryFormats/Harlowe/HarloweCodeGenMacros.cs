@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using UnityTwine.StoryFormats.Harlowe;
 
 namespace UnityTwine.Editor.StoryFormats.Harlowe
 {
@@ -156,7 +157,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 			// Style
 			transcoder.Code.Buffer
-					.AppendFormat(", contextInfo(HarloweContextOptions.LinkType, \"{0}\")", linkToken.name);
+					.AppendFormat(", contextInfo(HarloweContext.LinkType, \"{0}\")", linkToken.name);
 
 			// Done
 			transcoder.Code.Buffer.AppendLine(");");
@@ -175,6 +176,14 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
             // Reference
             transcoder.GenerateExpression(enchantToken.tokens, 1, enchantToken.tokens.Length-1);
 
+			// Enchant command
+			transcoder.Code.Buffer.AppendFormat(", HarloweEnchantCommand.{0}",
+				enchantToken.name == "append" ?	HarloweEnchantCommand.Append :
+				enchantToken.name == "prepend" ? HarloweEnchantCommand.Prepend :
+				enchantToken.name == "replace" ? HarloweEnchantCommand.Replace :
+				HarloweEnchantCommand.None
+			);
+
             // Action
             transcoder.Code.Buffer.Append(", ");
             if (usage == MacroUsage.LineAndHook)
@@ -186,14 +195,59 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
             else
                 throw new TwineTranscodeException(string.Format("'{0}' macro must be followed by a Harlowe-hook", enchantToken.name));
 
-            // Style
-            transcoder.Code.Buffer
-				.AppendFormat(", contextInfo(HarloweContextOptions.EnchantType, \"{0}\")", enchantToken.name);
-
             // Close
             transcoder.Code.Buffer.AppendLine(");");
 
             return tokenIndex;
+		};
+
+		public static HarloweCodeGenMacro EnchantLink = (transcoder, tokens, tokenIndex, usage) =>
+		{
+			LexerToken enchantToken = tokens[tokenIndex];
+
+			if (usage != MacroUsage.LineAndHook)
+				throw new TwineTranscodeException(string.Format("'{0}' macro must be followed by a Harlowe-hook", enchantToken.name));
+
+			// Open
+			transcoder.Code.Buffer.AppendFormat("yield return replaceWithLink(");
+
+			// Reference
+			transcoder.GenerateExpression(enchantToken.tokens, 1, enchantToken.tokens.Length - 1);
+
+			// Action
+			transcoder.Code.Buffer.Append(", ");
+			tokenIndex++; // advance
+			LexerToken hookToken = tokens[tokenIndex];
+			LexerToken[] actionTokens;
+
+			// This might be a double enchant
+			HarloweEnchantCommand command =
+				enchantToken.name.EndsWith("append") ? HarloweEnchantCommand.Append :
+				enchantToken.name.EndsWith("prepend") ? HarloweEnchantCommand.Prepend :
+				enchantToken.name.EndsWith("replace") ? HarloweEnchantCommand.Replace :
+				HarloweEnchantCommand.None;
+
+			if (command != HarloweEnchantCommand.None)
+			{
+				// Rename the enchant before reusing it
+				enchantToken.name = command.ToString().ToLower();
+
+				// Wrap the second enchant in its own fragment
+				actionTokens = new LexerToken[]
+				{
+					enchantToken,
+					hookToken
+				};
+			}
+			else
+				actionTokens = hookToken.tokens;
+
+			transcoder.Code.Buffer.Append(transcoder.GenerateFragment(actionTokens));	
+
+			// Close
+			transcoder.Code.Buffer.AppendLine(");");
+
+			return tokenIndex;
 		};
 
 		// ......................
@@ -227,13 +281,14 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		{
 			LexerToken macroToken = tokens[tokenIndex];
 
-			string option = macroToken.name == "hook" ? "HarloweContextOptions.Hook" : "\"" + macroToken.name + "\"";
+			bool isHook = macroToken.name == "hook";
+			string option = isHook ? "HarloweContext.Hook" : "\"" + macroToken.name + "\"";
 
 			if (usage == MacroUsage.Inline)
 			{
-				transcoder.Code.Buffer.AppendFormat("contextInfo({0}, ", option);
+				transcoder.Code.Buffer.AppendFormat("contextInfo({0}, {1}", option, isHook ? "hook(" : null);
 				transcoder.GenerateExpression(macroToken.tokens, start: 1);
-				transcoder.Code.Buffer.Append(")");
+				transcoder.Code.Buffer.AppendFormat("{0})", isHook ? ")" : null);
 			}
 			else if (usage == MacroUsage.LineAndHook)
 			{

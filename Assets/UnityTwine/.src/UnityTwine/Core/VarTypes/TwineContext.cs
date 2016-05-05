@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using List = System.Collections.Generic.List<object>;
 
 namespace UnityTwine
 {
@@ -10,11 +11,11 @@ namespace UnityTwine
 		public event Action<TwineContext> OnDisposed;
 		public bool IsReadOnly { get; private set; }
 
-		public const string EvaluatedVaContextOption = "evaluated-expression";
+		public const string EvaluatedValContextOption = "evaluated-expression";
 
 		List<TwineContext> _appliedContexts = new List<TwineContext>();
-		Dictionary<string, object> _appliedValues = new Dictionary<string, object>();
-		Dictionary<string, object> _calculatedValues = new Dictionary<string, object>();
+		Dictionary<string, List> _appliedValues = new Dictionary<string, List>();
+		Dictionary<string, List> _calculatedValues = new Dictionary<string, List>();
 
 		public TwineContext()
 		{
@@ -22,7 +23,12 @@ namespace UnityTwine
 
 		public TwineContext(string name, object value)
 		{
-			_appliedValues[name] = value;
+			Set(name, value);
+		}
+
+		public TwineContext(TwineVar val)
+		{
+			Set(val);
 		}
 
 		public static implicit operator TwineContext(TwineVar contextVar)
@@ -40,40 +46,42 @@ namespace UnityTwine
 			return context == null || context._calculatedValues.Count == 0;
 		}
 
-		public object this[string name]
+		public List<T> GetValues<T>(string name)
 		{
-			get
-			{
-				object val;
-				if (_calculatedValues.TryGetValue(name, out val))
-					return val;
-				else
-					return null;
-			}
-			set
-			{
-				if (IsReadOnly)
-					throw new TwineException("This context is a read-only copy and cannot be modified.");
-
-				_appliedValues[name] = value;
-				Recalculate();
-			}
-		}
-
-		public T Get<T>(string name)
-		{
-			object val = this[name];
-			return val == null ? default(T) : (T)val;
-		}
-
-
-		public object GetApplied(string name)
-		{
-			object val;
-			if (_appliedValues.TryGetValue(name, out val))
-				return val;
+			List values;
+			if (!_calculatedValues.TryGetValue(name, out values))
+				return new List<T>();
 			else
-				return null;
+				return new List<T>(values.Select(obj => (T)obj));
+		}
+
+		public List GetValues(string name)
+		{
+			return GetValues<object>(name);
+		}
+
+		public Dictionary<string,List>.KeyCollection Options
+		{
+			get { return _calculatedValues.Keys; }
+		}
+
+		void Set(string name, object value)
+		{
+			if (IsReadOnly)
+				throw new TwineException("This context is a read-only copy and cannot be modified.");
+
+			List values;
+			if (!_appliedValues.TryGetValue(name, out values))
+				_appliedValues[name] = values = new List();
+
+			values.Add(value);
+			Recalculate();
+		}
+
+		void Set(TwineVar val)
+		{
+			if (val.ConvertValueTo<bool>())
+				Set(EvaluatedValContextOption, val);
 		}
 
 		public TwineContext Apply(TwineVar val)
@@ -82,7 +90,7 @@ namespace UnityTwine
 				return Apply(val.ConvertValueTo<TwineContext>());
 
 			if (val.ConvertValueTo<bool>())
-				return Apply(EvaluatedVaContextOption, val);
+				return Apply(EvaluatedValContextOption, val);
 			else
 				return new TwineContext();
 		}
@@ -108,7 +116,7 @@ namespace UnityTwine
 		public TwineContext Apply(string option, object value)
 		{
 			var newContext = new TwineContext();
-			newContext[option] = value;
+			newContext.Set(option, value);
 			return Apply(newContext);
 		}
 
@@ -129,12 +137,20 @@ namespace UnityTwine
 			for (int i = 0; i < _appliedContexts.Count; i++)
 			{
 				TwineContext context = _appliedContexts[i];
-				foreach (var entry in context._appliedValues)
-					_calculatedValues[entry.Key] = entry.Value;
+				foreach (var entry in context._calculatedValues)
+					RecalculateEntry(entry);
 			}
 
 			foreach (var entry in this._appliedValues)
-				_calculatedValues[entry.Key] = entry.Value;
+				RecalculateEntry(entry);
+		}
+
+		void RecalculateEntry(KeyValuePair<string, List> entry)
+		{
+			List values;
+			if (!_calculatedValues.TryGetValue(entry.Key, out values))
+				_calculatedValues[entry.Key] = values = new List();
+			values.AddRange(entry.Value);
 		}
 
 		public void Dispose()
@@ -145,20 +161,26 @@ namespace UnityTwine
 
 		public TwineContext GetCopy()
 		{
-			var copy = new TwineContext();
-			copy._calculatedValues = new Dictionary<string, object>(this._calculatedValues);
-			copy.IsReadOnly = true;
+			var copy = new TwineContext()
+			{
+				IsReadOnly = true,
+				_calculatedValues = new Dictionary<string, List>()
+			};
+
+			foreach (var entry in this._calculatedValues)
+				copy._calculatedValues[entry.Key] = new List(entry.Value);
+
 			return copy;
 		}
 
 		public override TwineVar GetMember(TwineVar member)
 		{
-			return new TwineVar(this[member]);
+			throw new NotImplementedException();
 		}
 
 		public override void SetMember(TwineVar member, TwineVar value)
 		{
-			this[member] = value.Value;
+			throw new NotImplementedException();
 		}
 
 		public override void RemoveMember(TwineVar member)

@@ -1,10 +1,11 @@
 ﻿namespace UnityTwine.StoryFormats.Harlowe
 {
-	public static class HarloweContextOptions
+	public static class HarloweContext
 	{
 		public const string Hook = "hook";
-		public const string EnchantType = "enchant-type";
+		public const string EnchantCommand = "enchant-command";
 		public const string EnchantSource = "enchant-source";
+		public const string Enchantment = "enchantment";
 		public const string LinkType = "link-type";
 	}
 }

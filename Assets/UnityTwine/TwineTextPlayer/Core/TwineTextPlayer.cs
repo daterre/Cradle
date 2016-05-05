@@ -1,8 +1,9 @@
-﻿using UnityEngine;
-using System.Collections;
-using UnityTwine;
-using UnityEngine.UI;
+﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityTwine;
 using UnityTwine.StoryFormats.Harlowe;
 
 public class TwineTextPlayer : MonoBehaviour {
@@ -41,7 +42,7 @@ public class TwineTextPlayer : MonoBehaviour {
 			return;
 		}
 
-		this.Story.OnStateChanged += Story_OnStateChanged;
+		this.Story.OnPassageEnter += Story_OnPassageEnter;
 		this.Story.OnOutput += Story_OnOutput;
 
 		if (StartStory)
@@ -52,7 +53,7 @@ public class TwineTextPlayer : MonoBehaviour {
 	{
 		if (this.Story != null)
 		{
-			this.Story.OnStateChanged -= Story_OnStateChanged;
+			this.Story.OnPassageEnter -= Story_OnPassageEnter;
 			this.Story.OnOutput -= Story_OnOutput;
 		}
 	}
@@ -80,17 +81,14 @@ public class TwineTextPlayer : MonoBehaviour {
 	{
 		for (int i = 0; i < Container.childCount; i++)
 			GameObject.Destroy(Container.GetChild(i).gameObject);
+		Container.DetachChildren();
 
 		_insertIndex = -1;
 	}
 
-	void Story_OnStateChanged(TwineStoryState state)
+	void Story_OnPassageEnter(TwinePassage passage)
 	{
-		if (state == TwineStoryState.Playing && this.Story.Output.Count == 1)
-		{
-			// Clear previous output
-			Clear();
-		}
+		Clear();
 	}
 
 	void Story_OnOutput(TwineOutput output)
@@ -140,10 +138,13 @@ public class TwineTextPlayer : MonoBehaviour {
 
 	public void DisplayOutput(TwineOutput output)
 	{
+		// Prepares the player to enchant content, i.e. to modify elements already displayed
+		BeginHarloweEnchantment(output);
+
 		if (output is TwineText)
 		{
 			var text = (TwineText)output;
-			string[] words = text.Text.Split(' ');
+			string[] words = text.Text.Split(new char[]{' '}, System.StringSplitOptions.RemoveEmptyEntries);
 			for (int i = 0; i < words.Length; i++)
 			{
 				string word = words[i];
@@ -151,7 +152,7 @@ public class TwineTextPlayer : MonoBehaviour {
 				uiWord.gameObject.SetActive(true);
 				uiWord.text = word;
 				uiWord.name = word.Trim().Length == 0 ? "(sp)" : word;
-				AddToPlayer(uiWord.rectTransform, output, _insertIndex);
+				AddToUI(uiWord.rectTransform, output);
 				if (_insertIndex >= 0)
 					_insertIndex++;
 			}
@@ -172,71 +173,78 @@ public class TwineTextPlayer : MonoBehaviour {
 			{
 				this.Story.DoLink(link);
 			});
-			AddToPlayer((RectTransform)uiLink.transform, output, _insertIndex);
+			AddToUI((RectTransform)uiLink.transform, output);
 		}
 		else if (output is TwineLineBreak)
 		{
 			var br = (RectTransform)Instantiate(LineBreakTemplate);
 			br.gameObject.SetActive(true);
 			br.gameObject.name = "(br)";
-			AddToPlayer(br, output, _insertIndex);
+			AddToUI(br, output);
 		}
-		else if (output is HarloweEnchantment)
-		{
-			var enchant = (HarloweEnchantment)output;
-			ProcessHarloweEnchantment(enchant);
-		}
+
+		EndHarloweEnchantment(output);
 	}
 
-	void AddToPlayer(RectTransform rect, TwineOutput output, int childIndex = -1)
+	void AddToUI(RectTransform rect, TwineOutput output)
 	{
 		rect.SetParent(Container);
-		if (childIndex >= 0)
-			rect.SetSiblingIndex(childIndex);
+		if (_insertIndex >= 0)
+			rect.SetSiblingIndex(_insertIndex);
 
-		rect.gameObject.AddComponent<TwineTextPlayerElement>().SourceOutput = output;
+		var elem = rect.gameObject.AddComponent<TwineTextPlayerElement>();
+		elem.SourceOutput = output;
 	}
 
-	void ProcessHarloweEnchantment(HarloweEnchantment enchant)
+	void BeginHarloweEnchantment(TwineOutput output)
 	{
-		foreach (HarloweEnchantmentTarget target in enchant.Targets)
-		{
-			int childCount = Container.childCount;
+		HarloweEnchantment enchant = output.ContextInfo.GetValues<HarloweEnchantment>(HarloweContext.Enchantment).LastOrDefault();
+		if (enchant == null)
+			return;
 
-			// Remove all elements related to this output
-			int firstChildIndex = -1;
-			for (int i = 0; i < childCount; i++)
+		int firstChildIndex = -1;
+		int lastChildIndex = -1;
+
+		foreach (TwineOutput affectedOutput in enchant.Affected)
+		{
+			// Remove all elements related to this output	
+			for (int i = 0; i < Container.childCount; i++)
 			{
-				Transform child = Container.GetChild(i);
-				var element = child.GetComponent<TwineTextPlayerElement>();
-				if (element.SourceOutput != target.Output)
+				TwineTextPlayerElement elem = Container.GetChild(i).GetComponent<TwineTextPlayerElement>();
+				if (elem.SourceOutput != affectedOutput)
 					continue;
 
 				// found!
 				if (firstChildIndex < 0)
 					firstChildIndex = i;
 
-				GameObject.Destroy(child.gameObject);
+				lastChildIndex = i;
 			}
+		}
 
+		if (enchant.EnchantCommand == HarloweEnchantCommand.Append)
+			_insertIndex = lastChildIndex+1;
+		else
 			_insertIndex = firstChildIndex;
+	}
 
-			// Create a link for this action and copy the context
-			var link = new TwineLink(target.Output.Text, enchant.Action)
-			{
-				ContextInfo = target.Output.ContextInfo
-			};
+	void EndHarloweEnchantment(TwineOutput output)
+	{
+		HarloweEnchantment enchant = output.ContextInfo.GetValues<HarloweEnchantment>(HarloweContext.Enchantment).LastOrDefault();
+		if (enchant == null || enchant.EnchantCommand != HarloweEnchantCommand.Replace)
+			return;
 
-			string enchantType = enchant.ContextInfo.Get<string>(HarloweContextOptions.EnchantType);
-			if (enchantType == "replace")
+		foreach (TwineOutput affectedOutput in enchant.Affected)
+		{
+			// Remove all elements related to this output	
+			for (int i = 0; i < Container.childCount; i++)
 			{
-				// Simulate the link
-				this.Story.DoLink(link);
-			}
-			else
-			{
-				// Add the link to the UI
-				DisplayOutput(link);
+				TwineTextPlayerElement elem = Container.GetChild(i).GetComponent<TwineTextPlayerElement>();
+				if (elem.SourceOutput != affectedOutput)
+					continue;
+
+				elem.transform.SetParent(null);
+				GameObject.Destroy(elem.gameObject);
 			}
 		}
 	}
