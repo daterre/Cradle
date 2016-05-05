@@ -155,9 +155,9 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			else
 				transcoder.Code.Buffer.Append("null");
 
-			// Style
-			transcoder.Code.Buffer
-					.AppendFormat(", contextInfo(HarloweContext.LinkType, \"{0}\")", linkToken.name);
+			// Style - disabled the link type for now
+			//transcoder.Code.Buffer
+			//		.AppendFormat(", contextInfo(HarloweContext.LinkType, \"{0}\")", linkToken.name);
 
 			// Done
 			transcoder.Code.Buffer.AppendLine(");");
@@ -277,24 +277,25 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
         };
 
 		// ......................
-		public static HarloweCodeGenMacro ContextInfo = (transcoder, tokens, tokenIndex, usage) =>
+		public static HarloweCodeGenMacro Style = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken macroToken = tokens[tokenIndex];
 
 			bool isHook = macroToken.name == "hook";
-			string option = isHook ? "HarloweContext.Hook" : "\"" + macroToken.name + "\"";
+			string option = "\"" + macroToken.name + "\"";
 
 			if (usage == MacroUsage.Inline)
 			{
-				transcoder.Code.Buffer.AppendFormat("contextInfo({0}, {1}", option, isHook ? "hook(" : null);
+				transcoder.Code.Buffer.AppendFormat("style({0}, {1}", option, isHook ? "hook(" : null);
 				transcoder.GenerateExpression(macroToken.tokens, start: 1);
 				transcoder.Code.Buffer.AppendFormat("{0})", isHook ? ")" : null);
 			}
 			else if (usage == MacroUsage.LineAndHook)
 			{
-				transcoder.Code.Buffer.AppendFormat("using (Context.Apply({0}, ", option);
+				transcoder.Code.Buffer.AppendFormat("using (ApplyStyle({0}, {1}", option, isHook ? "hook(" : null);
 				transcoder.GenerateExpression(macroToken.tokens, start: 1);
-				transcoder.Code.Buffer.AppendLine(")) {");
+				transcoder.Code.Buffer.AppendFormat("{0})) {{", isHook ? ")" : null);
+				transcoder.Code.Buffer.AppendLine();
 
 				// Advance to hook
 				tokenIndex++;

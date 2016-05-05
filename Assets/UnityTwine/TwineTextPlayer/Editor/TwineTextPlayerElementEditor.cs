@@ -21,14 +21,14 @@ public class TwineTextPlayerElementEditor : Editor {
 		EditorGUILayout.LabelField("Name", output.Name);
 		EditorGUILayout.LabelField("Text", output.Text);
 
-		TwineContext context = output.ContextInfo;
-		if (context != null)
+		TwineStyle style = output.Style;
+		if (style != null)
 		{
-			EditorGUILayout.LabelField("Context Info");
+			EditorGUILayout.LabelField("Style");
 			EditorGUI.indentLevel++;
-			foreach(string option in context.Options)
+			foreach(string option in style.SettingNames)
 			{
-				List<object> values = context.GetValues(option);
+				List<object> values = style.GetValues(option);
 				foreach(object val in values)
 					EditorGUILayout.LabelField(option, val.ToString());
 			}

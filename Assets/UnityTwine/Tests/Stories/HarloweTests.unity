@@ -145,12 +145,12 @@ GameObject:
   - 4: {fileID: 63472776}
   - 114: {fileID: 63472775}
   m_Layer: 0
-  m_Name: Markup_Context_Hooks
+  m_Name: Markup_Scope_Hooks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &63472775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -200,7 +200,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &225485580
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -617,7 +617,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
-  StartPassage: Markup_Context_Styles
+  StartPassage: Markup_Scope_Styles
   AdditionalCues: []
 --- !u!1 &836074276
 GameObject:
@@ -1035,7 +1035,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
-  StartPassage: Markup_Context_Hooks
+  StartPassage: Markup_Scope_Hooks
   AdditionalCues: []
 --- !u!1 &1420361418
 GameObject:
@@ -1047,7 +1047,7 @@ GameObject:
   - 4: {fileID: 1420361420}
   - 114: {fileID: 1420361419}
   m_Layer: 0
-  m_Name: Markup_Context_Styles
+  m_Name: Markup_Scope_Styles
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

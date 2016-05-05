@@ -15,15 +15,28 @@ public class UnityTwineTestMacros: TwineRuntimeMacros
 	}
 
 	[TwineRuntimeMacro]
-	public void assertContext(string option, TwineVar value)
+	public void assertStyle(string setting, TwineVar value)
 	{
 		IntegrationTest.Assert(
-			value == this.Story.Context.GetValues(option).LastOrDefault(),
-			string.Format("Context option {0} is not {1}", option, value)
+			value == this.Story.Style.GetValues(setting).LastOrDefault(),
+			string.Format("Style's \"{0}\" setting is not {1}", setting, value)
 		);
 		IntegrationTest.Assert(
-			this.Story.Output.Reverse<TwineOutput>().Any(output => value == output.ContextInfo.GetValues(option).LastOrDefault()),
-			string.Format("Context option {0} was not applied to any output", option)
+			this.Story.Output.Reverse<TwineOutput>().Any(output => value == output.Style.GetValues(setting).LastOrDefault()),
+			string.Format("Style's \"{0}\" setting was not applied to any output", setting)
+		);
+	}
+
+	[TwineRuntimeMacro]
+	public void assertHook(string hookName)
+	{
+		IntegrationTest.Assert(
+			this.Story.Style.GetValues<HarloweHook>(HarloweStyleSettings.Hook).Any(val => val.HookName == hookName),
+			string.Format("Can't find a Harlowe-hook named {0} in the current style.", hookName)
+		);
+		IntegrationTest.Assert(
+			this.Story.Output.Reverse<TwineOutput>().Any(output => output.Style.GetValues<HarloweHook>(HarloweStyleSettings.Hook).Any(val => val.HookName == hookName)),
+			string.Format("A Harlowe-hook named {0} wasn't applied to any output, despite being in scope.", hookName)
 		);
 	}
 

@@ -33,9 +33,8 @@ namespace UnityTwine
 		public string[] Tags { get; private set; }
 		public TwineRuntimeVars Vars { get; protected set; }
 		public string CurrentPassageName { get; private set; }
-		public TwineContext Context { get; private set; }
-		
 		public string PreviousPassageName { get; private set; }
+		public TwineStyle Style { get; private set; }
 
         public Dictionary<string, TwinePassage> Passages { get; private set; }
 		TwineStoryState _state = TwineStoryState.Idle;
@@ -46,6 +45,8 @@ namespace UnityTwine
 		string _passageWaitingToEnter = null;
 		Dictionary<string, List<Cue>> _cueCache = new Dictionary<string, List<Cue>>();
 		MonoBehaviour[] _cueTargets = null;
+		List<TwineStyleScope> _scopes = new List<TwineStyleScope>();
+		TwineStyle _scopeStyle;
 
 		public int NumberOfLinksDone { get; private set; }
         public List<string> PassageHistory {get; private set; }
@@ -71,7 +72,6 @@ namespace UnityTwine
 			TwineVar.RegisterTypeService<string>(new StringService());
 
 			this.Passages = new Dictionary<string, TwinePassage>();
-			this.Context = new TwineContext();
 
             this.PassageHistory = new List<string>();
 		}
@@ -83,6 +83,7 @@ namespace UnityTwine
 			this.Text = new List<TwineText>();
 			this.Links = new List<TwineLink>();
 			this.Tags = new string[0];
+			this.Style = new TwineStyle();
 
 			NumberOfLinksDone = 0;
 			PassageHistory.Clear();
@@ -221,6 +222,7 @@ namespace UnityTwine
 			this.Output.Clear();
 			this.Text.Clear();
 			this.Links.Clear();
+			this.Style = new TwineStyle();
 			_passageUpdateCues = null;
 
 			TwinePassage passage = GetPassage(passageName);
@@ -345,6 +347,9 @@ namespace UnityTwine
 		{
 			foreach (TwineOutput output in thread)
 			{
+				foreach (TwineOutput scopeTag in ScopeOutputOpeners())
+					yield return scopeTag;
+
 				if (output is TwineEmbed)
 				{
 					var embed = (TwineEmbed) output;
@@ -375,23 +380,95 @@ namespace UnityTwine
 				}
 				else
 					yield return output;
+
+				foreach (TwineOutput scopeTag in ScopeOutputClosers())
+					yield return scopeTag;
 			}
+
+			foreach (TwineOutput scopeTag in ScopeOutputClosers())
+				yield return scopeTag;
 		}
 
 		void SendOutput(TwineOutput output)
 		{
-			TwineContext contextInfo = this.Context.GetCopy();
-
-			// Get a copy of the current context
-			if (output.ContextInfo != null)
-				output.ContextInfo.Apply(contextInfo);
-			else
-				output.ContextInfo = contextInfo;
+			output.Style = this.Style;
 
 			if (OnOutput != null)
 				OnOutput(output);
 		}
 
+		// ---------------------------------
+		// Scope control
+
+		protected TwineStyleScope ApplyStyle(string setting, object value)
+		{
+			return ApplyStyle(new TwineStyle(setting, value));
+		}
+
+		protected TwineStyleScope ApplyStyle(TwineStyle style)
+		{
+			return ScopeOpen(style);
+		}
+
+		/// <summary>
+		/// Helper method to create a new style scope.
+		/// </summary>
+		TwineStyleScope ScopeOpen(TwineStyle style)
+		{
+			TwineStyleScope scope = new TwineStyleScope()
+			{
+				State = TwineStyleScopeState.PendingOpen,
+				Style = style
+			};
+			scope.OnDisposed += ScopeWasDisposed;
+			_scopes.Add(scope);
+
+			ScopeBuildStyle();
+
+			return scope;
+		}
+
+		void ScopeWasDisposed(TwineStyleScope scope)
+		{
+			scope.OnDisposed -= ScopeWasDisposed;
+			_scopes.Remove(scope);
+			
+			ScopeBuildStyle();
+			scope.State = TwineStyleScopeState.PendingClose;
+		}
+
+		ITwineThread ScopeOutputOpeners()
+		{
+			for (int i = 0; i < _scopes.Count; i++)
+			{
+				if (_scopes[i].State == TwineStyleScopeState.PendingOpen)
+				{
+					_scopes[i].State = TwineStyleScopeState.Open;
+					yield return new TwineStyleTag(TwineStyleTagType.Opener, _scopes[i].Style);
+				}
+			}
+		}
+
+		ITwineThread ScopeOutputClosers()
+		{
+			for (int i = _scopes.Count - 1; i >= 0; i--)
+			{
+				if (_scopes[i].State == TwineStyleScopeState.PendingClose)
+				{
+					_scopes[i].State = TwineStyleScopeState.Closed;
+					yield return new TwineStyleTag(TwineStyleTagType.Closer, _scopes[i].Style);
+				}
+			}
+		}
+
+		void ScopeBuildStyle()
+		{
+			TwineStyle style = new TwineStyle();
+			for (int i = 0; i < _scopes.Count; i++)
+				style += _scopes[i].Style;
+
+			this.Style = style;
+		}
 		
 		// ---------------------------------
 		// Links
@@ -685,10 +762,9 @@ namespace UnityTwine
 			return new TwineLineBreak();
 		}
 
-		protected TwineLink link(string text, string passageName, Func<ITwineThread> action, TwineContext contextInfo = null)
+		protected TwineLink link(string text, string passageName, Func<ITwineThread> action)
 		{
-			using (contextInfo != null ? Context.Apply(contextInfo) : null)
-			    return new TwineLink(text, passageName, action);
+			return new TwineLink(text, passageName, action);
 		}
 
 		protected TwineAbort abort(string goToPassage)
@@ -706,9 +782,14 @@ namespace UnityTwine
 			return new TwineEmbedPassage(passageName, parameters);
 		}
 
-		protected TwineVar contextInfo(string name, object value)
+		protected TwineStyle style(string setting, object value)
 		{
-			return new TwineContext(name, value);
+			return new TwineStyle(setting, value);
+		}
+
+		protected TwineStyle style(TwineVar expression)
+		{
+			return new TwineStyle(expression);
 		}
 	}
 }

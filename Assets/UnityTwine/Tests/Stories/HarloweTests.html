@@ -14,7 +14,9 @@
 <tw-storydata name="HarloweTests" startnode="18" creator="Twine" creator-version="2.0.11" ifid="2D58DEA4-8BE8-4625-9144-D88F44B534C7" format="Harlowe" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 
+
 </style><script role="script" id="twine-user-script" type="text/twine-javascript">
+
 
 
 </script><tw-passagedata pid="1" name="Result" tags="" position="320,26">Yay! This is the end of the test.</tw-passagedata>
@@ -59,7 +61,7 @@
 
 (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="4" name="Vars_Type_Bool" tags="" position="582.0001,297">{
+<tw-passagedata pid="4" name="Vars_Type_Bool" tags="" position="582,297">{
   (set: $b to true)
   (assert: $b, &quot;evaluate&quot;)
   (assert: $b is true, &quot;equality (left)&quot;)
@@ -128,45 +130,45 @@
   
   (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="6" name="Markup_Context_Styles" tags="" position="974,156">{
-//italic(assert-context:&quot;italic&quot;, true)//
-(assert-context:&quot;italic&quot;, false)
+<tw-passagedata pid="6" name="Markup_Scope_Styles" tags="" position="974,156">{
+//italic(assert-style:&quot;italic&quot;, true)//
+(assert-style:&quot;italic&quot;, false)
 
-&#39;&#39;bold(assert-context:&quot;bold&quot;, true)&#39;&#39;
-(assert-context:&quot;bold&quot;, false)
+&#39;&#39;bold(assert-style:&quot;bold&quot;, true)&#39;&#39;
+(assert-style:&quot;bold&quot;, false)
 
-~~strikeout(assert-context:&quot;del&quot;, true)~~
-(assert-context:&quot;del&quot;, false)
+~~strikeout(assert-style:&quot;del&quot;, true)~~
+(assert-style:&quot;del&quot;, false)
 
-*emphasis(assert-context:&quot;em&quot;, true)*
-(assert-context:&quot;em&quot;, false)
+*emphasis(assert-style:&quot;em&quot;, true)*
+(assert-style:&quot;em&quot;, false)
 
-**strong(assert-context:&quot;strong&quot;, true)**
-(assert-context:&quot;strong&quot;, false)
+**strong(assert-style:&quot;strong&quot;, true)**
+(assert-style:&quot;strong&quot;, false)
 
-^^superscript(assert-context:&quot;sup&quot;, true)^^
-(assert-context:&quot;sup&quot;, false)
+^^superscript(assert-style:&quot;sup&quot;, true)^^
+(assert-style:&quot;sup&quot;, false)
 
-* Bulleted item (assert-context:&quot;bulleted&quot;, 1)
-(assert-context:&quot;bulleted&quot;, false)
+* Bulleted item (assert-style:&quot;bulleted&quot;, 1)
+(assert-style:&quot;bulleted&quot;, false)
 
-  ** Indented bulleted item (assert-context:&quot;bulleted&quot;, 2)
-  (assert-context:&quot;bulleted&quot;, false)
+  ** Indented bulleted item (assert-style:&quot;bulleted&quot;, 2)
+  (assert-style:&quot;bulleted&quot;, false)
   
-  *** Indented bulleted ite3 (assert-context:&quot;bulleted&quot;, 3)
-  (assert-context:&quot;bulleted&quot;, false)
+  *** Indented bulleted ite3 (assert-style:&quot;bulleted&quot;, 3)
+  (assert-style:&quot;bulleted&quot;, false)
   
-  0. Numbered item (assert-context:&quot;numbered&quot;, 1)
-   0. Numbered item 2 (assert-context:&quot;numbered&quot;, 1)
- 0.0. Indented numbered item (assert-context:&quot;numbered&quot;, 2)
- (assert-context:&quot;numbered&quot;, false)
+  0. Numbered item (assert-style:&quot;numbered&quot;, 1)
+   0. Numbered item 2 (assert-style:&quot;numbered&quot;, 1)
+ 0.0. Indented numbered item (assert-style:&quot;numbered&quot;, 2)
+ (assert-style:&quot;numbered&quot;, false)
   
-  #Level 1 heading  (assert-context:&quot;heading&quot;, 1)
-    (assert-context:&quot;heading&quot;, false)
-   ###Level 3 heading  (assert-context:&quot;heading&quot;, 3)
-     (assert-context:&quot;heading&quot;, false)
- ######Level 6 heading  (assert-context:&quot;heading&quot;, 6)
-   (assert-context:&quot;heading&quot;, false)
+  #Level 1 heading  (assert-style:&quot;heading&quot;, 1)
+    (assert-style:&quot;heading&quot;, false)
+   ###Level 3 heading  (assert-style:&quot;heading&quot;, 3)
+     (assert-style:&quot;heading&quot;, false)
+ ######Level 6 heading  (assert-style:&quot;heading&quot;, 6)
+   (assert-style:&quot;heading&quot;, false)
 
 (pass:)
 }</tw-passagedata>
@@ -204,8 +206,11 @@ $naked
 
 (assert-text: &quot;I can see your butt :)&quot;, &quot;naked var&quot;)
 (pass:)</tw-passagedata>
-<tw-passagedata pid="12" name="Markup_Context_Hooks" tags="" position="1099,156">|c1&gt;[ballroom(assert-context:&quot;hook&quot;, &quot;c1&quot;)]
-[bright red(assert-context:&quot;hook&quot;, &quot;c2&quot;)]&lt;c2|
+<tw-passagedata pid="12" name="Markup_Scope_Hooks" tags="" position="1099,156">(hook:&quot;c0&quot;)[
+  |c1&gt;[ballroom(assert-hook: &quot;c1&quot;)]
+  [bright red(assert-hook: &quot;c2&quot;)]&lt;c2|
+  (assert-hook: &quot;c0&quot;)
+]
 (pass:)</tw-passagedata>
 <tw-passagedata pid="13" name="Vars_It" tags="" position="325,293">{
 (set: $red = &quot;eg&quot;)
@@ -213,7 +218,7 @@ $naked
 (assert: $red is &#39;egg&#39; and its length is 3, &quot;it/its&quot;)
 (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="14" name="Macros_SetPutMove" tags="" position="287,555">{
+<tw-passagedata pid="14" name="Macros_SetPutMove" tags="" position="288,554">{
 	(set: $setTest to 32.1)
 	(assert: $setTest is 32.1, &quot;set&quot;)
 	

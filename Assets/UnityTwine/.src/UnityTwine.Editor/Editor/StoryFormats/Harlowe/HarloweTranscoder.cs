@@ -21,7 +21,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		HarlowePassageData _input;
 		TwinePassageCode _output;
 		string _lastVariable;
-		internal int ContextCounter;
+		internal int StyleCounter;
 
 		static HarloweTranscoder()
 		{
@@ -78,7 +78,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["textrotate"] =
 			CodeGenMacros["transition"] =
 				CodeGenMacros["t8n"] =
-			CodeGenMacros["hook"] = BuiltInCodeGenMacros.ContextInfo;
+			CodeGenMacros["hook"] = BuiltInCodeGenMacros.Style;
 		}
 
 		public override StoryFormatMetadata GetMetadata()
@@ -127,7 +127,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			if (p is HarlowePassageData == false)
 				throw new NotSupportedException("HarloweParser called with incompatible passage data");
 
-			ContextCounter = 0;
+			StyleCounter = 0;
 
 			_input = (HarlowePassageData)p;
 			_output = new TwinePassageCode();
@@ -166,7 +166,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 						case "numbered":
 						case "heading":
 							Code.Indent();
-							GenerateContext(string.Format("\"{0}\", {1}", token.type, token.depth), token.tokens);
+							GenerateStyleScope(string.Format("\"{0}\", {1}", token.type, token.depth), token.tokens);
 							break;
 						case "italic":
 						case "bold":
@@ -175,7 +175,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 						case "strong":
 						case "sup":
 							Code.Indent();
-							GenerateContext(string.Format("\"{0}\", true", token.type), token.tokens);
+							GenerateStyleScope(string.Format("\"{0}\", true", token.type), token.tokens);
 							break;
 
 						case "collapsed":
@@ -206,7 +206,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 							int hookIndex = FollowedBy("hook", tokens, t, true, false);
 							if (hookIndex >= 0)
 							{
-								GenerateContext(BuildVariableRef(token), tokens[hookIndex].tokens);
+								GenerateStyleScope(BuildVariableRef(token), tokens[hookIndex].tokens, true);
 								t = hookIndex;
 							}
 							else
@@ -228,7 +228,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 
 						case "hook":
 							// This is only for unhandled hooks
-							GenerateContext(string.Format("HarloweContext.Hook, hook(\"{0}\")", token.name), tokens[t].tokens);
+							GenerateStyleScope(string.Format("\"hook\", hook(\"{0}\")", token.name), tokens[t].tokens);
 							break;
 						default:
 							break;
@@ -263,12 +263,15 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			Code.Buffer.AppendLine("yield return lineBreak();");
 		}
 
-		public void GenerateContext(string contextParams, LexerToken[] tokens)
+		public void GenerateStyleScope(string styleParams, LexerToken[] tokens, bool conditional = false)
 		{
 			Code.Indent();
-			Code.Buffer
-				.AppendFormat("var c{0} = new TwineContext({1}); if (c{0}) using (Context.Apply(c{0})) {{", ++ContextCounter, contextParams)
-				.AppendLine();
+			if (conditional)
+				Code.Buffer.AppendFormat("var styl{0} = style({1}); if (styl{0}) using (ApplyStyle(styl{0})) {{", ++StyleCounter, styleParams);
+			else
+				Code.Buffer.AppendFormat("using (ApplyStyle({0})) {{", styleParams);
+
+			Code.Buffer.AppendLine();
 			Code.Indentation++;
 			GenerateBody(tokens, breaks: false);
 			Code.Indentation--;
