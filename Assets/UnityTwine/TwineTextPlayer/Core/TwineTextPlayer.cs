@@ -200,7 +200,10 @@ public class TwineTextPlayer : MonoBehaviour {
 	{
 		HarloweEnchantment enchant = output.ContextInfo.GetValues<HarloweEnchantment>(HarloweContext.Enchantment).LastOrDefault();
 		if (enchant == null)
+		{
+			_insertIndex = -1;
 			return;
+		}
 
 		int firstChildIndex = -1;
 		int lastChildIndex = -1;
@@ -222,7 +225,7 @@ public class TwineTextPlayer : MonoBehaviour {
 			}
 		}
 
-		if (enchant.EnchantCommand == HarloweEnchantCommand.Append)
+		if (enchant.Command == HarloweEnchantCommand.Append)
 			_insertIndex = lastChildIndex+1;
 		else
 			_insertIndex = firstChildIndex;
@@ -231,7 +234,7 @@ public class TwineTextPlayer : MonoBehaviour {
 	void EndHarloweEnchantment(TwineOutput output)
 	{
 		HarloweEnchantment enchant = output.ContextInfo.GetValues<HarloweEnchantment>(HarloweContext.Enchantment).LastOrDefault();
-		if (enchant == null || enchant.EnchantCommand != HarloweEnchantCommand.Replace)
+		if (enchant == null || enchant.Command != HarloweEnchantCommand.Replace)
 			return;
 
 		foreach (TwineOutput affectedOutput in enchant.Affected)

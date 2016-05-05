@@ -49,18 +49,15 @@ namespace UnityTwine.StoryFormats.Harlowe
 					
 					// Check if matching hook found in the current context, otherwise skip
 					if (hook == null)
-					{
-						// Nullify the last hook enchantment if it is present, because if it is we just exited it
-						lastHookEnchantment = null;
 						continue;
-					}
 
-					// Matching hook was found, but no enchantment created yet
-					if (lastHookEnchantment == null)
+					// Matching hook was found, but enchantment metadata is not up to date
+					if (lastHookEnchantment == null || lastHookEnchantment.Hook != hook)
 					{
 						lastHookEnchantment = new HarloweEnchantment() {
-							EnchantType = HarloweEnchantType.Hook,
-							EnchantCommand = command,
+							ReferenceType = HarloweEnchantReferenceType.Hook,
+							Command = command,
+							Hook = hook,
 							Affected = new List<TwineOutput>()
 						};
 						enchantments.Add(lastHookEnchantment);
@@ -73,8 +70,8 @@ namespace UnityTwine.StoryFormats.Harlowe
                     var occurences = new Regex(Regex.Escape(str));
                     if (occurences.IsMatch(output.Text))
                         enchantments.Add(new HarloweEnchantment {
-							EnchantType = HarloweEnchantType.Text,
-							EnchantCommand = command,
+							ReferenceType = HarloweEnchantReferenceType.Text,
+							Command = command,
 							Affected = new List<TwineOutput>(){output},
 							Occurences = occurences
 						});
@@ -106,9 +103,8 @@ namespace UnityTwine.StoryFormats.Harlowe
 					//yield return affected;
 
 				using (Context.Apply(affected.ContextInfo))
-				//using (Context.Apply(HarloweContext.EnchantSource, affected))
 				{
-					if (enchantment.EnchantType == HarloweEnchantType.Text)
+					if (enchantment.ReferenceType == HarloweEnchantReferenceType.Text)
 					{
 						MatchCollection matches = enchantment.Occurences.Matches(affected.Text);
 						int startCharIndex = 0;
@@ -138,18 +134,19 @@ namespace UnityTwine.StoryFormats.Harlowe
 
 	public class HarloweEnchantment
 	{
-		public HarloweEnchantType EnchantType;
-		public HarloweEnchantCommand EnchantCommand;
+		public HarloweEnchantReferenceType ReferenceType;
+		public HarloweEnchantCommand Command;
 		public List<TwineOutput> Affected;
+		public HarloweHook Hook;
 		public Regex Occurences;
 
 		public override string ToString()
 		{
-			return string.Format("{0} {1} (affects {2})", EnchantCommand, EnchantType, Affected.Count);
+			return string.Format("{0} {1} (affects {2})", Command, ReferenceType, Affected.Count);
 		}
 	}
 
-	public enum HarloweEnchantType
+	public enum HarloweEnchantReferenceType
 	{
 		Text,
 		Hook
