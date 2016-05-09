@@ -386,6 +386,8 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				case "variable":
 					return BuildVariableRef(token);
 				case "identifier":
+					if (token.text == "time")
+						return "this.PassageTime";
 					if (_lastVariable == null)
 						throw new TwineTranscodeException("'it' or 'its' used without first mentioning a variable");
 					return _lastVariable;

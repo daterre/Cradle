@@ -8,6 +8,9 @@ using UnityEngine.UI;
 public class WrapLayoutGroup : LayoutGroup
 {
 	[SerializeField]
+	protected float m_LineBreakMinHeight;
+
+	[SerializeField]
 	protected float m_SpacingInline;
 
 	[SerializeField]
@@ -16,9 +19,18 @@ public class WrapLayoutGroup : LayoutGroup
 	[SerializeField]
 	protected bool m_IsVertical;
 
-	/// <summary>
-	///   <para>The spacing to use between layout elements in the layout group.</para>
-	/// </summary>
+	public float lineBreakMinHeight
+	{
+		get
+		{
+			return this.m_LineBreakMinHeight;
+		}
+		set
+		{
+			base.SetProperty<float>(ref this.m_LineBreakMinHeight, value);
+		}
+	}
+	
 	public float spacingInline
 	{
 		get
@@ -31,9 +43,6 @@ public class WrapLayoutGroup : LayoutGroup
 		}
 	}
 
-	/// <summary>
-	///   <para>The spacing to use between layout elements in the layout group.</para>
-	/// </summary>
 	public float spacingLine
 	{
 		get
@@ -65,37 +74,19 @@ public class WrapLayoutGroup : LayoutGroup
 	/// <param name="isVertical">Is this group a vertical group?</param>
 	protected void CalcAlongAxis(int axis, bool isVertical)
 	{
-		float num = (float)((axis != 0) ? base.padding.vertical : base.padding.horizontal);
-		float num2 = num;
-		float num3 = num;
-		float num4 = 0f;
-		bool flag = isVertical ^ axis == 1;
-		for (int i = 0; i < base.rectChildren.Count; i++)
-		{
-			RectTransform rect = base.rectChildren[i];
-			float minSize = LayoutUtility.GetMinSize(rect, axis);
-			float preferredSize = LayoutUtility.GetPreferredSize(rect, axis);
-			float num5 = LayoutUtility.GetFlexibleSize(rect, axis);
-			if (flag)
-			{
-				num2 = Mathf.Max(minSize + num, num2);
-				num3 = Mathf.Max(preferredSize + num, num3);
-				num4 = Mathf.Max(num5, num4);
-			}
-			else
-			{
-				num2 += minSize + this.spacingInline;
-				num3 += preferredSize + this.spacingInline;
-				num4 += num5;
-			}
-		}
-		if (!flag && base.rectChildren.Count > 0)
-		{
-			num2 -= this.spacingInline;
-			num3 -= this.spacingInline;
-		}
-		num3 = Mathf.Max(num2, num3);
-		base.SetLayoutInputForAxis(num2, num3, num4, axis);
+		int inlineAxis = isVertical ? 1 : 0;
+		int wrapAxis = isVertical ? 0 : 1;
+		bool calculatingWrapAxis = isVertical ^ axis == 1;
+		float lineSize = base.rectTransform.rect.size[inlineAxis];
+
+		float size = 0f;
+
+		if (!calculatingWrapAxis)
+			size = lineSize;
+		else
+			Calculate(axis, isVertical, (child, ax, position, elemSize) => size = position + elemSize);
+
+		base.SetLayoutInputForAxis(size, size, size, axis);
 	}
 
 	/// <summary>
@@ -105,29 +96,23 @@ public class WrapLayoutGroup : LayoutGroup
 	/// <param name="isVertical">Is this group a vertical group?</param>
 	protected void SetChildrenAlongAxis(int axis, bool isVertical)
 	{
+		Calculate(axis, isVertical, base.SetChildAlongAxis);	
+	}
+
+	void Calculate(int axis, bool isVertical, Action<RectTransform, int, float, float> childAction)
+	{
 		int inlineAxis = isVertical ? 1 : 0;
 		int wrapAxis = isVertical ? 0 : 1;
-		
+		bool calculatingWrapAxis = isVertical ^ axis == 1;
+
 		float lineSize = base.rectTransform.rect.size[inlineAxis];
 
-		bool calculatingWrapAxis = isVertical ^ axis == 1;
 
 		float inlineStartOffset = (float)((inlineAxis != 0) ? base.padding.top : base.padding.left);
 		float inlineOffset = inlineStartOffset;
 
 		float wrapOffset = (float)((wrapAxis != 0) ? base.padding.top : base.padding.left);
 		float nextWrap = 0f;
-
-		//if (base.GetTotalFlexibleSize(inlineAxis) == 0f && base.GetTotalPreferredSize(inlineAxis) < lineSize)
-		//{
-		//	inlineOffset = base.GetStartOffset(inlineAxis, base.GetTotalPreferredSize(inlineAxis) - (float)((inlineAxis != 0) ? base.padding.vertical : base.padding.horizontal));
-		//}
-
-		//float num5 = 0f;
-		//if (lineSize > base.GetTotalPreferredSize(inlineAxis) && base.GetTotalFlexibleSize(inlineAxis) > 0f)
-		//{
-		//	num5 = (lineSize - base.GetTotalPreferredSize(inlineAxis)) / base.GetTotalFlexibleSize(inlineAxis);
-		//}
 
 		bool lineBreak = false;
 
@@ -151,20 +136,22 @@ public class WrapLayoutGroup : LayoutGroup
 			if (lineBreak || inlineOffset + sizeInline >= lineSize)
 			{
 				inlineOffset = inlineStartOffset;
-				wrapOffset += nextWrap + this.spacingLine;
+				wrapOffset += Mathf.Max(nextWrap, this.lineBreakMinHeight) + this.spacingLine;
 				nextWrap = 0f;
 				lineBreak = false;
 			}
 
-			if (calculatingWrapAxis)
-				base.SetChildAlongAxis(rect, wrapAxis, wrapOffset, sizeWrap);
-			else
-				base.SetChildAlongAxis(rect, inlineAxis, inlineOffset, sizeInline);
+			if (childAction != null)
+			{
+				if (calculatingWrapAxis)
+					childAction(rect, wrapAxis, wrapOffset, sizeWrap);
+				else
+					childAction(rect, inlineAxis, inlineOffset, sizeInline);
+			}
 
 			inlineOffset += sizeInline + this.spacingInline;
 			lineBreak = rect.GetComponent<WrapLineBreak>() != null;
 		}
-		
 	}
 
 	public override void CalculateLayoutInputHorizontal()

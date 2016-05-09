@@ -11,7 +11,7 @@
 
 <tw-story></tw-story>
 
-<tw-storydata name="HarloweTests" startnode="18" creator="Twine" creator-version="2.0.11" ifid="2D58DEA4-8BE8-4625-9144-D88F44B534C7" format="Harlowe" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
+<tw-storydata name="HarloweTests" startnode="16" creator="Twine" creator-version="2.0.11" ifid="2D58DEA4-8BE8-4625-9144-D88F44B534C7" format="Harlowe" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css">
 
 
 
@@ -19,11 +19,9 @@
 
 
 
-</script><tw-passagedata pid="1" name="Result" tags="" position="320,26">Yay! This is the end of the test.</tw-passagedata>
-<tw-passagedata pid="2" name="Vars_StrictMode" tags="" position="285,699">(set: $strictTest to &quot;string value&quot;)
-(set: $strictTest to 12.5)
-</tw-passagedata>
-<tw-passagedata pid="3" name="Vars_Type_String" tags="" position="450,293">{
+</script><tw-passagedata pid="1" name="Result" tags="" position="320,26">&lt;!-- this is a comment --&gt;
+Yay! This is the end of the test.</tw-passagedata>
+<tw-passagedata pid="2" name="Vars_Type_String" tags="" position="450,293">{
 (set: $str = &quot;A&quot;)
 (assert: $str is &quot;A&quot;, &quot;equality (left)&quot;)
 (assert: &quot;A&quot; is $str, &quot;equality (right)&quot;)
@@ -61,7 +59,7 @@
 
 (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="4" name="Vars_Type_Bool" tags="" position="582,297">{
+<tw-passagedata pid="3" name="Vars_Type_Bool" tags="" position="582,297">{
   (set: $b to true)
   (assert: $b, &quot;evaluate&quot;)
   (assert: $b is true, &quot;equality (left)&quot;)
@@ -78,7 +76,7 @@
 
   (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="5" name="Vars_Type_Number" tags="" position="707,294">{
+<tw-passagedata pid="4" name="Vars_Type_Number" tags="" position="707,294">{
   (set: $int to 2)
 
   (assert: 2 + $int is 4, &quot;int addition (right)&quot;)
@@ -130,7 +128,7 @@
   
   (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="6" name="Markup_Scope_Styles" tags="" position="974,156">{
+<tw-passagedata pid="5" name="Markup_Scope_Styles" tags="" position="974,156">{
 //italic(assert-style:&quot;italic&quot;, true)//
 (assert-style:&quot;italic&quot;, false)
 
@@ -172,14 +170,14 @@
 
 (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="7" name="Markup_HTML" tags="NoException" position="847,158">&lt;mark style=&#39;color: red&#39;&gt;raw HTML&lt;/mark&gt;
+<tw-passagedata pid="6" name="Markup_HTML" tags="NoException" position="847,158">&lt;mark style=&#39;color: red&#39;&gt;raw HTML&lt;/mark&gt;
 (pass:)</tw-passagedata>
-<tw-passagedata pid="8" name="Markup_Verbatim" tags="" position="586,156">`(print: &quot;verbatim1&quot;)`
+<tw-passagedata pid="7" name="Markup_Verbatim" tags="" position="586,156">`(print: &quot;verbatim1&quot;)`
 (assert-text: &quot;(print: \&quot;verbatim1\&quot;)&quot;, &quot;verbatim&quot;)
 ``(print: &quot;verbatim2&quot;)``(assert-text: &quot;(print: \&quot;verbatim2\&quot;)&quot;, &quot;verbatim&quot;)
 ```(print: &quot;verbatim3&quot;)```(assert-text: &quot;(print: \&quot;verbatim3\&quot;)&quot;, &quot;verbatim&quot;)
 (pass:)</tw-passagedata>
-<tw-passagedata pid="9" name="Markup_Unsupported" tags="" position="457,158">==&gt;
+<tw-passagedata pid="8" name="Markup_Unsupported" tags="" position="457,158">==&gt;
 This is right-aligned
 =&gt;&lt;=
 This is centered
@@ -195,47 +193,30 @@ This has margins 3/4 left, 1/4 right
   ----
      -----
 (pass:)</tw-passagedata>
-<tw-passagedata pid="10" name="Markup_LineBreaks" tags="" position="719,159">This line\
+<tw-passagedata pid="9" name="Markup_LineBreaks" tags="" position="719,159">This line\
 and this line
 \and this line, are actually just one line.\
 (assert-no-output: typeof(UnityTwine.TwineLineBreak))
 (pass:)</tw-passagedata>
-<tw-passagedata pid="11" name="Markup_NakedVar" tags="" position="1229,155">(set: $naked = &quot;I can see your butt :)&quot;)
+<tw-passagedata pid="10" name="Markup_NakedVar" tags="" position="1229,155">(set: $naked = &quot;I can see your butt :)&quot;)
 
 $naked
 
 (assert-text: &quot;I can see your butt :)&quot;, &quot;naked var&quot;)
 (pass:)</tw-passagedata>
-<tw-passagedata pid="12" name="Markup_Scope_Hooks" tags="" position="1099,156">(hook:&quot;c0&quot;)[
+<tw-passagedata pid="11" name="Markup_Scope_Hooks" tags="" position="1099,156">(hook:&quot;c0&quot;)[
   |c1&gt;[ballroom(assert-hook: &quot;c1&quot;)]
   [bright red(assert-hook: &quot;c2&quot;)]&lt;c2|
   (assert-hook: &quot;c0&quot;)
 ]
 (pass:)</tw-passagedata>
-<tw-passagedata pid="13" name="Vars_It" tags="" position="325,293">{
+<tw-passagedata pid="12" name="Vars_It" tags="" position="325,293">{
 (set: $red = &quot;eg&quot;)
 (set: $red = it + &quot;g&quot;)
 (assert: $red is &#39;egg&#39; and its length is 3, &quot;it/its&quot;)
 (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="14" name="Macros_SetPutMove" tags="" position="288,554">{
-	(set: $setTest to 32.1)
-	(assert: $setTest is 32.1, &quot;set&quot;)
-	
-	(put: 45 into $putTest)
-	(assert: $putTest is 45, &quot;put&quot;)
-	(pass:)
-	
-	(set: $a = (a:111,(a:&quot;cheese&quot;,&quot;bread&quot;),3))
-	
-	(assert: $a&#39;s length is 2, &quot;move from array&quot;)
-	(assert: $b is 111, &quot;move from array&quot;)
-	
-	
-	
-	(pass:)
-}</tw-passagedata>
-<tw-passagedata pid="15" name="Vars_Type_Array" tags="" position="843,293">{
+<tw-passagedata pid="13" name="Vars_Type_Array" tags="" position="843,293">{
 (set: $ar to (a:&quot;red&quot;,&quot;blue&quot;,&quot;green&quot;))
 
 (assert: $ar is (a:&quot;red&quot;,&quot;blue&quot;,&quot;green&quot;), &quot;equality&quot;)
@@ -269,7 +250,7 @@ $naked
 
 (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="16" name="Vars_Type_Dataset" tags="" position="976,296">{
+<tw-passagedata pid="14" name="Vars_Type_Dataset" tags="" position="976,296">{
 (set: $dst to (dataset:&quot;red&quot;,&quot;blue&quot;,&quot;green&quot;))
 
 (assert: $dst&#39;s length is 3, &quot;length&quot;)
@@ -284,7 +265,7 @@ $naked
 
 (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="17" name="Vars_Type_Datamap" tags="" position="1104,295">{
+<tw-passagedata pid="15" name="Vars_Type_Datamap" tags="" position="1104,295">{
 (set: $map to (datamap:&quot;juice&quot;,&quot;orange&quot;, &quot;vessel&quot;,&quot;glass&quot;))
 (assert: $map is (datamap:&quot;juice&quot;,&quot;orange&quot;, &quot;vessel&quot;,&quot;glass&quot;), &quot;equality&quot;)
 (assert: $map is not (datamap:&quot;juice&quot;,&quot;apple&quot;, &quot;vessel&quot;,&quot;snifter&quot;), &quot;inequality&quot;)
@@ -305,7 +286,7 @@ $naked
 
 (pass:)
 }</tw-passagedata>
-<tw-passagedata pid="18" name="Markup_Links" tags="" position="320,157">{
+<tw-passagedata pid="16" name="Markup_Links" tags="" position="320,157">{
   [[Result]]
   (assert-link: &quot;Result&quot;, &quot;Result&quot;, &quot;Link without text&quot;)
   
@@ -326,6 +307,22 @@ $naked
   
   (pass:)
 }</tw-passagedata>
+<tw-passagedata pid="17" name="Macros_LinkTypes" tags="" position="475,488">(link-goto:&quot;Result&quot;)
+
+(link:&quot;Click and it&#39;s gone&quot;)[It&#39;s gone.]
+
+(link-replace:&quot;Click and it&#39;s gone&quot;)[It&#39;s gone.]
+
+(link-reveal:&quot;What comes next?&quot;)[This does!]
+
+(link-repeat:&quot;How long are you here?&quot;)[{
+  (if: time &lt; 10s)[
+  	Not very long.
+  ]
+  (else:)[
+  	A while.
+  ]
+}]</tw-passagedata>
 </tw-storydata>
 
 

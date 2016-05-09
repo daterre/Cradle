@@ -22,7 +22,7 @@ namespace UnityTwine
 		public bool AutoPlay = true;
         public string StartPassage = "Start";
 		public GameObject[] AdditionalCues;
-		public bool OutputStyleTags = false;
+		public bool OutputStyleTags = true;
 
 		public event Action<TwinePassage> OnPassageEnter;
 		public event Action<TwineStoryState> OnStateChanged;
@@ -38,6 +38,9 @@ namespace UnityTwine
 		public string PreviousPassageName { get; private set; }
 		public TwineLink CurrentLinkInAction { get; private set; }
 		public TwineStyle Style { get; private set; }
+		public int NumberOfLinksDone { get; private set; }
+        public List<string> PassageHistory {get; private set; }
+		public float PassageTime { get { return _timeAccumulated + (Time.time - _timeChangedToPlay); } }
 
 		TwineStoryState _state = TwineStoryState.Idle;
 		IEnumerator<TwineOutput> _currentThread = null;
@@ -47,9 +50,8 @@ namespace UnityTwine
 		Dictionary<string, List<Cue>> _cueCache = new Dictionary<string, List<Cue>>();
 		MonoBehaviour[] _cueTargets = null;
 		List<TwineStyleScope> _scopes = new List<TwineStyleScope>();
-
-		public int NumberOfLinksDone { get; private set; }
-        public List<string> PassageHistory {get; private set; }
+		float _timeChangedToPlay = 0f;
+		float _timeAccumulated;
 
 		protected int InsertIndex = -1;
 
@@ -178,6 +180,7 @@ namespace UnityTwine
 				throw new InvalidOperationException("Pause can only be called while a passage is playing or exiting.");
 
 			this.State = TwineStoryState.Paused;
+			_timeAccumulated = Time.time - _timeChangedToPlay;
 		}
 
 		/// <summary>
@@ -205,6 +208,7 @@ namespace UnityTwine
 			}
 			else {
 				this.State = TwineStoryState.Playing;
+				_timeAccumulated = Time.time - _timeChangedToPlay;
 				ExecuteCurrentThread();
 			}
 		}
@@ -220,6 +224,8 @@ namespace UnityTwine
 		void Enter(string passageName)
 		{
 			_passageWaitingToEnter = null;
+			_timeAccumulated = 0;
+			_timeChangedToPlay = Time.time;
 
 			this.Output.Clear();
 			this.Text.Clear();
@@ -259,9 +265,7 @@ namespace UnityTwine
 			if (this.State == TwineStoryState.Paused)
 				return;
 			else
-			{
 				ExecuteCurrentThread();
-			}
 		}
 
 		/// <summary>

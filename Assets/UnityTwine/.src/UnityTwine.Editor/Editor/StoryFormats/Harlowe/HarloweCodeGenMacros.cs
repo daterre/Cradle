@@ -115,23 +115,31 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 		};
 
 		// ......................
-		static string[] linkTypesWithHook = new string[] { "link", "linkreplace", "linkrepeat", "linkreveal" };
+		enum LinkType { LinkReplace, LinkRepeat, LinkReveal, LinkGoto }
 
 		public static HarloweCodeGenMacro Link = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken linkToken = tokens[tokenIndex];
-			
+			LinkType linkType;
+			if (linkToken.name == "link")
+				linkType = LinkType.LinkReplace;
+			else
+			{
+				try { linkType = (LinkType)Enum.Parse(typeof(LinkType), linkToken.name, true); }
+				catch { linkType = LinkType.LinkReplace; }
+			}
+
 			// Create a hook name for links that do things to hooks.
 			string hookName = null;
 			bool indented = false;
-			if (linkTypesWithHook.Contains(linkToken.name))
+			if (linkType.In(LinkType.LinkReplace, LinkType.LinkRepeat, LinkType.LinkReveal))
 			{
 				if (usage != MacroUsage.LineAndHook)
 					throw new TwineTranscodeException(string.Format("'{0}' macro must be followed by a Harlowe-hook", linkToken.name));
 
 				hookName = System.Guid.NewGuid().ToString("N");
 
-				if (linkToken.name != "linkrepeat")
+				if (linkType != LinkType.LinkRepeat)
 				{
 					transcoder.Code.Buffer.AppendFormat("using (ApplyStyle(\"hook\", hook(\"{0}\")))", hookName).AppendLine();
 					transcoder.Code.Indentation++;
@@ -147,7 +155,8 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			for (; end < linkToken.tokens.Length; end++)
 				if (linkToken.tokens[end].type == "comma")
 					break;
-			transcoder.GenerateExpression(linkToken.tokens, start: start, end: end - 1);
+			int linkTextStartToken = start, linkTextEndToken = end-1;
+			transcoder.GenerateExpression(linkToken.tokens, start: linkTextStartToken, end: linkTextEndToken);
 
 			// Passage
 			transcoder.Code.Buffer.Append(", ");
@@ -157,12 +166,15 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 					break;
 			if (start < end)
 				transcoder.GenerateExpression(linkToken.tokens, start: start, end: end - 1);
+			else if (linkType == LinkType.LinkGoto)
+				// If no passage name specified for link goto, use the same
+				transcoder.GenerateExpression(linkToken.tokens, start: linkTextStartToken, end: linkTextEndToken);
 			else
 				transcoder.Code.Buffer.Append("null");
 
 			// Action
 			transcoder.Code.Buffer.Append(", ");
-			if (linkToken.name == "linkgoto")
+			if (linkType == LinkType.LinkGoto)
 			{
 				transcoder.Code.Buffer.Append("null);");
 			}
@@ -171,17 +183,20 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				tokenIndex++; // advance
 				LexerToken hookToken = tokens[tokenIndex];
 
-				transcoder.Code.Buffer.AppendFormat("() => enchantHook{1}(\"{0}\", HarloweEnchantCommand.Replace, ",
-					hookName,
-					linkToken.name == "linkreveal" ? "WithLinkText" : null
+				transcoder.Code.Buffer.AppendFormat("() => enchantHook(\"{0}\", HarloweEnchantCommand.Replace, ",
+					hookName
 				);
 				transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
 
-				if (linkToken.name == "linkrepeat")
+				if (linkType == LinkType.LinkRepeat)
 				{
 					transcoder.Code.Buffer.Append(", wrap: true));").AppendLine();
 					transcoder.Code.Indent();
 					transcoder.Code.Buffer.AppendFormat("using (ApplyStyle(\"hook\", hook(\"{0}\"))) {{}}", hookName);
+				}
+				else if (linkType == LinkType.LinkReveal)
+				{
+					transcoder.Code.Buffer.Append(", linkTextPrefix: true));").AppendLine();
 				}
 				else
 				{

@@ -25,23 +25,25 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return new HarloweHookRef(hookName);
 		}
 
-		protected ITwineThread wrapFragmentWithHook(string hookName, System.Func<ITwineThread> fragment)
+		protected ITwineThread wrapFragmentWithHook(string hookName, Func<ITwineThread> fragment)
 		{
 			using (ApplyStyle("hook", hook(hookName)))
 				yield return this.fragment(fragment);
 		}
 
-		protected ITwineThread enchantHook(string hookName, HarloweEnchantCommand enchantCommand, System.Func<ITwineThread> fragment, bool wrap = false)
-		{
-			// If we need to wrap, call the fragment
-			fragment = !wrap ? fragment : () => wrapFragmentWithHook(hookName, fragment);
-			yield return enchant(hookRef(hookName), enchantCommand, fragment);
-		}
-
-		protected ITwineThread enchantHookWithLinkText(string hookName, HarloweEnchantCommand enchantCommand, System.Func<ITwineThread> fragment, bool wrap = false)
+		protected ITwineThread prefixFragmentWithLinkText(Func<ITwineThread> fragment)
 		{
 			yield return this.text(this.CurrentLinkInAction.Text);
-			yield return this.fragment(() => enchantHook(hookName, enchantCommand, fragment, wrap));
+			yield return this.fragment(fragment);
+		}
+
+		protected ITwineThread enchantHook(string hookName, HarloweEnchantCommand enchantCommand, Func<ITwineThread> fragment, bool wrap = false, bool linkTextPrefix = false)
+		{
+			// Special fragment features, if necessary
+			Func<ITwineThread> f2 = !linkTextPrefix ? fragment : () => prefixFragmentWithLinkText(fragment);
+			Func<ITwineThread> f3 = !wrap ? f2 : () => wrapFragmentWithHook(hookName, f2);
+
+			yield return enchant(hookRef(hookName), enchantCommand, f3);
 		}
 
 		protected TwineEmbedFragment enchantIntoLink(TwineVar reference, Func<ITwineThread> linkAction)

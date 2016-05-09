@@ -150,7 +150,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &63472775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,6 +277,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Vars_Type_Dataset
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &304329808
 GameObject:
   m_ObjectHideFlags: 0
@@ -319,6 +320,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Markup_HTML
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &330866220
 GameObject:
   m_ObjectHideFlags: 0
@@ -361,6 +363,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Markup_Verbatim
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &364842674
 GameObject:
   m_ObjectHideFlags: 0
@@ -403,6 +406,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Vars_Type_String
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &428910608
 GameObject:
   m_ObjectHideFlags: 0
@@ -445,6 +449,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Vars_Type_Datamap
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &450834464
 GameObject:
   m_ObjectHideFlags: 0
@@ -487,6 +492,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Markup_Links
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &473311438
 GameObject:
   m_ObjectHideFlags: 0
@@ -619,6 +625,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Markup_Scope_Styles
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &836074276
 GameObject:
   m_ObjectHideFlags: 0
@@ -711,6 +718,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Markup_LineBreaks
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &984304120
 GameObject:
   m_ObjectHideFlags: 0
@@ -803,6 +811,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Vars_Type_Array
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &1053991535
 GameObject:
   m_ObjectHideFlags: 0
@@ -895,6 +904,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Vars_Type_Number
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &1121077929
 GameObject:
   m_ObjectHideFlags: 0
@@ -1037,6 +1047,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Markup_Scope_Hooks
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &1420361418
 GameObject:
   m_ObjectHideFlags: 0
@@ -1129,6 +1140,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Vars_Type_Bool
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &1580278731
 GameObject:
   m_ObjectHideFlags: 0
@@ -1321,6 +1333,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Markup_Unsupported
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &1726695187
 GameObject:
   m_ObjectHideFlags: 0
@@ -1363,6 +1376,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Vars_It
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &1750661861
 GameObject:
   m_ObjectHideFlags: 0
@@ -1455,6 +1469,7 @@ MonoBehaviour:
   AutoPlay: 1
   StartPassage: Markup_NakedVar
   AdditionalCues: []
+  OutputStyleTags: 0
 --- !u!1 &1888914918
 GameObject:
   m_ObjectHideFlags: 0
