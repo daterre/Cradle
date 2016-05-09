@@ -13472,7 +13472,7 @@
             ]
         },
         {
-            "Name": "Macros_LinkTypes",
+            "Name": "Macros_Links",
             "Pid": "17",
             "Tags": "",
             "Tokens": [
@@ -13759,6 +13759,65 @@
                                 }
                             ],
                             "type": "collapsed"
+                        }
+                    ],
+                    "type": "hook"
+                }
+            ]
+        },
+        {
+            "Name": "Macros_Clicks",
+            "Pid": "18",
+            "Tags": "",
+            "Tokens": [
+                {
+                    "text": "hey, why do you keep saying hey?",
+                    "type": "text"
+                },
+                {
+                    "text": "\n",
+                    "type": "br"
+                },
+                {
+                    "text": "\n",
+                    "type": "br"
+                },
+                {
+                    "innerText": "click:\"hey\"",
+                    "name": "click",
+                    "text": "(click:\"hey\")",
+                    "tokens": [
+                        {
+                            "text": "click:",
+                            "type": "macroName"
+                        },
+                        {
+                            "innerText": "hey",
+                            "text": "\"hey\"",
+                            "type": "string"
+                        }
+                    ],
+                    "type": "macro"
+                },
+                {
+                    "innerText": "\n   It's just fun, is all.\n",
+                    "text": "[\n   It's just fun, is all.\n]",
+                    "tokens": [
+                        {
+                            "text": "\n",
+                            "type": "br"
+                        },
+                        {
+                            "text": "   ",
+                            "type": "whitespace"
+                        },
+                        {
+                            "text": "It's just fun, is all.",
+                            "type": "text"
+                        },
+                        {
+                            "text": "\n",
+                            "type": "br"
                         }
                     ],
                     "type": "hook"

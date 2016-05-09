@@ -190,7 +190,7 @@ MonoBehaviour:
     m_Bottom: 0
   m_ChildAlignment: 0
   m_LineBreakMinHeight: 18
-  m_SpacingInline: 4
+  m_SpacingInline: 0
   m_SpacingLine: 8
   m_IsVertical: 0
 --- !u!114 &11412358

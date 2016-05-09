@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,6 +20,8 @@ public class TwineTextPlayer : MonoBehaviour {
 
 	bool _clicked = false;
 	Stack<int> _enchantIndex = new Stack<int>();
+
+	static Regex rx_splitText = new Regex(@"(\s+|[^\s]+)");
 
 	// Use this for initialization
 	void Start () {
@@ -141,17 +144,14 @@ public class TwineTextPlayer : MonoBehaviour {
 		if (output is TwineText)
 		{
 			var text = (TwineText)output;
-			string[] words = text.Text.Split(new char[]{' '}, System.StringSplitOptions.RemoveEmptyEntries);
-			for (int i = 0; i < words.Length; i++)
+			foreach (Match m in rx_splitText.Matches(text.Text))
 			{
-				string word = words[i];
+				string word = m.Value;
 				Text uiWord = (Text)Instantiate(WordTemplate);
 				uiWord.gameObject.SetActive(true);
 				uiWord.text = word;
-				uiWord.name = word.Trim().Length == 0 ? "(sp)" : word;
+				uiWord.name = word.Length == 0 ? "(sp)" : word;
 				AddToUI(uiWord.rectTransform, output);
-				if (_enchantIndex.Count > 0)
-					_enchantIndex.Push(_enchantIndex.Pop() + 1);
 			}
 		}
 		else if (output is TwineLink)
@@ -197,7 +197,11 @@ public class TwineTextPlayer : MonoBehaviour {
 	{
 		rect.SetParent(Container);
 		if (_enchantIndex.Count > 0)
-			rect.SetSiblingIndex(_enchantIndex.Peek());
+		{
+			int index = _enchantIndex.Pop();
+			rect.SetSiblingIndex(index);
+			_enchantIndex.Push(index + 1);
+		}
 
 		var elem = rect.gameObject.AddComponent<TwineTextPlayerElement>();
 		elem.SourceOutput = output;

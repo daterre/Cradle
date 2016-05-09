@@ -523,13 +523,14 @@ namespace UnityTwine
 			// Process the link action before continuing
 			if (link.Action != null)
 			{
+				CurrentLinkInAction = link;
+
 				// Action might invoke a fragment method, in which case we need to process it with cues etc.
 				ITwineThread linkActionThread = link.Action.Invoke();
 				if (linkActionThread != null)
 				{
 					// Prepare the fragment thread enumerator
 					_currentThread = CollapseThread(linkActionThread).GetEnumerator();
-					CurrentLinkInAction = link;
 
 					// Resume story, this time with the actoin thread
 					this.State = TwineStoryState.Playing;
