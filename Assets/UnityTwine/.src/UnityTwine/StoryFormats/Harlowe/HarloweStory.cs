@@ -25,9 +25,28 @@ namespace UnityTwine.StoryFormats.Harlowe
 			return new HarloweHookRef(hookName);
 		}
 
-		protected TwineEmbedFragment replaceWithLink(TwineVar reference, Func<ITwineThread> linkAction)
+		protected ITwineThread wrapFragmentWithHook(string hookName, System.Func<ITwineThread> fragment)
 		{
-			return enchant(reference, HarloweEnchantCommand.Replace, () => EnchantToLink(linkAction));
+			using (ApplyStyle("hook", hook(hookName)))
+				yield return this.fragment(fragment);
+		}
+
+		protected ITwineThread enchantHook(string hookName, HarloweEnchantCommand enchantCommand, System.Func<ITwineThread> fragment, bool wrap = false)
+		{
+			// If we need to wrap, call the fragment
+			fragment = !wrap ? fragment : () => wrapFragmentWithHook(hookName, fragment);
+			yield return enchant(hookRef(hookName), enchantCommand, fragment);
+		}
+
+		protected ITwineThread enchantHookWithLinkText(string hookName, HarloweEnchantCommand enchantCommand, System.Func<ITwineThread> fragment, bool wrap = false)
+		{
+			yield return this.text(this.CurrentLinkInAction.Text);
+			yield return this.fragment(() => enchantHook(hookName, enchantCommand, fragment, wrap));
+		}
+
+		protected TwineEmbedFragment enchantIntoLink(TwineVar reference, Func<ITwineThread> linkAction)
+		{
+			return enchant(reference, HarloweEnchantCommand.Replace, () => EnchantIntoLink(linkAction));
 		}
 
 		protected TwineEmbedFragment enchant(TwineVar reference, HarloweEnchantCommand command, Func<ITwineThread> fragment)
@@ -87,13 +106,12 @@ namespace UnityTwine.StoryFormats.Harlowe
 			{
 				using (ApplyStyle(HarloweStyleSettings.Enchantment, enchantment))
 				{
-					foreach (TwineOutput output in fragment.Invoke())
-						yield return output;
+					yield return this.fragment(fragment);
 				}
 			}
 		}
 
-		ITwineThread EnchantToLink(Func<ITwineThread> linkAction)
+		ITwineThread EnchantIntoLink(Func<ITwineThread> linkAction)
 		{
 			var enchantment = this.Style.GetValues<HarloweEnchantment>(HarloweStyleSettings.Enchantment).Last();
 			foreach(TwineOutput affected in enchantment.Affected)

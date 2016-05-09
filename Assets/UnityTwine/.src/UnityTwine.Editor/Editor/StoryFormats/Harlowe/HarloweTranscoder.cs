@@ -38,6 +38,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 			CodeGenMacros["else"] = BuiltInCodeGenMacros.Conditional;
 
 			CodeGenMacros["link"] =
+			CodeGenMacros["linkreplace"] =
 			CodeGenMacros["linkgoto"] =
 			CodeGenMacros["linkreveal"] =
 			CodeGenMacros["linkrepeat"] = BuiltInCodeGenMacros.Link;
@@ -61,7 +62,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
             CodeGenMacros["mouseout"] =
             CodeGenMacros["mouseoutreplace"] =
             CodeGenMacros["mouseoutappend"] =
-            CodeGenMacros["mouseoutprepend"] = BuiltInCodeGenMacros.EnchantLink;
+            CodeGenMacros["mouseoutprepend"] = BuiltInCodeGenMacros.EnchantIntoLink;
 
 			CodeGenMacros["live"] = BuiltInCodeGenMacros.Live;
 			CodeGenMacros["stop"] = BuiltInCodeGenMacros.Stop;

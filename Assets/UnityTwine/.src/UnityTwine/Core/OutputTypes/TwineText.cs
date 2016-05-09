@@ -8,6 +8,11 @@ namespace UnityTwine
 		{
 			this.Text = text;
 		}
+
+		public override string ToString()
+		{
+			return string.Format("{0} (text)", this.Text);
+		}
 	}
 }
 

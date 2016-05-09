@@ -22,11 +22,13 @@ namespace UnityTwine
 		public bool AutoPlay = true;
         public string StartPassage = "Start";
 		public GameObject[] AdditionalCues;
+		public bool OutputStyleTags = false;
 
 		public event Action<TwinePassage> OnPassageEnter;
 		public event Action<TwineStoryState> OnStateChanged;
 		public event Action<TwineOutput> OnOutput;
 		
+        public Dictionary<string, TwinePassage> Passages { get; private set; }
 		public List<TwineText> Text { get; private set; }
 		public List<TwineLink> Links { get; private set; }
 		public List<TwineOutput> Output { get; private set; }
@@ -34,22 +36,22 @@ namespace UnityTwine
 		public TwineRuntimeVars Vars { get; protected set; }
 		public string CurrentPassageName { get; private set; }
 		public string PreviousPassageName { get; private set; }
+		public TwineLink CurrentLinkInAction { get; private set; }
 		public TwineStyle Style { get; private set; }
 
-        public Dictionary<string, TwinePassage> Passages { get; private set; }
 		TwineStoryState _state = TwineStoryState.Idle;
 		IEnumerator<TwineOutput> _currentThread = null;
-		TwineLink _currentLinkInAction = null;
 		ThreadResult _lastThreadResult = ThreadResult.Done;
 		Cue[] _passageUpdateCues = null;
 		string _passageWaitingToEnter = null;
 		Dictionary<string, List<Cue>> _cueCache = new Dictionary<string, List<Cue>>();
 		MonoBehaviour[] _cueTargets = null;
 		List<TwineStyleScope> _scopes = new List<TwineStyleScope>();
-		TwineStyle _scopeStyle;
 
 		public int NumberOfLinksDone { get; private set; }
         public List<string> PassageHistory {get; private set; }
+
+		protected int InsertIndex = -1;
 
 		private class Cue
 		{
@@ -237,14 +239,17 @@ namespace UnityTwine
 				this.OnPassageEnter(passage);
 
 			// Add output (and trigger cues)
-			this.Output.Add(passage);
+			if (InsertIndex < 0)
+				this.Output.Add(passage);
+			else
+				this.Output.Insert(InsertIndex, passage);
 
 			// Get update cues for calling during update
 			_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
 
 			// Prepare the thread enumerator
 			_currentThread = CollapseThread(passage.GetMainThread()).GetEnumerator();
-			_currentLinkInAction = null;
+			CurrentLinkInAction = null;
 
 			this.State = TwineStoryState.Playing;
 			SendOutput(passage);
@@ -277,7 +282,10 @@ namespace UnityTwine
 					break;
 				}
 
-				this.Output.Add(output);
+				if (InsertIndex < 0)
+					this.Output.Add(output);
+				else
+					this.Output.Insert(InsertIndex, output);
 
 				if (output is TwineLink)
 				{
@@ -329,15 +337,15 @@ namespace UnityTwine
 			else
 			{
 				// Invoke the done cue - either for main or for a link
-				if (_currentLinkInAction == null)
+				if (CurrentLinkInAction == null)
 					CuesInvoke(CuesFind("Done"));
 				else
-					CuesInvoke(CuesFind("ActionDone"), _currentLinkInAction);
+					CuesInvoke(CuesFind("LinkDone"), CurrentLinkInAction);
 
 				_lastThreadResult = ThreadResult.Done;
 			}
 
-			_currentLinkInAction = null;
+			CurrentLinkInAction = null;
 		}
 
 		/// <summary>
@@ -347,8 +355,9 @@ namespace UnityTwine
 		{
 			foreach (TwineOutput output in thread)
 			{
-				foreach (TwineOutput scopeTag in ScopeOutputOpeners())
-					yield return scopeTag;
+				if (OutputStyleTags)
+					foreach (TwineOutput scopeTag in ScopeOutputOpeners())
+						yield return scopeTag;
 
 				if (output is TwineEmbed)
 				{
@@ -381,12 +390,23 @@ namespace UnityTwine
 				else
 					yield return output;
 
+				if (OutputStyleTags)
+					foreach (TwineOutput scopeTag in ScopeOutputClosers())
+						yield return scopeTag;
+
+				ScopeCleanup();
+			}
+
+			if (OutputStyleTags)
+			{
+				foreach (TwineOutput scopeTag in ScopeOutputOpeners())
+					yield return scopeTag;
+
 				foreach (TwineOutput scopeTag in ScopeOutputClosers())
 					yield return scopeTag;
 			}
 
-			foreach (TwineOutput scopeTag in ScopeOutputClosers())
-				yield return scopeTag;
+			ScopeCleanup();
 		}
 
 		void SendOutput(TwineOutput output)
@@ -431,10 +451,9 @@ namespace UnityTwine
 		void ScopeWasDisposed(TwineStyleScope scope)
 		{
 			scope.OnDisposed -= ScopeWasDisposed;
-			_scopes.Remove(scope);
 			
-			ScopeBuildStyle();
 			scope.State = TwineStyleScopeState.PendingClose;
+			ScopeBuildStyle();
 		}
 
 		ITwineThread ScopeOutputOpeners()
@@ -444,6 +463,7 @@ namespace UnityTwine
 				if (_scopes[i].State == TwineStyleScopeState.PendingOpen)
 				{
 					_scopes[i].State = TwineStyleScopeState.Open;
+					ScopeBuildStyle();
 					yield return new TwineStyleTag(TwineStyleTagType.Opener, _scopes[i].Style);
 				}
 			}
@@ -457,14 +477,21 @@ namespace UnityTwine
 				{
 					_scopes[i].State = TwineStyleScopeState.Closed;
 					yield return new TwineStyleTag(TwineStyleTagType.Closer, _scopes[i].Style);
+					ScopeBuildStyle();
 				}
 			}
+		}
+
+		void ScopeCleanup()
+		{
+			_scopes.RemoveAll(sc => sc.State == TwineStyleScopeState.Closed);
 		}
 
 		void ScopeBuildStyle()
 		{
 			TwineStyle style = new TwineStyle();
 			for (int i = 0; i < _scopes.Count; i++)
+				if (_scopes[i].State == TwineStyleScopeState.Open || _scopes[i].State == TwineStyleScopeState.PendingOpen)
 				style += _scopes[i].Style;
 
 			this.Style = style;
@@ -498,7 +525,7 @@ namespace UnityTwine
 				{
 					// Prepare the fragment thread enumerator
 					_currentThread = CollapseThread(linkActionThread).GetEnumerator();
-					_currentLinkInAction = link;
+					CurrentLinkInAction = link;
 
 					// Resume story, this time with the actoin thread
 					this.State = TwineStoryState.Playing;

@@ -7,6 +7,11 @@ namespace UnityTwine
 		public TwineLineBreak()
 		{
 		}
+
+		public override string ToString()
+		{
+			return "(br)";
+		}
 	}
 }
 

@@ -12,6 +12,11 @@ namespace UnityTwine
 			this.TagType = tagType;
 			this.InnerStyle = innerStyle;
 		}
+
+		public override string ToString()
+		{
+			return TagType == TwineStyleTagType.Opener ? "<style>" : "</style>";
+		}
 	}
 
 	public enum TwineStyleTagType

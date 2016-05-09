@@ -103,6 +103,7 @@ MonoBehaviour:
   AutoPlay: 0
   StartPassage: Title
   AdditionalCues: []
+  OutputStyleTags: 1
 --- !u!1001 &2114699216
 Prefab:
   m_ObjectHideFlags: 0
