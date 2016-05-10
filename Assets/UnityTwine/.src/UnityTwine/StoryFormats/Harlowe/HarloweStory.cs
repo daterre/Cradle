@@ -157,7 +157,8 @@ namespace UnityTwine.StoryFormats.Harlowe
 		//ITwineThread EnchantIntoLinkUndo(Func<ITwineThread> linkAction)
 		//{
 		//	var enchant = this.CurrentLinkInAction.Style.GetValues<HarloweEnchantment>(HarloweStyleSettings.Enchantment).Last();
-
+		//
+		//  // Need to mark replaced positions somehow
 		//	var undoEnchant = new HarloweEnchantment()
 		//	{
 		//		ReferenceType = HarloweEnchantReferenceType.Other,

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ITwineThread = System.Collections.Generic.IEnumerable<UnityTwine.TwineOutput>;
+using System.Text.RegularExpressions;
 
 namespace UnityTwine
 {
@@ -13,13 +14,17 @@ namespace UnityTwine
 		public Dictionary<string,object> Parameters;
 		public Func<ITwineThread> Action;
 
+		static Regex rx_Name = new Regex(@"^((?<name>[^=]+?)\s*=)", RegexOptions.ExplicitCapture);
+
 		public TwineLink(string text, string passageName, Func<ITwineThread> action)
         {
             this.Text = text;
             this.PassageName = passageName;
 			this.Action = action;
-        }
 
+			Match m = rx_Name.Match(text);
+			this.Name = m.Success ? m.Groups["name"].Value : text;
+        }
 
 		public TwineLink(string text, string passageName) :
 			this( text, passageName, null)
