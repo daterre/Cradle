@@ -8,36 +8,32 @@ UnityTwine is a plugin for Unity that imports Twine stories, plays them and make
 Writers can independently design and test their stories as they would a normal Twine story;
 programmers and artists can develop the interaction and presentation without worrying about flow control. When imported to Unity, UnityTwine kicks in and bridges the gap. 
 
-####Getting started
-1. [Download the latest UnityTwine release](https://github.com/daterre/UnityTwine/releases) and unzip to your Unity project's Assets folder.
-2. Export .twee files from Twine 1 or 2 ([instructions](#exporting-twee-files-from-twine)) and drag into Unity.
+#### Getting started
+1. [Download the latest UnityTwine release](https://github.com/daterre/UnityTwine/releases) and install the package to your Unity project.
+2. Publish a story from Twine 1 or 2 ([instructions](#exporting-from-twine)) and drag it into Unity.
 3. Add the generated script to your scene.
-4. Use [hooks](#hooks) to script story interaction, or use the included [TwineTextPlayer](#twinetextplayer).
+4. Use [cues](#cues) to script story interaction, or use the included [TwineTextPlayer](#twinetextplayer).
 
-####Examples
+#### Examples
 [Snoozing](http://daterre.com/projects/snoozing/) is a short interactive story created with UnityTwine. The entire source code is included here on GitHub (in the Examples folder) and in the Unity asset store package.
 
-####Contribute
+#### Contribute
 UnityTwine is in active development. It is currently being used for the development of the puzzle-adventure game [Clastic Morning](http://daterre.com/works/clastic/), as well as other smaller projects. Hopefully it will be useful to anyone looking to create narrative-based games in Unity.
 
 If you use UnityTwine in your project or game jam and find bugs, develop extra features, or even just have general feedback, please contribute by submitting to this GitHub page. Thank you!
 
 
 
-##Documentation
+## Documentation
 
 **Table of Contents**
-- [Installing](#installing)
-- [Importing](#importing)
-	- [Exporting .twee files from Twine](#exporting-twee-files-from-twine)
-		- [For Twine 1](#for-twine-1)
-		- [For Twine 2](#for-twine-2)
-	- [Supported syntax](#supported-syntax)
-		- [Links](#links)
-		- [Tags](#tags)
-		- [Macros](#macros)
-		- [Functions](#functions)
-		- [General](#general)
+- [Overview](#overview)
+- [Installation](#installation)
+- [Importing a story](#importing-a-story)
+	- [Supported story formats](#supported-story-formats)
+	- [Exporting from Twine](#exporting-from-twine)
+		- [From Twine 2](#exporting-from-twine-2)
+		- [From Twine 1](#exporting-from-twine-1)
 - [Playback](#playback)
 	- [TwineTextPlayer](#twinetextplayer)
 - [Scripting](#scripting)
@@ -46,102 +42,66 @@ If you use UnityTwine in your project or game jam and find bugs, develop extra f
 	- [Variables](#variables)
 	- [Story state](#story-state)
 		- [Pause and Resume](#pause-and-resume)
-	- [Hooks](#hooks)
+	- [Cues](#cues)
 		- [Simple example](#simple-example)
-		- [Setting up a hook script](#setting-up-a-hook-script)
-		- [Hook types](#hook-types)
-		- [Coroutine hooks](#coroutine-hooks)
+		- [Setting up a cue script](#setting-up-a-cue-script)
+		- [Cue types](#cue-types)
+		- [Coroutine cues](#coroutine-cues)
+	- [Extending](#extending)
+		- [Runtime macros]
+		- [Code generation macros]
 - [Change log](#change-log)
 
-###Installing
-Two ways to install:
 
-- [Download the latest release](https://github.com/daterre/UnityTwine/releases) and unzip to your Unity project's Assets folder.
-- [Grab a snapshot](https://github.com/daterre/UnityTwine/archive/v1.1.0.zip) of the latest release tag and place it in your project's Assets folder under Plugins/UnityTwine
+### Overview
 
-It is recommended to restart Unity after installation in order to make sure that the importer registers correctly.
+#### What is UnityTwine?
 
-###Importing
-The UnityTwine asset importer listens for any new .twee files dropped into the project directory, and proceeds to import them.
+**A framework for building a story-driven game.**
+A story-driven game relies on player choices to unfold, often branching out in many directions. The code required to handle and respond to these choices can be cumbersome and easily broken, getting messier and harder to maintain as the project grows. UnityTwine offers a clean, straightforward system for adding story-related code to a game, keeping it separate from other game code and ensuring that changes to the story flow and structure can be done with minimal hassle.
 
-The asset importer treats Twee code as logic, translating it into a C# script with a similar structure (and file name).
+**An editor plugin that imports Twine stories into this framework.**
+[Twine](http://twinery.org) is a popular, simple yet powerful tool for writing and publishing interactive stories. Using Twine to write the story parts of a game allows leveraging its tools and its wonderful community, with the added benefit of having a lightweight text-only version of the game that can be played and tested outside of Unity. Whenever a new version of the story is ready, it's published from Twine as an HTML file and dropped into Unity.
+
+#### What is it not?
+
+**It is not a Twine emulator.**
+UnityTwine is not meant to be a Unity-based version of Twine (even though it comes pretty close with the [TwineTextPlayer](#twinetextplayer)). It is also not an embedded HTML player in Unity. Rather, it turns a Twine file into a standard Unity script which, when added to a scene, runs the story and exposes its text and links to other game scripts, which can use them creatively.
+
+**It is not a dailog editor.**
+Twine can be an excellent interactive dialog editor, but it can do many other things as well. UnityTwine doesn't make any assumptions about how your story will be used or displayed in your game. You could choose to trigger a story choice when the player clicks on a certain object, or treat a specific passage as a cue to play a cutscene.
+
+### Installation
+
+Download the latest release from the [Unity asset store] or from [GitHub](https://github.com/daterre/UnityTwine/releases) and open the package.
+
+### Importing a story
+The UnityTwine asset importer listens for any new .html or .twee files dropped into the project directory, and proceeds to import them.
+
+The asset importer treats the Twine markup as logic, translating it into a C# script with a similar structure (and file name).
+
 A story can be reimported over and over again as necessary; the C# script will be refreshed.
 
-####Exporting .twee files from Twine
-#####For Twine 1
+#### Exporting from Twine
 
+##### From Twine 1
 1. File > Export > Twee Source Code...
 2. Save to a location inside your Unity project.
 
-#####For Twine 2
-Requires the [Entweedle](http://www.maximumverbosity.net/twine/Entweedle/) story format.
+##### From Twine 2
+1. Choose Publish to File from the story menu.
+2. Save to a location inside your Unity project.
 
-1. Click the "Formats" link in Twine, then "Add a New Format" and enter this URL: `http://www.maximumverbosity.net/twine/Entweedle/format.js`
-2. In your story, select Entweedle as your story format.
-3. Press 'Play'
-4. Copy and paste the resulting text into an empty text file with the .twee extension. Put this file in your Unity project.
+#### Supported story formats
+UnityTwine supports the following Twine story formats:
+* **[Harlowe](http://twine2.neocities.org/)**, the default format of Twine 2 (recommended)
+* **[Sugarcane](https://twinery.org/wiki/twine_reference)**, the default format of Twine 1
+* **[SugarCube](http://www.motoslave.net/sugarcube/)**, a richer version of Sugarcane that works in both Twine 1 and 2
 
-####Supported syntax
-UnityTwine supports many Twine features, but not all (yet). Here is a list of what works and what doesn't:
-
-#####Links
-Links work as expected:
-
-* Simple: `[[passage]]`
-* With link text: `[[text|passage]]`
-* With variable setters: `[[text|passage][$var = 123]]`
-* With expressions: `[[text|either("a", "b")]]`
-
-A syntax extension allows **naming** links for easy reference in Unity scripts:
-* `[[continue = Continue down the hall.|hallway]]`
-
-#####Tags
-Tags (space-delimted) work as expected.
-
-#####Macros
-Macros that work:
-
-* `<<if>>` .. `<<else>>` .. `<<endif>>`
-* `<<display>>` including shorthand syntax
-* `<<print>>`
-* `<<set>>` (both single and multiple variables)
-
-Macros that **don't work yet**:
-
-* `<<remember>>`
-* `<<action>>`
-* `<<choice>>`
-* `<<nobr>>`
-* HTML stuff: `<<textinput>>`, `<<radio>`,`<<checkbox>>`, `<<button>>`
-
-#####Functions
-
-Functions that work:
-
-* `either()`
-* `random()`
-* `previous()`
-* `passage()`
-* `tags()` (returns a C# array, so `indexOf` and other JavaScript-specific features will not work in Unity)
-* `visited()`
-* `visitedTag()`
-* `turns()`
-* `parameter()`
-
-Functions that **don't work yet**:
-
-* `rot13()`
-* HTML stuff: `confirm()`, `prompt()`, `alert()`, `open()`
-
-#####General
-
-* Strings should use `"double quotes"`, not `'single quotes'`.
-* For usage with hooks, passage names should not begin with a number or include non-alphanumeric characters.
-* Twine 1 presentation features such as Stylesheet, Script, Image and Annotation are not supported.
+Most features of these story formats are available in UnityTwine, but there are some limitations. Please see the [Documention]() for information on supported macros, syntax, etc.
 
 
-
-###Playback
+### Playback
 Once a story is imported and a story script is generated, this script can be added to a game object in the scene like any normal script.
 
 All story scripts include the following editor properties:
