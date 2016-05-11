@@ -33,9 +33,18 @@ namespace UnityTwine
 			this.Value = GetInnerValue(value, true);
 		}
 
-		public Type GetInnerType()
+		public Type InnerType
 		{
-			return Value == null ? null : Value.GetType();
+			get
+			{
+				object val = GetInnerValue(this);
+				return val == null ? null : val.GetType();
+			}
+		}
+
+		public object InnerValue
+		{
+			get { return GetInnerValue(this); }
 		}
 
 		private static object GetInnerValue(object obj, bool duplicate = false)
@@ -106,7 +115,7 @@ namespace UnityTwine
 		}
 
 		// ..............
-		// PROPERTIES
+		// MEMBERS
 
 		public TwineVar this[TwineVar memberName]
 		{

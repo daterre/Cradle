@@ -83,7 +83,7 @@ namespace UnityTwine
 			// Enfore strict mode
 			if (StrictMode)
 			{
-				if (prevValue.Value != null && !TwineVar.TryConvertTo(v, prevValue.GetInnerType(), out v))
+				if (prevValue.Value != null && !TwineVar.TryConvertTo(v, prevValue.InnerType, out v))
 					throw new TwineStrictModeException(string.Format("The variable '{0}' was previously assigned a value of type {1}, and so cannot be assigned a value of type {2}.",
 						varName,
 						prevValue.Value.GetType().Name,
