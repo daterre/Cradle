@@ -589,6 +589,7 @@ namespace UnityTwine
 		// Cues
 
 		static Regex _validPassageNameRegex = new Regex("^[a-z_][a-z0-9_]*$", RegexOptions.IgnoreCase);
+		const BindingFlags _cueMethodFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
 		void Update()
 		{
@@ -626,16 +627,8 @@ namespace UnityTwine
 					continue;
 
 				var passage = (TwinePassage)this.Output[i];
-				
-				// Ensure hookable passage
-				// TODO: use attribute when passage is named this way
-				if (!_validPassageNameRegex.IsMatch(passage.Name))
-				{
-					Debug.LogWarning(string.Format("Passage \"{0}\" cannot use cues because it does not follow C# variable naming rules.", passage.Name));
-					continue;
-				}
 
-				List<Cue> cues = CueGetMethods(passage.Name + '_' + cueName, allowCoroutines);
+				List<Cue> cues = CueGetMethods(passage.Name, cueName, allowCoroutines);
 				if (cues != null)
 				{
 					for (int h = 0; h < cues.Count; h++)
@@ -690,8 +683,10 @@ namespace UnityTwine
 			return _cueTargets;
 		}
 
-		List<Cue> CueGetMethods(string methodName, bool allowCoroutines = true)
+		List<Cue> CueGetMethods(string passageName, string cueName, bool allowCoroutines = true)
 		{
+			string methodName = passageName + "_" + cueName;
+
 			List<Cue> cues = null;
 			if (!_cueCache.TryGetValue(methodName, out cues))
 			{
@@ -699,7 +694,19 @@ namespace UnityTwine
 				for (int i = 0; i < targets.Length; i++)
 				{
 					Type targetType = targets[i].GetType();
-					MethodInfo method = targetType.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+					// First try to get a method with an attribute
+					MethodInfo method = targetType.GetMethods(_cueMethodFlags)
+						.Where(m => m.GetCustomAttributes(typeof(TwineCueAttribute), true)
+							.Cast<TwineCueAttribute>()
+							.Where(attr => attr.CueName == cueName)
+							.Count() > 0
+						)
+						.FirstOrDefault();
+					
+					// If failed, try to get the method by name (if valid)
+					if (method == null && _validPassageNameRegex.IsMatch(passageName))
+						method = targetType.GetMethod(methodName, _cueMethodFlags);
 
 					// No method found on this source type
 					if (method == null)

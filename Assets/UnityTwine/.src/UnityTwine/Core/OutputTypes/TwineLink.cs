@@ -14,16 +14,21 @@ namespace UnityTwine
 		public Dictionary<string,object> Parameters;
 		public Func<ITwineThread> Action;
 
-		static Regex rx_Name = new Regex(@"^((?<name>[^=]+?)\s*=)", RegexOptions.ExplicitCapture);
+		static Regex rx_Name = new Regex(@"^((?<name>[^=]+?)\s*=\s*)", RegexOptions.ExplicitCapture);
 
 		public TwineLink(string text, string passageName, Func<ITwineThread> action)
         {
-            this.Text = text;
             this.PassageName = passageName;
 			this.Action = action;
 
 			Match m = rx_Name.Match(text);
-			this.Name = m.Success ? m.Groups["name"].Value : text;
+			if (m.Success)
+			{
+				this.Name = m.Success ? m.Groups["name"].Value : text;
+				this.Text = text.Substring(m.Index + m.Length);
+			}
+			else
+				this.Text = text;
         }
 
 		public TwineLink(string text, string passageName) :

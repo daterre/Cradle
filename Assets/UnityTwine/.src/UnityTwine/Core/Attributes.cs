@@ -5,6 +5,18 @@ using System.Text;
 
 namespace UnityTwine
 {
+	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+	public sealed class TwineCueAttribute : Attribute
+	{
+		public string CueName;
+
+		public TwineCueAttribute(string cueName)
+		{
+			this.CueName = cueName;
+		}
+	}
+
+
 	[AttributeUsage(AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
 	public sealed class TwineMacroLibraryAttribute : Attribute
 	{
