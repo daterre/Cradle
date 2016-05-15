@@ -6,6 +6,7 @@ namespace UnityTwine
 	{
 		public string Name;
 		public string Text;
+		public int Index;
 
 		public TwineStyle Style;
 		public TwineEmbed EmbedInfo;

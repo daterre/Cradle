@@ -72,8 +72,8 @@ namespace UnityTwine
 		{
 			return string.Format("[[{0}]]{1}{2}",
 				this.Text,
-				this.Action != null ? "--> (fragment)" : null,
-				this.PassageName != null ? "--> " + PassageName : null
+				this.Action != null ? " --> (fragment)" : null,
+				this.PassageName != null ? " --> " + PassageName : null
 			);
 		}
     }

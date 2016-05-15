@@ -27,10 +27,11 @@ namespace UnityTwine
 		public event Action<TwinePassage> OnPassageEnter;
 		public event Action<TwineStoryState> OnStateChanged;
 		public event Action<TwineOutput> OnOutput;
+		public event Action<TwineOutput> OnOutputRemoved;
 		
         public Dictionary<string, TwinePassage> Passages { get; private set; }
-		public List<TwineText> Text { get; private set; }
-		public List<TwineLink> Links { get; private set; }
+		//public List<TwineText> Text { get; private set; }
+		//public List<TwineLink> Links { get; private set; }
 		public List<TwineOutput> Output { get; private set; }
 		public string[] Tags { get; private set; }
 		public TwineRuntimeVars Vars { get; protected set; }
@@ -49,11 +50,11 @@ namespace UnityTwine
 		string _passageWaitingToEnter = null;
 		Dictionary<string, List<Cue>> _cueCache = new Dictionary<string, List<Cue>>();
 		MonoBehaviour[] _cueTargets = null;
-		List<TwineStyleScope> _scopes = new List<TwineStyleScope>();
 		float _timeChangedToPlay = 0f;
 		float _timeAccumulated;
+		List<TwineStyleScope> _scopes = new List<TwineStyleScope>();
 
-		protected int InsertIndex = -1;
+		protected Stack<int> InsertStack = new Stack<int>();
 
 		private class Cue
 		{
@@ -84,13 +85,12 @@ namespace UnityTwine
 		{
 			_state = TwineStoryState.Idle;
 			this.Output = new List<TwineOutput>();
-			this.Text = new List<TwineText>();
-			this.Links = new List<TwineLink>();
 			this.Tags = new string[0];
 			this.Style = new TwineStyle();
 
 			NumberOfLinksDone = 0;
 			PassageHistory.Clear();
+			InsertStack.Clear();
 			
 			PreviousPassageName = null;
 			CurrentPassageName = null;
@@ -227,9 +227,8 @@ namespace UnityTwine
 			_timeAccumulated = 0;
 			_timeChangedToPlay = Time.time;
 
+			this.InsertStack.Clear();
 			this.Output.Clear();
-			this.Text.Clear();
-			this.Links.Clear();
 			this.Style = new TwineStyle();
 			_passageUpdateCues = null;
 
@@ -245,10 +244,7 @@ namespace UnityTwine
 				this.OnPassageEnter(passage);
 
 			// Add output (and trigger cues)
-			if (InsertIndex < 0)
-				this.Output.Add(passage);
-			else
-				this.Output.Insert(InsertIndex, passage);
+			OutputAdd(passage);
 
 			// Get update cues for calling during update
 			_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
@@ -258,7 +254,7 @@ namespace UnityTwine
 			CurrentLinkInAction = null;
 
 			this.State = TwineStoryState.Playing;
-			SendOutput(passage);
+			OutputSend(passage);
 			CuesInvoke(CuesFind("Enter", maxLevels: 1));
 
 			// Story was paused, wait for it to resume
@@ -286,25 +282,10 @@ namespace UnityTwine
 					break;
 				}
 
-				if (InsertIndex < 0)
-					this.Output.Add(output);
-				else
-					this.Output.Insert(InsertIndex, output);
+				OutputAdd(output);
 
-				if (output is TwineLink)
-				{
-					// Add links to dedicated list
-					var link = (TwineLink)output;
-					this.Links.Add(link);
-				}
-				else if (output is TwineText)
-				{
-					// Add all text to the Text property for easy access
-					var text = (TwineText)output;
-					this.Text.Add(text);
-				}
 				// Let the handlers and cues kick in
-				else if (output is TwinePassage)
+				if (output is TwinePassage)
 				{
 					CuesInvoke(CuesFind("Enter", reverse: true, maxLevels: 1));
 
@@ -313,7 +294,7 @@ namespace UnityTwine
 				}
 
 				// Send output
-				SendOutput(output);
+				OutputSend(output);
 				CuesInvoke(CuesFind("Output"), output);
 
 				// Story was paused, wait for it to resume
@@ -359,9 +340,8 @@ namespace UnityTwine
 		{
 			foreach (TwineOutput output in thread)
 			{
-				if (OutputStyleTags)
-					foreach (TwineOutput scopeTag in ScopeOutputOpeners())
-						yield return scopeTag;
+				//foreach (TwineOutput scopeTag in ScopeOutputTags())
+				//	yield return scopeTag;
 
 				if (output is TwineEmbed)
 				{
@@ -393,32 +373,71 @@ namespace UnityTwine
 				}
 				else
 					yield return output;
-
-				if (OutputStyleTags)
-					foreach (TwineOutput scopeTag in ScopeOutputClosers())
-						yield return scopeTag;
-
-				ScopeCleanup();
 			}
 
-			if (OutputStyleTags)
-			{
-				foreach (TwineOutput scopeTag in ScopeOutputOpeners())
-					yield return scopeTag;
-
-				foreach (TwineOutput scopeTag in ScopeOutputClosers())
-					yield return scopeTag;
-			}
-
-			ScopeCleanup();
+			//foreach (TwineOutput scopeTag in ScopeOutputTags())
+			//	yield return scopeTag;
 		}
 
-		void SendOutput(TwineOutput output)
+		void OutputAdd(TwineOutput output)
+		{
+			// Insert the output into the right place
+			int insertIndex = InsertStack.Count > 0 ? InsertStack.Peek() : -1;
+
+			if (insertIndex < 0)
+			{
+				output.Index = this.Output.Count;
+				this.Output.Add(output);
+			}
+			else
+			{
+				// When a valid insert index is specified, update the following outputs' index
+				output.Index = insertIndex;
+				this.Output.Insert(insertIndex, output);
+				OutputUpdateIndexes(insertIndex + 1);
+			}
+
+			// Increase the topmost index
+			if (InsertStack.Count > 0 && insertIndex >= 0)
+				InsertStack.Push(InsertStack.Pop() + 1);
+		}
+
+		void OutputSend(TwineOutput output, bool add = false)
 		{
 			output.Style = this.Style;
 
+			if (add)
+				OutputAdd(output);
+
 			if (OnOutput != null)
 				OnOutput(output);
+		}
+
+		protected void OutputRemove(TwineOutput output)
+		{
+			if (this.Output.Remove(output))
+			{
+				if (OnOutputRemoved != null)
+					OnOutputRemoved(output);
+				OutputUpdateIndexes(output.Index);
+			}
+		}
+
+		void OutputUpdateIndexes(int startIndex)
+		{
+			for (int i = startIndex; i < this.Output.Count; i++)
+				this.Output[i].Index = i;
+		}
+
+
+		public IEnumerable<TwineLink> GetCurrentLinks()
+		{
+			return this.Output.Where(o => o is TwineLink).Cast<TwineLink>();
+		}
+
+		public IEnumerable<TwineText> GetCurrentText()
+		{
+			return this.Output.Where(o => o is TwineText).Cast<TwineText>();
 		}
 
 		// ---------------------------------
@@ -441,61 +460,34 @@ namespace UnityTwine
 		{
 			TwineStyleScope scope = new TwineStyleScope()
 			{
-				State = TwineStyleScopeState.PendingOpen,
 				Style = style
 			};
-			scope.OnDisposed += ScopeWasDisposed;
-			_scopes.Add(scope);
+			scope.OnDisposed += ScopeClose;
 
+			_scopes.Add(scope);
 			ScopeBuildStyle();
+
+			if (OutputStyleTags)
+				OutputSend(new TwineStyleTag(TwineStyleTagType.Opener, scope.Style), add: true);
 
 			return scope;
 		}
 
-		void ScopeWasDisposed(TwineStyleScope scope)
+		void ScopeClose(TwineStyleScope scope)
 		{
-			scope.OnDisposed -= ScopeWasDisposed;
-			
-			scope.State = TwineStyleScopeState.PendingClose;
+			scope.OnDisposed -= ScopeClose;
+
+			if (OutputStyleTags)
+				OutputSend(new TwineStyleTag(TwineStyleTagType.Closer, scope.Style), add: true);
+
+			_scopes.Remove(scope);
 			ScopeBuildStyle();
-		}
-
-		ITwineThread ScopeOutputOpeners()
-		{
-			for (int i = 0; i < _scopes.Count; i++)
-			{
-				if (_scopes[i].State == TwineStyleScopeState.PendingOpen)
-				{
-					_scopes[i].State = TwineStyleScopeState.Open;
-					ScopeBuildStyle();
-					yield return new TwineStyleTag(TwineStyleTagType.Opener, _scopes[i].Style);
-				}
-			}
-		}
-
-		ITwineThread ScopeOutputClosers()
-		{
-			for (int i = _scopes.Count - 1; i >= 0; i--)
-			{
-				if (_scopes[i].State == TwineStyleScopeState.PendingClose)
-				{
-					_scopes[i].State = TwineStyleScopeState.Closed;
-					yield return new TwineStyleTag(TwineStyleTagType.Closer, _scopes[i].Style);
-					ScopeBuildStyle();
-				}
-			}
-		}
-
-		void ScopeCleanup()
-		{
-			_scopes.RemoveAll(sc => sc.State == TwineStyleScopeState.Closed);
 		}
 
 		void ScopeBuildStyle()
 		{
 			TwineStyle style = new TwineStyle();
 			for (int i = 0; i < _scopes.Count; i++)
-				if (_scopes[i].State == TwineStyleScopeState.Open || _scopes[i].State == TwineStyleScopeState.PendingOpen)
 				style += _scopes[i].Style;
 
 			this.Style = style;
@@ -549,7 +541,7 @@ namespace UnityTwine
 
 		public void DoLink(int linkIndex)
 		{
-			DoLink(this.Links[linkIndex]);
+			DoLink(this.GetCurrentLinks().ElementAt(linkIndex));
 		}
 
 		public void DoLink(string linkName)
@@ -565,7 +557,7 @@ namespace UnityTwine
 
 		public TwineLink GetLink(string linkName, bool throwException = false)
 		{
-			TwineLink link = this.Links
+			TwineLink link = this.GetCurrentLinks()
 				.Where(lnk => string.Equals(lnk.Name, linkName, System.StringComparison.OrdinalIgnoreCase))
 				.FirstOrDefault();
 

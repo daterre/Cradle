@@ -401,7 +401,7 @@ namespace UnityTwine.Editor.StoryFormats.Harlowe
 				case "number":
 					return WrapInVarIfNecessary(token.text, tokens, tokenIndex);
 				case "cssTime":
-					return WrapInVarIfNecessary(token.value.ToString(), tokens, tokenIndex);
+					return WrapInVarIfNecessary(string.Format("{0}/1000f", token.value), tokens, tokenIndex);
 				case "colour":
 					return WrapInVarIfNecessary(string.Format("\"{0}\"", token.text), tokens, tokenIndex);
 				case "grouping":

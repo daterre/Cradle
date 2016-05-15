@@ -43,13 +43,13 @@ public class UnityTwineTestMacros: TwineRuntimeMacros
 	[TwineRuntimeMacro]
 	public void assertText(string text, string error)
 	{
-		IntegrationTest.Assert(this.Story.Text.Where(t => t.Text == text).Count() == 1, error);
+		IntegrationTest.Assert(this.Story.GetCurrentText().Where(t => t.Text == text).Count() == 1, error);
 	}
 
 	[TwineRuntimeMacro]
 	public void assertLink(string text, string passage, string error = null)
 	{
-		IntegrationTest.Assert(this.Story.Links.Where(link => link.Text == text && link.PassageName == passage).Count() == 1, error ?? text);
+		IntegrationTest.Assert(this.Story.GetCurrentLinks().Where(link => link.Text == text && link.PassageName == passage).Count() == 1, error ?? text);
 	}
 
 	[TwineRuntimeMacro]

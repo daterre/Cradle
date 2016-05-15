@@ -74,7 +74,8 @@ namespace UnityTwine
 			if (!_settings.TryGetValue(name, out values))
 				_settings[name] = values = new List();
 
-			values.Add(value);
+			if (!values.Contains(value))
+				values.Add(value);
 		}
 
 		void Set(TwineVar booleanExpression)

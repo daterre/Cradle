@@ -28,6 +28,9 @@ public class TwineStoryEditor : Editor
 		{
 			TwineOutput output = story.Output[i];
 
+			if (output is TwineEmbed)
+				continue;
+
 			if (output is TwineStyleTag)
 			{
 				var tag = (TwineStyleTag)output;

@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityTwine;
 
 public class SnoozingHooks : MonoBehaviour {
@@ -417,10 +418,11 @@ public class SnoozingHooks : MonoBehaviour {
 
 		var shapes = new List<GameObject>();
 		bool[] shown = new bool[work_ppImages.Length];
+		List<TwineText> texts = story.GetCurrentText().ToList();
 
-		for (int i = 0; i <= story.Text.Count; i++)
+		for (int i = 0; i <= texts.Count; i++)
 		{
-			bool done = i == story.Text.Count;
+			bool done = i == texts.Count;
 			int targetClickCount = Random.Range(work_minShapes, work_maxShapes);
 
 			for (int count = 0; count < targetClickCount; count++)
@@ -464,7 +466,7 @@ public class SnoozingHooks : MonoBehaviour {
 			}
 			else
 			{
-				uiTextPlayer.DisplayOutput(story.Text[i]);
+				uiTextPlayer.DisplayOutput(texts[i]);
 			}
 		}
 	}
@@ -567,8 +569,9 @@ public class SnoozingHooks : MonoBehaviour {
 		if (street_walkTime >= street_walkTimeTarget)
 		{
 			street_walkTime = 0f;
+			List<TwineText> texts = story.GetCurrentText().ToList();
 
-			if (street_currentLine >= story.Text.Count - 1)
+			if (street_currentLine >= texts.Count - 1)
 			{
 				if (story.CurrentPassageName == "street3")
 					StartCoroutine(street_alarm());
@@ -577,7 +580,7 @@ public class SnoozingHooks : MonoBehaviour {
 			}
 			else
 			{
-				uiTextPlayer.DisplayOutput(story.Text[street_currentLine]);
+				uiTextPlayer.DisplayOutput(texts[street_currentLine]);
 				street_currentLine++;
 				StartCoroutine(street_PauseFootSteps());
 			}

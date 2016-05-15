@@ -11,7 +11,10 @@ namespace UnityTwine
 
 		public override string ToString()
 		{
-			return string.Format("{0} (text)", this.Text);
+			if (this.Text != null && this.Text.Trim().Length < 1)
+				return "(whitespace)";
+			else
+				return string.Format("{0} (text)", this.Text ?? "(null)");
 		}
 	}
 }

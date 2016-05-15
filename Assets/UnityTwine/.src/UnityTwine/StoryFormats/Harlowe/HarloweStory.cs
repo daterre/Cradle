@@ -68,6 +68,7 @@ namespace UnityTwine.StoryFormats.Harlowe
 							ReferenceType = HarloweEnchantReferenceType.Text,
 							Command = command,
 							Affected = new List<TwineOutput>(){output},
+							Text = str,
 							Occurences = occurences
 						});
                 }
@@ -106,10 +107,33 @@ namespace UnityTwine.StoryFormats.Harlowe
 		{
 			foreach(HarloweEnchantment enchantment in enchantments)
 			{
+				// Update insert index, remove replaced outputs
+				bool hasAffected = enchantment.Affected.Count > 0;
+				int index = -1;
+
+				if (hasAffected)
+				{
+					index = enchantment.Command == HarloweEnchantCommand.Append ?
+						enchantment.Affected.Last().Index + 1 :
+						enchantment.Affected[0].Index;
+
+					if (enchantment.Command == HarloweEnchantCommand.Replace)
+					{
+						for (int i = 0; i < enchantment.Affected.Count; i++)
+							OutputRemove(enchantment.Affected[i]);
+					}
+				}
+
+				this.InsertStack.Push(index);
+
 				using (ApplyStyle(HarloweStyleSettings.Enchantment, enchantment))
 				{
+					// Execute the enchantment thread
 					yield return this.fragment(fragment);
 				}
+
+				// Reset the index
+				this.InsertStack.Pop();
 			}
 		}
 
@@ -176,11 +200,15 @@ namespace UnityTwine.StoryFormats.Harlowe
 		public HarloweEnchantCommand Command;
 		public List<TwineOutput> Affected;
 		public HarloweHook Hook;
+		public string Text;
 		public Regex Occurences;
 
 		public override string ToString()
 		{
-			return string.Format("{0} {1} (affects {2})", Command, ReferenceType, Affected.Count);
+			return string.Format("{0}: {1}", Command, ReferenceType == HarloweEnchantReferenceType.Hook ? 
+				string.Format("hook({0})", Hook.HookName) :
+				string.Format("\"{0}\"", this.Text)
+			);
 		}
 	}
 
