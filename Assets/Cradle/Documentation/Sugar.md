@@ -9,7 +9,7 @@ A superset of both Sugarcane (Twine 1) and SugarCube (Twine 2) storyformats.
 		- [Arrays](#arrays)
 	- [Macros](#macros)
 	- [Functions](#functions)
-	- [Arrays](#functions)
+	- [Styling](#styling)
 	- [General](#general)
 - [Custom functions](#custom-functions)
 
@@ -95,6 +95,13 @@ Functions that **don't work yet**:
 * `confirm()`, `prompt()`, `alert()`, `open()`
 * `variables()`
 * Native JavaScript [object methods](http://www.motoslave.net/sugarcube/2/docs/native-object-methods.html) not supported
+
+### Styling
+Styling is not supported in Sugar. It is outputted as plain text.
+None of the following work:
+* [Sugarcane formatting](https://twinery.org/wiki/syntax)
+* [SugarCube formatting](http://www.motoslave.net/sugarcube/2/docs/markup.html#html-attributes)
+* Image tag
 
 ### General
 

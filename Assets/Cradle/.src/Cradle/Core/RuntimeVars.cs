@@ -71,7 +71,7 @@ namespace Cradle
 		{
 			var value = default(StoryVar);
 			if (!TryGetValue(varName, out value))
-				throw new CradleException(string.Format("There is no variable with the name '{0}'.", varName));
+				throw new StoryException(string.Format("There is no variable with the name '{0}'.", varName));
 			return value;
 		}
 

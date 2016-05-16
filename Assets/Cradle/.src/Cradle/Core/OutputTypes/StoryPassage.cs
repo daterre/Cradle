@@ -8,13 +8,13 @@ namespace Cradle
     public class StoryPassage: StoryOutput
     {
         public string[] Tags;
-		internal Func<IStoryThread> GetMainThread;
+		public Func<IStoryThread> MainThread;
 
 		public StoryPassage(string name, string[] tags, Func<IStoryThread> mainThread)
         {
             this.Name = name;
             this.Tags = tags;
-            this.GetMainThread = mainThread;
+            this.MainThread = mainThread;
         }
 
 		public override string ToString()

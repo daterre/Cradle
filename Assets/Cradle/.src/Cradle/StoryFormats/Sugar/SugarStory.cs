@@ -8,9 +8,23 @@ namespace Cradle.StoryFormats.Sugar
 {
 	public abstract class SugarStory: Story
 	{
-		protected StoryVar array(params StoryVar[] vars)
+		protected override Func<IStoryThread> GetPassageThread(StoryPassage passage)
 		{
-			return new StoryVar(vars);
+			return () => GetPassageThreadWithHeaderAndFooter(passage.MainThread, this.StartPassage == passage.Name);
+		}
+
+		IStoryThread GetPassageThreadWithHeaderAndFooter(Func<IStoryThread> mainThread, bool startup)
+		{
+			if (startup && this.Passages.ContainsKey("StoryInit"))
+				yield return passage("StoryInit");
+
+			if (this.Passages.ContainsKey("PassageHeader"))
+				yield return passage("PassageHeader");
+
+			yield return fragment(mainThread);
+
+			if (this.Passages.ContainsKey("PassageFooter"))
+				yield return passage("PassageFooter");
 		}
 
 		protected StoryVar either(params StoryVar[] vars)
@@ -121,6 +135,51 @@ namespace Cradle.StoryFormats.Sugar
 			}
 
 			return new StoryVar(index);
+		}
+
+		protected StoryVar array(params StoryVar[] vars)
+		{
+			return new StoryVar(new List<StoryVar>(vars));
+		}
+
+		protected StoryVar arrayGet(StoryVar arr, int index)
+		{
+			return arr.ConvertValueTo<List<StoryVar>>()[index];
+		}
+
+		protected StoryVar arraySet(StoryVar arr, int index, StoryVar value)
+		{
+			return arr.ConvertValueTo<List<StoryVar>>()[index] = value;
+		}
+
+		protected StoryVar arrayLength(StoryVar arr)
+		{
+			return arr.ConvertValueTo<List<StoryVar>>().Count;
+		}
+
+		protected StoryVar arrayIndexOf(StoryVar arr, StoryVar value)
+		{
+			return arr.ConvertValueTo<List<StoryVar>>().IndexOf(value);
+		}
+
+		protected void arrayAdd(StoryVar arr, StoryVar value)
+		{
+			arr.ConvertValueTo<List<StoryVar>>().Add(value);
+		}
+
+		protected void arrayRemove(StoryVar arr, StoryVar value)
+		{
+			arr.ConvertValueTo<List<StoryVar>>().Remove(value);
+		}
+
+		protected void arrayInsertAt(StoryVar arr, int index, StoryVar value)
+		{
+			arr.ConvertValueTo<List<StoryVar>>().Insert(index, value);
+		}
+
+		protected void arrayRemoveAt(StoryVar arr, int index)
+		{
+			arr.ConvertValueTo<List<StoryVar>>().RemoveAt(index);
 		}
 	}
 }

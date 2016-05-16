@@ -213,8 +213,21 @@ namespace Cradle
 		{
 			StoryPassage passage;
 			if (!Passages.TryGetValue(passageName, out passage))
-				throw new CradleException(String.Format("Passage '{0}' does not exist.", passageName));
+				throw new StoryException(String.Format("Passage '{0}' does not exist.", passageName));
 			return passage;
+		}
+
+		protected IEnumerable<string> GetPassagesWithTag(string tag)
+		{
+			return this.Passages
+				.Where(pair => pair.Value.Tags.Contains(tag, System.StringComparer.InvariantCultureIgnoreCase))
+				.Select(pair => pair.Key)
+				.OrderBy(passageName => passageName, StringComparer.InvariantCulture);
+		}
+
+		protected virtual Func<IStoryThread> GetPassageThread(StoryPassage passage)
+		{
+			return passage.MainThread;
 		}
 
 		void Enter(string passageName)
@@ -245,7 +258,7 @@ namespace Cradle
 			_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
 
 			// Prepare the thread enumerator
-			_currentThread = CollapseThread(passage.GetMainThread()).GetEnumerator();
+			_currentThread = CollapseThread(GetPassageThread(passage).Invoke()).GetEnumerator();
 			CurrentLinkInAction = null;
 
 			this.State = StoryState.Playing;
@@ -346,7 +359,7 @@ namespace Cradle
 					{
 						var embedInfo = (EmbedPassage)embed;
 						StoryPassage passage = GetPassage(embedInfo.Name);
-						embeddedThread = passage.GetMainThread();
+						embeddedThread = passage.MainThread();
 					}
 					else if (embed is EmbedFragment)
 					{
@@ -557,7 +570,7 @@ namespace Cradle
 				.FirstOrDefault();
 
 			if (link == null && throwException)
-				throw new CradleException(string.Format("There is no available link with the name '{0}'.", linkName));
+				throw new StoryException(string.Format("There is no available link with the name '{0}'.", linkName));
 
 			return link;
 		}

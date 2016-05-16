@@ -106,11 +106,11 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 		public override void Init()
 		{
 			// Run the story file in PhantomJS, inject the bridge script that invokes the Harlowe lexer and deserialize the JSON output
-			PhantomOutput<HarlowePassageData[]> output;
+			PhantomOutput<HarloweStoryData> output;
 
 			try
 			{
-				output = PhantomJS.Run<HarlowePassageData[]>(
+				output = PhantomJS.Run<HarloweStoryData>(
 					new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
 					new System.Uri(Application.dataPath + "/Cradle/Editor/.js/StoryFormats/Harlowe/harlowe.bridge.js").AbsolutePath
 				);
@@ -120,13 +120,20 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				throw new StoryImportException("HTML or JavaScript errors encountered in the Harlowe story. Does it load properly in a browser?");
 			}
 
-			this.Importer.Passages.AddRange(output.result);
+			// Add the passages to the importer
+			this.Importer.Passages.AddRange(output.result.passages);
+
+			// Add the start passage to the metadata
+			this.Importer.Metadata.StartPassage = output.result.passages
+				.Where(p => p.Pid == output.result.startPid)
+				.Select(p => p.Name)
+				.FirstOrDefault();
 		}
 
 		public override PassageCode PassageToCode(PassageData p)
 		{
 			if (p is HarlowePassageData == false)
-				throw new NotSupportedException("HarloweParser called with incompatible passage data");
+				throw new NotSupportedException("HarloweTranscoder called with incompatible passage data");
 
 			StyleCounter = 0;
 
@@ -579,6 +586,13 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 		public string passage;
 		public int? depth; 
 		public LexerToken[] tokens;
+	}
+
+	[Serializable]
+	public class HarloweStoryData
+	{
+		public string startPid;
+		public HarlowePassageData[] passages;
 	}
 
 	[Serializable]

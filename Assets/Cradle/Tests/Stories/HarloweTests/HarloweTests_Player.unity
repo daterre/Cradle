@@ -104,6 +104,7 @@ MonoBehaviour:
   StartPassage: Macros_Links
   AdditionalCues: []
   OutputStyleTags: 1
+  DebugMode: 0
 --- !u!1001 &2114699216
 Prefab:
   m_ObjectHideFlags: 0
@@ -225,7 +226,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 22453732, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 38
       objectReference: {fileID: 0}
     - target: {fileID: 22453730, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchorMin.y

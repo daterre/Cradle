@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using Cradle;
 using Cradle.StoryFormats.Harlowe;
 
+[ExecuteInEditMode]
 public class TwineTextPlayer : MonoBehaviour {
 
 	public Story Story;
@@ -24,6 +25,9 @@ public class TwineTextPlayer : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		if (!Application.isPlaying)
+			return;
+
 		LinkTemplate.gameObject.SetActive(false);
 		((RectTransform)LinkTemplate.transform).SetParent(null);
 		LinkTemplate.transform.hideFlags = HideFlags.HideInHierarchy;
@@ -54,6 +58,9 @@ public class TwineTextPlayer : MonoBehaviour {
 
 	void OnDestroy()
 	{
+		if (!Application.isPlaying)
+			return;
+
 		if (this.Story != null)
 		{
 			this.Story.OnPassageEnter -= Story_OnPassageEnter;
@@ -64,8 +71,26 @@ public class TwineTextPlayer : MonoBehaviour {
 	// .....................
 	// Clicks
 
+	#if UNITY_EDITOR
+	void Update()
+	{
+		if (Application.isPlaying)
+			return;
+
+		// In edit mode, disable autoplay on the story if the text player will be starting the story
+		if (this.StartStory)
+		{
+			foreach (Story story in this.GetComponents<Story>())
+				story.AutoPlay = false;
+		}
+	}
+	#endif
+
 	void LateUpdate()
 	{
+		if (!Application.isPlaying)
+			return;
+
 		_clicked = false;
 	}
 

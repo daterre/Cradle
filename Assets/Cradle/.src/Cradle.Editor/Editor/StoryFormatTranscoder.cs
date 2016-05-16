@@ -27,6 +27,7 @@ namespace Cradle.Editor
 
 	public class StoryFormatMetadata
 	{
+		public string StartPassage;
 		public string StoryFormatName;
 		public Type StoryBaseType = typeof(Story);
 		public bool StrictMode = false;

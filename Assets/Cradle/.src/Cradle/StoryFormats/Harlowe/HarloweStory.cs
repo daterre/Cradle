@@ -10,9 +10,45 @@ namespace Cradle.StoryFormats.Harlowe
 {
 	public abstract class HarloweStory: Story
 	{
+		public bool DebugMode = false;
+
 		public HarloweStory()
 		{
 			StoryVar.RegisterTypeService<string>(new HarloweStringService()); 
+		}
+
+		protected override Func<IStoryThread> GetPassageThread(StoryPassage passage)
+		{
+			return () => GetPassageThreadWithHeaderAndFooter(passage.MainThread, this.StartPassage == passage.Name);
+		}
+
+		IStoryThread GetPassageThreadWithHeaderAndFooter(Func<IStoryThread> mainThread, bool startup)
+		{
+			if (startup)
+				foreach (string headerPassage in GetPassagesWithTag("startup"))
+					yield return passage(headerPassage);
+
+			if (DebugMode)
+			{
+				if (startup)
+					foreach (string headerPassage in GetPassagesWithTag("debug-startup"))
+						yield return passage(headerPassage);
+
+				foreach (string headerPassage in GetPassagesWithTag("debug-header"))
+					yield return passage(headerPassage);
+			}
+
+			foreach (string headerPassage in GetPassagesWithTag("header"))
+				yield return passage(headerPassage);
+
+			yield return fragment(mainThread);
+
+			foreach (string footerPassage in GetPassagesWithTag("footer"))
+				yield return passage(footerPassage);
+
+			if (DebugMode)
+				foreach (string footerPassage in GetPassagesWithTag("debug-footer"))
+					yield return passage(footerPassage);
 		}
 
 		protected HarloweHook hook(StoryVar hookName)

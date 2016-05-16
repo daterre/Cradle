@@ -3,19 +3,19 @@
 namespace Cradle
 {
 	[Serializable]
-	public class CradleException : Exception
+	public class StoryException : Exception
 	{
-		public CradleException() { }
-		public CradleException(string message) : base(message) { }
-		public CradleException(string message, Exception inner) : base(message, inner) { }
-		protected CradleException(
+		public StoryException() { }
+		public StoryException(string message) : base(message) { }
+		public StoryException(string message, Exception inner) : base(message, inner) { }
+		protected StoryException(
 		  System.Runtime.Serialization.SerializationInfo info,
 		  System.Runtime.Serialization.StreamingContext context)
 			: base(info, context) { }
 	}
 
 	[Serializable]
-	public class VarTypeException : CradleException
+	public class VarTypeException : StoryException
 	{
 		public VarTypeException() { }
 		public VarTypeException(string message) : base(message) { }
@@ -27,7 +27,7 @@ namespace Cradle
 	}
 
 	[Serializable]
-	public class MacroException : CradleException
+	public class MacroException : StoryException
 	{
 		public MacroException() { }
 		public MacroException(string message) : base(message) { }
@@ -39,7 +39,7 @@ namespace Cradle
 	}
 
 	[Serializable]
-	public class VarTypeMemberException : CradleException
+	public class VarTypeMemberException : StoryException
 	{
 		public VarTypeMemberException() { }
 		public VarTypeMemberException(string message) : base(message) { }
@@ -51,7 +51,7 @@ namespace Cradle
 	}
 
 	[Serializable]
-	public class StrictModeException : CradleException
+	public class StrictModeException : StoryException
 	{
 		public StrictModeException() { }
 		public StrictModeException(string message) : base(message) { }

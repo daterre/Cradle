@@ -18,8 +18,6 @@
 		return;
 	}
 
-	var result = [];
-
 	var htmlDecoder = document.createElement('textarea');
 	function htmlDecode(text)
 	{
@@ -29,6 +27,9 @@
 			.replace(/\\t/g, "\t");
 	}
 
+	var result = {
+		passages:[]
+	};
 
 	var storyData = storeArea.querySelector('tw-storydata');
 	if (storyData !== null)
@@ -43,9 +44,13 @@
 			return;
 		}
 
+		// Start passage
+		result.startPid = $(storyData).attr('startnode');
+
+		// Passages data
 		$(storyData).find('tw-passagedata').each(function(i,p){
 			var $p = $(p);
-			result.push( {
+			result.passages.push( {
 				Pid: $p.attr('pid'),
 				Name: $p.attr('name'),
 				Tags: $p.attr('tags'),
@@ -58,10 +63,14 @@
 		// Twine 1
 		// ...................
 
+		// No start passage in Twine 1
+		result.startPid = null;
+
+		// Passages data
 		var passages = storeArea.querySelectorAll('div[tiddler]');
 		for (var i = 0; i < passages.length; i++) {
 			var p = passages[i];
-			result.push({
+			result.passages.push({
 				Pid: i.toString(),
 				Name: p.getAttribute('tiddler'),
 				Tags: p.getAttribute('tags'),

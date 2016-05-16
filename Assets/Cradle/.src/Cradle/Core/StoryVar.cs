@@ -102,7 +102,7 @@ namespace Cradle
 		{
 			var service = (VarTypeService<T>)GetTypeService(typeof(T));
 			if (service == null)
-				throw new CradleException(string.Format("UnityTwine is missing a TwineTypeService for {0}. Did you mess with something you shouldn't have?", typeof(T).FullName));
+				throw new StoryException(string.Format("UnityTwine is missing a TwineTypeService for {0}. Did you mess with something you shouldn't have?", typeof(T).FullName));
 
 			return service;
 		}

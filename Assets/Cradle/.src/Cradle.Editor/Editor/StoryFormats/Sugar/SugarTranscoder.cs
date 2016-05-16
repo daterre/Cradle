@@ -175,11 +175,11 @@ namespace Cradle.Editor.StoryFormats.Sugar
 				return;
 
 			// Run the story file in PhantomJS, inject the bridge script and deserialize the JSON output
-			PhantomOutput<PassageData[]> output;
+			PhantomOutput<SugarStoryData> output;
 
 			try
 			{
-				output = PhantomJS.Run<PassageData[]>(
+				output = PhantomJS.Run<SugarStoryData>(
 					new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
 					new System.Uri(Application.dataPath + "/Cradle/Editor/.js/StoryFormats/Sugar/sugar.bridge.js").AbsolutePath
 				);
@@ -189,7 +189,14 @@ namespace Cradle.Editor.StoryFormats.Sugar
 				throw new StoryImportException("HTML or JavaScript errors encountered in the Sugar story. Does it load properly in a browser?");
 			}
 
-			this.Importer.Passages.AddRange(output.result);
+			// Add the passages to the importer
+			this.Importer.Passages.AddRange(output.result.passages);
+
+			// Add the start passage to the metadata
+			this.Importer.Metadata.StartPassage = output.result.passages
+				.Where(p => p.Pid == output.result.startPid)
+				.Select(p => p.Name)
+				.FirstOrDefault();
 		}
 
 		public override PassageCode PassageToCode(PassageData passage)
@@ -376,5 +383,12 @@ namespace Cradle.Editor.StoryFormats.Sugar
 
 			return clean;
 		} 
+	}
+
+	[Serializable]
+	public class SugarStoryData
+	{
+		public string startPid;
+		public PassageData[] passages;
 	}
 }

@@ -51,6 +51,8 @@ public partial class @{{storyName}}: {{storyFormatClass}}
 
 	@{{storyName}}()
 	{
+		this.StartPassage = "{{startPassage}}";
+
 		base.Vars = new VarDefs() { Story = this, StrictMode = {{strictMode}} };
 
 		{{#macroLibs}}

@@ -117,6 +117,7 @@ namespace Cradle.Editor
 						{"storyFormatNamespace", storyFormatMetadata.StoryBaseType.Namespace},
 						{"storyFormatClass", storyFormatMetadata.StoryBaseType.FullName},
 						{"storyName", storyName},
+						{"startPassage", storyFormatMetadata.StartPassage ?? "Start"},
 						{"vars", importer.Vars},
 						{"macroLibs", importer.MacroLibs},
 						{"strictMode", storyFormatMetadata.StrictMode ? "true" : "false"},
@@ -175,7 +176,7 @@ namespace Cradle.Editor
 
 						try
 						{
-							// Get some compilation metadata - depends on the template using the #frag# token
+							// Get some compilation metadata - relies on the template using the #frag# token
 							string[] errorDirective = error.FileName.Split(new string[] { "#frag#" }, StringSplitOptions.None);
 							string errorPassage = errorDirective[0];
 							int errorFragment = errorDirective.Length > 1 ? int.Parse(errorDirective[1]) : -1;

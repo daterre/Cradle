@@ -103,7 +103,7 @@ Cradle supports the following Twine story formats:
 * **[Sugarcane](https://twinery.org/wiki/twine_reference)**, the default format of Twine 1
 * **[SugarCube](http://www.motoslave.net/sugarcube/)**, a richer version of Sugarcane that works in both Twine 1 and 2
 
-Most features of these story formats are available in Cradle, but there are some limitations. Please see their indivial readme's in the [Documention](https://github.com/daterre/UnityTwine/tree/master/Assets/Cradle/Documentation) folder for information on supported macros, syntax, and more.
+Most features of these story formats are available in Cradle, but there are some limitations. Please see their individual readme's in the [Documention](https://github.com/daterre/UnityTwine/tree/master/Assets/Cradle/Documentation) folder for information on supported macros, syntax, and more.
 
 Cradle can be extended to support additional story formats (Twine or other), see [Extending](#extending).
 
@@ -384,15 +384,19 @@ Notes:
 Cradle can be extended to include macros and var types that do not exist within the original story format.
 
 ##### Runtime macros
+(TODO)
 
 ##### Variable types
+(TODO)
 
 ##### Code generation macros
+(TODO)
 
 ##### Additional story formats
+(TODO)
 
 ### Source code
-The plugin source code is available in the Assets/Crade/.src directory on GitHub (the period prefix is so that Unity will ignore this folder). To compile using Visual Studio on Windows, open Cradle.sln and run "Build Solution" (F6). The DLLs created will be replace the previous DLLs in the the Cradle plugin directory.
+The plugin source code is available in the Assets/Cradle/.src directory on GitHub (the period prefix hides this folder from Unity). To compile using Visual Studio on Windows, open Cradle.sln and run "Build Solution" (F6). The DLLs created will replace the previous DLLs in the the Cradle plugin directory.
 
 MonoDevelop-compatible projects will be added shortly.
 

@@ -82,7 +82,10 @@
 				return result;
 			}
 
-			var result = [];
+			var result = {
+				startPid: $('tw-storydata').attr('startnode'),
+				passages:[]
+			};
 
 			$('tw-passagedata').each(function(i,p){
 				var $p = $(p);
@@ -92,7 +95,7 @@
 					Tags: $p.attr('tags'),
 					Tokens: simplify(TwineMarkup.lex(htmlDecode($p.html())).children)
 				};
-				result.push(passage);
+				result.passages.push(passage);
 			});
 
 			phantomExit(result);

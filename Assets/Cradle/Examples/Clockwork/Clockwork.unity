@@ -266,3 +266,4 @@ MonoBehaviour:
   StartPassage: Title
   AdditionalCues: []
   OutputStyleTags: 1
+  DebugMode: 0
