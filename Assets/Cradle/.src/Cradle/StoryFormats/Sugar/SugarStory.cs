@@ -18,9 +18,24 @@ namespace Cradle.StoryFormats.Sugar
 			return vars[UnityEngine.Random.Range(0, vars.Length)];
 		}
 
+		protected int random(int max)
+		{
+			return random(0, max);
+		}
+
 		protected int random(int min, int max)
 		{
 			return UnityEngine.Random.Range(min, max + 1);
+		}
+
+		protected double randomFloat(double max)
+		{
+			return randomFloat(0, max);
+		}
+
+		protected double randomFloat(double min, double max)
+		{
+			return UnityEngine.Random.Range((float)min, (float)max);
 		}
 
 		protected string passage()
@@ -30,7 +45,7 @@ namespace Cradle.StoryFormats.Sugar
 
 		protected string previous()
 		{
-			return this.PreviousPassageName;
+			return this.PassageHistory.LastOrDefault();
 		}
 
 		protected StoryVar visited(params string[] passageNames)
@@ -81,6 +96,11 @@ namespace Cradle.StoryFormats.Sugar
 		protected string[] tags()
 		{
 			return this.Tags;
+		}
+
+		protected int time()
+		{
+			return UnityEngine.Mathf.RoundToInt(this.PassageTime * 1000);
 		}
 
 		protected StoryVar parameter(int index)

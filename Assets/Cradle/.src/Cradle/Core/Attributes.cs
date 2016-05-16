@@ -8,10 +8,12 @@ namespace Cradle
 	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
 	public sealed class StoryCueAttribute : Attribute
 	{
+		public string PassageName;
 		public string CueName;
 
-		public StoryCueAttribute(string cueName)
+		public StoryCueAttribute(string passageName, string cueName)
 		{
+			this.PassageName = passageName;
 			this.CueName = cueName;
 		}
 	}

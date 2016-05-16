@@ -34,7 +34,6 @@ namespace Cradle
 		public string[] Tags { get; private set; }
 		public RuntimeVars Vars { get; protected set; }
 		public string CurrentPassageName { get; private set; }
-		public string PreviousPassageName { get; private set; }
 		public StoryLink CurrentLinkInAction { get; private set; }
 		public StoryStyle Style { get; private set; }
 		public int NumberOfLinksDone { get; private set; }
@@ -90,7 +89,6 @@ namespace Cradle
 			PassageHistory.Clear();
 			InsertStack.Clear();
 			
-			PreviousPassageName = null;
 			CurrentPassageName = null;
 		}
 
@@ -232,7 +230,6 @@ namespace Cradle
 
 			StoryPassage passage = GetPassage(passageName);
 			this.Tags = (string[])passage.Tags.Clone();
-			this.PreviousPassageName = this.CurrentPassageName;
 			this.CurrentPassageName = passage.Name;
 
             PassageHistory.Add(passageName);
@@ -323,7 +320,7 @@ namespace Cradle
 				if (CurrentLinkInAction == null)
 					CuesInvoke(CuesFind("Done"));
 				else
-					CuesInvoke(CuesFind("LinkDone"), CurrentLinkInAction);
+					CuesInvoke(CuesFind("ActionDone"), CurrentLinkInAction);
 
 				_lastThreadResult = ThreadResult.Done;
 			}
@@ -697,7 +694,7 @@ namespace Cradle
 					MethodInfo method = targetType.GetMethods(_cueMethodFlags)
 						.Where(m => m.GetCustomAttributes(typeof(StoryCueAttribute), true)
 							.Cast<StoryCueAttribute>()
-							.Where(attr => attr.CueName == cueName)
+							.Where(attr => attr.PassageName == passageName && attr.CueName == cueName)
 							.Count() > 0
 						)
 						.FirstOrDefault();

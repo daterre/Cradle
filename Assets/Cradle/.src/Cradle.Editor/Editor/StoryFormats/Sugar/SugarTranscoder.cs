@@ -131,6 +131,7 @@ namespace Cradle.Editor.StoryFormats.Sugar
 			CodeGenMacros["br"] = BuiltInCodeGenMacros.LineBreak;
 
 			CodeGenMacros["display"] = BuiltInCodeGenMacros.Display;
+			CodeGenMacros["="] = 
 			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
 
 			// Unsupported macros. Recognize them but don't output anything	
