@@ -271,13 +271,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 293044548}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Vars_Type_Dataset
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &304329808
 GameObject:
   m_ObjectHideFlags: 0
@@ -314,13 +314,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 304329808}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Markup_HTML
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &330866220
 GameObject:
   m_ObjectHideFlags: 0
@@ -357,13 +357,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 330866220}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Markup_Verbatim
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &364842674
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,13 +400,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 364842674}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Vars_Type_String
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &428910608
 GameObject:
   m_ObjectHideFlags: 0
@@ -443,13 +443,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 428910608}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Vars_Type_Datamap
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &450834464
 GameObject:
   m_ObjectHideFlags: 0
@@ -486,13 +486,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 450834464}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Markup_Links
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &473311438
 GameObject:
   m_ObjectHideFlags: 0
@@ -619,13 +619,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 804497193}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Markup_Scope_Styles
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &836074276
 GameObject:
   m_ObjectHideFlags: 0
@@ -712,13 +712,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 857105307}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Markup_LineBreaks
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &984304120
 GameObject:
   m_ObjectHideFlags: 0
@@ -805,13 +805,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 998648806}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Vars_Type_Array
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &1053991535
 GameObject:
   m_ObjectHideFlags: 0
@@ -898,13 +898,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1101124146}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Vars_Type_Number
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &1121077929
 GameObject:
   m_ObjectHideFlags: 0
@@ -1041,13 +1041,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1326883580}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Markup_Scope_Hooks
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &1420361418
 GameObject:
   m_ObjectHideFlags: 0
@@ -1134,13 +1134,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1508674431}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Vars_Type_Bool
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &1580278731
 GameObject:
   m_ObjectHideFlags: 0
@@ -1327,13 +1327,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1620884191}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Markup_Unsupported
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &1726695187
 GameObject:
   m_ObjectHideFlags: 0
@@ -1370,13 +1370,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1726695187}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Vars_It
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &1750661861
 GameObject:
   m_ObjectHideFlags: 0
@@ -1392,7 +1392,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1750661862
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1463,13 +1463,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1784034422}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d63f434af2cbb4e88fd79000fc228a, type: 3}
+  m_Script: {fileID: 11500000, guid: 25812f4cc2c9d4f4bb757e5f6ab06eaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoPlay: 1
   StartPassage: Markup_NakedVar
   AdditionalCues: []
-  OutputStyleTags: 0
+  OutputStyleTags: 1
 --- !u!1 &1888914918
 GameObject:
   m_ObjectHideFlags: 0
