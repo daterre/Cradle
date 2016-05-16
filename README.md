@@ -51,7 +51,10 @@ If you use Cradle in your project or game jam and find bugs, develop extra featu
 		- [Coroutine cues](#coroutine-cues)
 	- [Extending](#extending)
 		- [Runtime macros](#runtime-macros)
+		- [Variable types](#variable-types)
 		- [Code generation macros](#code-generation-macros)
+		- [Addition story formats](#additional-story-formats)
+- [Source code](#source-code)
 - [Change log](#change-log)
 
 
@@ -387,6 +390,11 @@ Cradle can be extended to include macros and var types that do not exist within 
 ##### Code generation macros
 
 ##### Additional story formats
+
+### Source code
+The plugin source code is available in the Assets/Crade/.src directory on GitHub (the period prefix is so that Unity will ignore this folder). To compile using Visual Studio on Windows, open Cradle.sln and run "Build Solution" (F6). The DLLs created will be replace the previous DLLs in the the Cradle plugin directory.
+
+MonoDevelop-compatible projects will be added shortly.
 
 ### Change log
 

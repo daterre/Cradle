@@ -30,7 +30,7 @@ namespace Cradle.Editor.StoryFormats.Sugar
 				(?'macro'
 					<<
 						\s*
-						((?'macroName'\/?[a-z_][a-z0-9_]*)\b\s*)?
+						((?'macroName'\/?[a-z_=\-][a-z0-9_]*)\b\s*)?
 						(?'macroArg'
 							(?>(?'quote'""))?
 							.*?
@@ -62,11 +62,11 @@ namespace Cradle.Editor.StoryFormats.Sugar
 
 				|
 
-				(?'text'.+?(?=(<<|\[\[|\$|$)))
+				(?'br'(\r\n|\n|\r|$))
 
 				|
 
-				(?'br'$)
+				((?'text'.+?)(?=(<<|\[\[|\$|\r|\n|$)))
 				",
 				RegexOptions.Multiline |
 				RegexOptions.ExplicitCapture |
@@ -306,8 +306,7 @@ namespace Cradle.Editor.StoryFormats.Sugar
 
 						Code.Indent();
 						Code.Buffer
-							.AppendFormat("yield return link(@\"{0}\", @\"{1}\", {2}, {3});",
-								name.Replace("\"", "\"\""),
+							.AppendFormat("yield return link(@\"{0}\", {1}, {2});",
 								text.Replace("\"", "\"\""),
 								linkTarget.IndexOf('(') >= 1 ? linkTarget : string.Format("@\"{0}\"", linkTarget.Replace("\"", "\"\"")), // if a peren is present, treat as a function
 								setters == null ? "null" : setters
@@ -351,10 +350,10 @@ namespace Cradle.Editor.StoryFormats.Sugar
 		{
 			string clean = expression;
 
-//			clean = rx_Vars.Replace(parsed, varName =>
-//			{
-//				return BuildVariableRef(varName.Groups[1].Value);
-//			});
+			clean = rx_Vars.Replace(clean, varName =>
+			{
+				return BuildVariableRef(varName.Groups[1].Value);
+			});
 
 			clean = rx_Operator.Replace(clean, op =>
 			{
@@ -374,12 +373,6 @@ namespace Cradle.Editor.StoryFormats.Sugar
 				};
 				return string.Empty;
 			});
-
-			UriBuilder uri = new UriBuilder (Application.dataPath + "/Cradle/Editor/StoryFormats/Sugar/.js/esprima.host.html");
-			uri.Query = Uri.EscapeDataString (clean);
-
-			var output = PhantomJS.Run<string> (uri.Uri.AbsoluteUri);
-			Debug.Log(output);
 
 			return clean;
 		} 

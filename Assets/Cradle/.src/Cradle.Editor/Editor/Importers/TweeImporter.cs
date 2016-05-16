@@ -11,6 +11,7 @@ using Cradle.Editor.StoryFormats;
 
 namespace Cradle.Editor.Importers
 {
+	[InitializeOnLoad]
 	public class TweeImporter : StoryImporter
 	{
 		static TweeImporter()
