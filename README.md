@@ -1,7 +1,7 @@
 # Cradle
 *Twine and Twine-like stories in Unity.*
 
-**[Cradle](http://github.com/daterre/Cradle)** (formerly UnityTwine) is a plugin for [Unity](http://unity3d.com) that powers the storytelling side of a game. Based on the foundations of **[Twine](http://twinery.org)**, it imports Twine stories, plays them and makes it easy to add custom interactivity via scripting.
+**[Cradle](http://github.com/daterre/Cradle)** (formerly **UnityTwine**) is a plugin for [Unity](http://unity3d.com) that powers the storytelling side of a game. Based on the foundations of **[Twine](http://twinery.org)**, it imports Twine stories, plays them and makes it easy to add custom interactivity via scripting.
 
 Writers can independently design and test their stories as they would a normal Twine story;
 programmers and artists can develop the interaction and presentation without worrying about flow control. When imported to Unity, Cradle kicks in and brings the two worlds together.
@@ -103,7 +103,7 @@ Cradle supports the following Twine story formats:
 * **[Sugarcane](https://twinery.org/wiki/twine_reference)**, the default format of Twine 1
 * **[SugarCube](http://www.motoslave.net/sugarcube/)**, a richer version of Sugarcane that works in both Twine 1 and 2
 
-Most features of these story formats are available in Cradle, but there are some limitations. Please see their indivial readme's in the [Documention]() folder for information on supported macros, syntax, and more.
+Most features of these story formats are available in Cradle, but there are some limitations. Please see their indivial readme's in the [Documention](https://github.com/daterre/UnityTwine/tree/master/Assets/Cradle/Documentation) folder for information on supported macros, syntax, and more.
 
 Cradle can be extended to support additional story formats (Twine or other), see [Extending](#extending).
 
