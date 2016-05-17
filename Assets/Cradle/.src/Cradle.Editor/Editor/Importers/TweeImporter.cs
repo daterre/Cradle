@@ -19,7 +19,7 @@ namespace Cradle.Editor.Importers
 			CradleAssetProcessor.RegisterImporter<TweeImporter>("twee");
 		}
 
-		static Regex rx_Passages = new Regex(@"^::\s(?<name>[^\]\|\n]+)(\s+\[(?<tags>[^\]]+)\])?\n(?<body>.*?)(?=\n::|\Z)",
+		static Regex rx_Passages = new Regex(@"^::\s(?<name>[^\]\|\r\n]+)(\s+\[(?<tags>[^\]]+)\])?\r?\n(?<body>.*?)(?=\r?\n::|\Z)",
 			RegexOptions.Singleline | RegexOptions.Multiline | RegexOptions.ExplicitCapture);
 
 		public override void Initialize()

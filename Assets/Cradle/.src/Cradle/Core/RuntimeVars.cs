@@ -44,10 +44,11 @@ namespace Cradle
 		{
 			value = default(StoryVar);
 			Accessor accessor;
-			if (accessors.TryGetValue(varName, out accessor))
+			if (!accessors.TryGetValue(varName, out accessor))
 				return false;
 
-			return accessor.Get();
+			value = accessor.Get();
+			return true;
 		}
 
 		public ICollection<StoryVar> Values
