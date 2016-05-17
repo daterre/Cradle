@@ -6,7 +6,7 @@ A superset of both Sugarcane (Twine 1) and SugarCube (Twine 2) storyformats.
 - [Supported syntax](#supported-syntax)
 	- [Links](#links)
 	- [Variables](#variables)
-		- [Arrays](#arrays)
+		- [Arrays and Objects](#arrays-and-objects)
 	- [Macros](#macros)
 	- [Functions](#functions)
 	- [Styling](#styling)
@@ -28,9 +28,9 @@ A syntax extension allows **naming** links for easy reference in Unity scripts:
 * `[[continue = Continue down the hall.|hallway]]`
 
 ### Variables
-Global variables that start with the `$` sign are supported.
-Local variables (starting with `_`) are not supported yet.
-Naked variables in text will be displayed correctly: `His shirt was $shirtColor`.
+* Global variables that start with the `$` sign are supported.
+* Local variables (starting with `_`) are not supported yet.
+* Naked variables in text will be displayed correctly: `His shirt was $shirtColor`.
 
 #### Arrays and Objects
 Arrays and objects are not supported out-of-the-box. This is because SugarCube uses JavaScript syntax directly, which is incompatible with C# and the current Regex version of the Sugar transcoder.
