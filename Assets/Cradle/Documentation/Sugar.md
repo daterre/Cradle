@@ -32,13 +32,25 @@ Global variables that start with the `$` sign are supported.
 Local variables (starting with `_`) are not supported yet.
 Naked variables in text will be displayed correctly: `His shirt was $shirtColor`.
 
-#### Arrays
-Arrays are not supported out-of-the-box. This is because SugarCube uses JavaScript arrays directly, which are incompatible with C#. For arrays, the following extension functions are available:
+#### Arrays and Objects
+Arrays and objects are not supported out-of-the-box. This is because SugarCube uses JavaScript syntax directly, which is incompatible with C# and the current Regex version of the Sugar transcoder.
+
+For arrays, the following extension functions are available:
 * `array($elem0, $elem1, etc.)` - creates an array, equivalent to `[$elem0, $elem1, $etc.]` in Twine
 * `arrayGet($arr, $index)` - returns the element at the specified index, equivalent to `$arr[$index]` in Twine
 * `arraySet($arr, $index, $elem)` - sets the value of element at the specified index, equivalent to `$arr[$index] = $elem` in Twine
+* `arrayAdd`
+* `arrayInsertAt`
+* `arrayRemove`
+* `arrayRemoveAt`
 * `arrayIndexOf($arr, $elem)` - returns the index of the element or -1 if is not found. Equivalent to `$arr.indexOf($elem)` in Twine
 * `arrayLength($arr)` - returns the length of the array, equivalent to `$arr.length` in Twine
+
+For objects, the following extension functions are available:
+* `obj('key', 'value', 'key', 'value', 'etc.')`
+* `objGet($obj, 'key')
+* `objSet($obj, 'key', 'value')
+* `objLength($obj)`
 
 To use these functions in Twine as well as in Unity, you must add [this script]() to your story (see [here](http://www.motoslave.net/sugarcube/2/docs/special-names.html#special-tags) for an explanation how to do this).
 

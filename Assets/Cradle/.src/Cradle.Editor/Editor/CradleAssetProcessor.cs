@@ -186,13 +186,13 @@ namespace Cradle.Editor
 								passage.Code[error.Line - errorLineOffset];
 
 							if (error.IsWarning)
-								Debug.LogWarningFormat("Story compilation warning at passage {0}: {1}\n\n\t{2}\n",
+								Debug.LogWarningFormat("Story compilation warning at passage '{0}': {1}\n\n\t{2}\n",
 									errorPassage,
 									error.ErrorText,
 									lineCode
 								);
 							else
-								Debug.LogErrorFormat("Story compilation error at passage {0}: {1}\n\n\t{2}\n",
+								Debug.LogErrorFormat("Story compilation error at passage '{0}': {1}\n\n\t{2}\n",
 									errorPassage,
 									error.ErrorText,
 									lineCode

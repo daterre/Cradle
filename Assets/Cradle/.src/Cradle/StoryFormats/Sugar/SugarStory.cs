@@ -172,7 +172,7 @@ namespace Cradle.StoryFormats.Sugar
 			arr.ConvertValueTo<List<StoryVar>>().Remove(value);
 		}
 
-		protected void arrayInsertAt(StoryVar arr, int index, StoryVar value)
+		protected void arrayInsert(StoryVar arr, int index, StoryVar value)
 		{
 			arr.ConvertValueTo<List<StoryVar>>().Insert(index, value);
 		}
