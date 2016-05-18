@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cradle;
 
-public class SnoozingHooks : MonoBehaviour {
+public class SnoozingCues : MonoBehaviour {
 
 	public TwineTextPlayer uiTextPlayer;
 	public Image uiImage;
@@ -94,7 +94,7 @@ public class SnoozingHooks : MonoBehaviour {
 	{
 		// Wait for snooze button to be pressed
 		if (story.State == StoryState.Idle && alarm_buttonClicked)
-			story.Advance("snooze");
+			story.DoLink("snooze");
 	}
 
 	public void alarm_RegisterClick()
@@ -196,14 +196,14 @@ public class SnoozingHooks : MonoBehaviour {
 
 				const float herTrigger = 0.3f;
 				if (boost < herTrigger) {
-					story.Advance("her");
+					story.DoLink("her");
 					StartCoroutine(SnoozeFadeOut(snooze_fadeOut));
 				}
 				else if (anxiety > dreaming) {
-					story.Advance("anxiety");
+					story.DoLink("anxiety");
 				}
 				else {
-					story.Advance("dream");
+					story.DoLink("dream");
 				}
 
 				yield break;
@@ -289,13 +289,14 @@ public class SnoozingHooks : MonoBehaviour {
 		// Show another line
 		if (!her_lineTriggered && color.a >= her_alphaLineTriggerUp)
 		{
-			StoryText line = null;
-			while (line == null)
+			StoryOutput output = null;
+			while (her_outputIndex < story.Output.Count && !(output is LineBreak))
 			{
-				StoryOutput output = story.Output[her_outputIndex];
+				output = story.Output[her_outputIndex];
 				if (output is StoryText)
 				{
-					line = (StoryText)output;
+					var line = (StoryText)output;
+					uiTextPlayer.DisplayOutput(line);
 				}
 				else if (output is StoryLink && output.Name == "continue")
 				{
@@ -306,11 +307,11 @@ public class SnoozingHooks : MonoBehaviour {
 				her_outputIndex++;
 			}
 
-			if (line != null)
-			{
-				uiTextPlayer.DisplayOutput(line);
-				her_lineTriggered = true;
-			}
+			// Show the closing line break, if any
+			if (output != null)
+				uiTextPlayer.DisplayOutput(output);
+
+			her_lineTriggered = true;
 		}
 		else if (her_lineTriggered && color.a <= her_alphaLineTriggerDown)
 		{
@@ -329,7 +330,7 @@ public class SnoozingHooks : MonoBehaviour {
 			yield return null;
 		}
 		her_sfxBreathing.Stop();
-		story.Advance(continueLink);
+		story.DoLink(continueLink);
 	}
 
 	void her_Exit()
@@ -461,8 +462,8 @@ public class SnoozingHooks : MonoBehaviour {
 				
 				for (int j = 0; j < shapes.Count; j++)
 					GameObject.Destroy(shapes[j]);
-				
-				story.Advance("continue");
+
+				story.DoLink("continue");
 			}
 			else
 			{
@@ -576,7 +577,7 @@ public class SnoozingHooks : MonoBehaviour {
 				if (story.CurrentPassageName == "street3")
 					StartCoroutine(street_alarm());
 				else
-					story.Advance("continue");
+					story.DoLink("continue");
 			}
 			else
 			{
@@ -624,7 +625,7 @@ public class SnoozingHooks : MonoBehaviour {
 			yield return null;
 		}
 		street_sfxStreet.Stop();
-		story.Advance("continue");
+		story.DoLink("continue");
 	}
 
 	void street3_Exit()
@@ -642,7 +643,7 @@ public class SnoozingHooks : MonoBehaviour {
 	//		yield return null;
 	//	}
 	//	street_sfx.Stop();
-	//	story.Advance(continueLink);
+	//	story.DoLink(continueLink);
 	//}
 	
 	// ...........................
@@ -680,7 +681,7 @@ public class SnoozingHooks : MonoBehaviour {
 		while (!uiTextPlayer.WasClicked());
 		SoundAlarm();
 		yield return new WaitForSeconds(alarmWakeUpDelay);
-		story.Advance(continueLink);
+		story.DoLink(continueLink);
 	}
 	
 }

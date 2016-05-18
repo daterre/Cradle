@@ -667,7 +667,7 @@ namespace Cradle
 			try { result = cue.method.Invoke(cue.target, args); }
 			catch(TargetParameterCountException)
 			{
-				Debug.LogWarningFormat("The cue {0} doesn't have the right parameters so it is being ignored.",
+				Debug.LogWarningFormat("The cue '{0}' doesn't have the right parameters so it is being ignored.",
 					cue.method.Name
 				);
 				return;

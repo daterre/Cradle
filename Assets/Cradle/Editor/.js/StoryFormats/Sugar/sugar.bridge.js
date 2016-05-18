@@ -50,7 +50,6 @@
 		// Passages data
 		$(storyData).find('tw-passagedata').each(function(i,p){
 			var $p = $(p);
-			console.log(htmlDecode($p.attr('name')));
 			result.passages.push( {
 				Pid: $p.attr('pid'),
 				Name: htmlDecode($p.attr('name')),
