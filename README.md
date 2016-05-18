@@ -402,7 +402,7 @@ MonoDevelop-compatible projects will be added shortly.
 
 ### Change log
 
-##### Version 2.0 beta 1
+##### Version 2.0 beta 1 (unreleased)
 * Renamed the project to Cradle
 * Support for published HTML files, including Twine 2
 * Story formats: added Harlowe, improved Sugarcane/Sugarcube
