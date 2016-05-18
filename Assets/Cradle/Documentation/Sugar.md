@@ -33,7 +33,7 @@ A syntax extension allows **naming** links for easy reference in Unity scripts:
 * Local variables (starting with `_`) are **not supported yet**.
 
 #### Arrays and Objects
-Arrays and objects are not supported out-of-the-box. This is because SugarCube uses JavaScript directly, which is incompatible with C# and the current Regex version of the Sugar transcoder. To compensate for this, an [extension function library](tree/master/Assets/Cradle/Editor/.js/StoryFormats/Sugar/sugar.extensions.js) is available. See [here](http://www.motoslave.net/sugarcube/2/docs/special-names.html#special-tags) for an explanation how to add it to your story.
+Arrays and objects are not supported out-of-the-box. This is because SugarCube uses JavaScript directly, which is incompatible with C# and the current Regex version of the Sugar transcoder. To compensate for this, an [extension function library](../Editor/.js/StoryFormats/Sugar/sugar.extensions.js) is available. See [here](http://www.motoslave.net/sugarcube/2/docs/special-names.html#special-tags) for an explanation how to add it to your story.
 
 For **arrays**, the following extension functions are available:
 * `array($value0, $value1, ...)` - creates an array, equivalent to `[$value0, $value1, ...]` in Twine
