@@ -66,7 +66,6 @@ For **objects**, the following extension functions are available:
 
 ### Macros
 Macros that work:
-
 * `<<set>>`. `<<run>>`  (both single and multiple variables)
 * `<<print>>`, `<<=>>`
 * `<<display>>` (including Sugarcane's [shorthand](#https://twinery.org/wiki/display) syntax)
@@ -75,13 +74,12 @@ Macros that work:
 * `<<nobr>>`, `<<silently>>`
 
 Macros that **don't work yet**:
-
 * `<<unset>>`, `<<remember>>`, `<<forget>>`
 * `<<goto>>`
 * `<<->>`
 * `<<actions>>`, `<<choice>>`
 * `<<back>>`, `<<return>>`, 
-* `<<click>>`, '<<button>>'
+* `<<click>>`, `<<button>>`
 * `<<script>>`
 * `<<textinput>>`, `<<radio>`, `<<radiobutton>>`, `<<checkbox>>`, `<<textarea>>`, `<<textbox>>`
 * `<<addclass>>`, `<<removeclass>>`, `<<toggleclass>>`
@@ -90,7 +88,6 @@ Macros that **don't work yet**:
 * `<<widget>>`
 
 ### Functions
-
 Functions that work:
 
 * `either()`
@@ -119,6 +116,5 @@ None of the following work:
 * Image tag
 
 ### General
-
 * Strings should use `"double quotes"`, not `'single quotes'`.
 * Presentation features such as Stylesheet, Script, Image and Annotation are not supported.
