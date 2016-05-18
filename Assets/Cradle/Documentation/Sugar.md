@@ -42,9 +42,9 @@ For **arrays**, the following extension functions are available:
 * `arrayIndexOf($arr, $value)` - returns the first index of the value or -1 if is not found. Equivalent to `$arr.indexOf($value)` in Twine
 * `arrayLength($arr)` - returns the length of the array, equivalent to `$arr.length` in Twine
 * `arrayCount($arr, $value)` - return the number of times the value is in the array, equivalent to `$arr.count($value)` in Twine
-* `arrayContains($arr, $value) - checks if a value in the array, equivalent to `$arr.contains($value)` in Twine
-* `arrayContainsAll($arr, $value1, $value2) - checks if all the values are in the array, equivalent to `$arr.containsAll($value1, $value2)` in Twine
-* `arrayContainsAny($arr, $value1, $value2) - checks if any of the values are in the array, equivalent to `$arr.containsAny($value1, $value2)` in Twine
+* `arrayContains($arr, $value)1 - checks if a value in the array, equivalent to `$arr.contains($value)` in Twine
+* `arrayContainsAll($arr, $value1, $value2)1 - checks if all the values are in the array, equivalent to `$arr.containsAll($value1, $value2)` in Twine
+* `arrayContainsAny($arr, $value1, $value21) - checks if any of the values are in the array, equivalent to `$arr.containsAny($value1, $value2)` in Twine
 * `arrayAdd($arr, $value)` - adds a value to the end of the array, equivalent to `$arr.push($value)` in Twine
 * `arrayInsert($arr, $index, $value)` - inserts a value at a specific position in the array, equivalent to `$arr.splice($index, 0, $value)` in Twine
 * `arrayDelete($arr, $value1, $value2, ...)` - removes the specified values, equivalent to  `$arr.delete($value1, $value2, ...)` in Twine
