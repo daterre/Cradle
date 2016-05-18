@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Cradle
 {
-	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
 	public sealed class StoryCueAttribute : Attribute
 	{
 		public string PassageName;

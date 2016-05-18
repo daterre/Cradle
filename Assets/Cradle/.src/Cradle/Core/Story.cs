@@ -251,9 +251,6 @@ namespace Cradle
 			if (this.OnPassageEnter != null)
 				this.OnPassageEnter(passage);
 
-			// Add output (and trigger cues)
-			OutputAdd(passage);
-
 			// Get update cues for calling during update
 			_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
 
@@ -262,8 +259,7 @@ namespace Cradle
 			CurrentLinkInAction = null;
 
 			this.State = StoryState.Playing;
-			OutputSend(passage);
-			CuesInvoke(CuesFind("Enter", maxLevels: 1));
+			CuesInvoke(CuesGet(passage.Name, "Enter"));
 
 			// Story was paused, wait for it to resume
 			if (this.State == StoryState.Paused)
@@ -293,9 +289,9 @@ namespace Cradle
 				OutputAdd(output);
 
 				// Let the handlers and cues kick in
-				if (output is StoryPassage)
+				if (output is EmbedPassage)
 				{
-					CuesInvoke(CuesFind("Enter", reverse: true, maxLevels: 1));
+					CuesInvoke(CuesGet(output.Name, "Enter"));
 
 					// Refresh the update cues
 					_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
@@ -622,8 +618,22 @@ namespace Cradle
 			}
 		}
 
-		IEnumerable<Cue> CuesFind(string cueName, int maxLevels = 0, bool reverse = false, bool allowCoroutines = true)
+
+		IEnumerable<Cue> CuesFind(string cueName, bool reverse = false, bool allowCoroutines = true)
 		{
+			// Get main passage's cues
+			List<Cue> mainCues = CuesGet(this.CurrentPassageName, cueName, allowCoroutines);
+
+			// Return them here only if not reversing
+			if (!reverse && mainCues != null)
+			{
+				for (int h = 0; h < mainCues.Count; h++)
+					yield return mainCues[h];
+			}
+
+			// Note: Since 2.0, the Output list can be rearranged by changing the InsertStack.
+			// Consequently, later embedded passages' cues can be triggered before earlier embedded
+			// passages' cues if they were inserted higher up in the list.
 			int c = 0;
 			for(
 				int i = reverse ? this.Output.Count - 1 : 0;
@@ -631,20 +641,23 @@ namespace Cradle
 				c++, i = i + (reverse ? -1 : 1)
 				)
 			{
-				if (!(this.Output[i] is StoryPassage))
+				EmbedPassage passageEmbed = this.Output[i] as EmbedPassage;
+				if (passageEmbed == null)
 					continue;
 
-				var passage = (StoryPassage)this.Output[i];
-
-				List<Cue> cues = CueGetMethods(passage.Name, cueName, allowCoroutines);
+				List<Cue> cues = CuesGet(passageEmbed.Name, cueName, allowCoroutines);
 				if (cues != null)
 				{
 					for (int h = 0; h < cues.Count; h++)
 						yield return cues[h];
-					
-					if (maxLevels > 0 && c == maxLevels-1)
-						yield break;
 				}
+			}
+
+			// Reversing, so return the main cues now
+			if (reverse && mainCues != null)
+			{
+				for (int h = 0; h < mainCues.Count; h++)
+					yield return mainCues[h];
 			}
 		}
 
@@ -691,62 +704,67 @@ namespace Cradle
 			return _cueTargets;
 		}
 
-		List<Cue> CueGetMethods(string passageName, string cueName, bool allowCoroutines = true)
+		List<Cue> CuesGet(string passageName, string cueName, bool allowCoroutines = true)
 		{
 			string methodName = passageName + "_" + cueName;
 
 			List<Cue> cues = null;
+
 			if (!_cueCache.TryGetValue(methodName, out cues))
 			{
 				MonoBehaviour[] targets = CueGetTargets();
+				var methodsFound = new List<MethodInfo>();
+
 				for (int i = 0; i < targets.Length; i++)
 				{
 					Type targetType = targets[i].GetType();
+					methodsFound.Clear();
 
-					// First try to get a method with an attribute
-					MethodInfo method = targetType.GetMethods(_cueMethodFlags)
+					// Get methods with attribute
+					methodsFound.AddRange(targetType.GetMethods(_cueMethodFlags)
 						.Where(m => m.GetCustomAttributes(typeof(StoryCueAttribute), true)
 							.Cast<StoryCueAttribute>()
 							.Where(attr => attr.PassageName == passageName && attr.CueName == cueName)
 							.Count() > 0
-						)
-						.FirstOrDefault();
-					
-					// If failed, try to get the method by name (if valid)
-					if (method == null && _validPassageNameRegex.IsMatch(passageName))
-						method = targetType.GetMethod(methodName, _cueMethodFlags);
+						));
 
-					// No method found on this source type
-					if (method == null)
-						continue;
-					
-					// Validate the found method
-					if (allowCoroutines)
+					// Get the method by name (if valid)
+					if (_validPassageNameRegex.IsMatch(passageName))
 					{
-						if (method.ReturnType != typeof(void) && !typeof(IEnumerator).IsAssignableFrom(method.ReturnType))
-						{
-							Debug.LogError(targetType.Name + "." + methodName + " must return void or IEnumerator in order to be used as a cue.");
-							method = null;
-						}
-					}
-					else
-					{
-						if (method.ReturnType != typeof(void))
-						{
-							Debug.LogError(targetType.Name + "." + methodName + " must return void in order to be used as a cue.");
-							method = null;
-						}
+						MethodInfo methodByName = targetType.GetMethod(methodName, _cueMethodFlags);
+
+						// Only add it if doesn't have a StoryCue attribute
+						if (methodByName != null && methodByName.GetCustomAttributes(typeof(StoryCueAttribute), true).Length == 0)
+							methodsFound.Add(methodByName);
 					}
 
-					// The found method wasn't valid
-					if (method == null)
-						continue;
+					// Now ensure that all methods are valid and add them as cues
+					foreach (MethodInfo method in methodsFound)
+					{
+						// Validate the found method
+						if (allowCoroutines)
+						{
+							if (method.ReturnType != typeof(void) && !typeof(IEnumerator).IsAssignableFrom(method.ReturnType))
+							{
+								Debug.LogWarning(targetType.Name + "." + methodName + " must return void or IEnumerator in order to be used as a cue.");
+								continue;
+							}
+						}
+						else
+						{
+							if (method.ReturnType != typeof(void))
+							{
+								Debug.LogWarning(targetType.Name + "." + methodName + " must return void in order to be used as a cue.");
+								continue;
+							}
+						}
 
-					// Init the method list
-					if (cues == null)
-						cues = new List<Cue>();
+						// Init the method list
+						if (cues == null)
+							cues = new List<Cue>();
 
-					cues.Add(new Cue() { method = method, target = targets[i] } );
+						cues.Add(new Cue() { method = method, target = targets[i] });
+					}
 				}
 
 				// Cache the method list even if it's null so we don't do another lookup next time around (lazy load)
