@@ -61,9 +61,9 @@
 					if (complex.children && complex.children.length && complex.type !== 'string' && complex.type !== 'verbatim')
 						simple.tokens = simplify(complex.children);
 					if (complex.text)
-						simple.text = $('<div/>').html(complex.text).text();
+						simple.text = htmlDecode(complex.text);
 					if (complex.innerText)
-						simple.innerText = complex.innerText;
+						simple.innerText = htmlDecode(complex.innerText);
 					if (complex.value)
 						simple.value = complex.value;
 					if (complex.align)
@@ -91,8 +91,8 @@
 				var $p = $(p);
 				var passage = {
 					Pid: $p.attr('pid'),
-					Name: $p.attr('name'),
-					Tags: $p.attr('tags'),
+					Name: htmlDecode($p.attr('name')),
+					Tags: htmlDecode($p.attr('tags')),
 					Tokens: simplify(TwineMarkup.lex(htmlDecode($p.html())).children)
 				};
 				result.passages.push(passage);

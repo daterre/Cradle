@@ -10,22 +10,6 @@ namespace Cradle.Editor.StoryFormats.Sugar
 
 	public static class BuiltInCodeGenMacros
 	{
-		static Regex rx_params = new Regex("\"([^\"]*)\"|'([^']*)'|([^\\s]+)");
-
-		static string ParamsWithCommas(string rawParams)
-		{
-			string output = string.Empty;
-			MatchCollection matches = rx_params.Matches(rawParams);
-			for (int i = 0; i < matches.Count; i++)
-			{
-				output += matches[i].Value;
-				if (i < matches.Count - 1)
-					output += ", ";
-			}
-
-			return output;
-		}
-
 		// ......................
 		public static SugarCodeGenMacro Silent = (transcoder, macro, argument) =>
 		{
@@ -71,7 +55,7 @@ namespace Cradle.Editor.StoryFormats.Sugar
 			string passageExpr = transcoder.BuildExpression(macro);
 			string args = argument != null ? transcoder.BuildExpression(argument) : null;
 			if (!string.IsNullOrEmpty(args))
-				args = ", " + ParamsWithCommas(args);
+				args = ", " + SugarTranscoder.ParamsWithCommas(args);
 
 			transcoder.Code.Indent();
 			transcoder.Code.Buffer
@@ -84,6 +68,15 @@ namespace Cradle.Editor.StoryFormats.Sugar
 			transcoder.Code.Indent();
 			transcoder.Code.Buffer
 				.AppendFormat("yield return text({0});", transcoder.BuildExpression(argument))
+				.AppendLine();
+		};
+
+		// ......................
+		public static SugarCodeGenMacro Back = (transcoder, macro, argument) =>
+		{
+			transcoder.Code.Indent();
+			transcoder.Code.Buffer
+				.AppendFormat("yield return link({0}, previous(), null);", transcoder.BuildExpression(argument))
 				.AppendLine();
 		};
 		

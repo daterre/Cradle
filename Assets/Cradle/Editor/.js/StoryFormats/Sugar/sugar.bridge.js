@@ -50,10 +50,11 @@
 		// Passages data
 		$(storyData).find('tw-passagedata').each(function(i,p){
 			var $p = $(p);
+			console.log(htmlDecode($p.attr('name')));
 			result.passages.push( {
 				Pid: $p.attr('pid'),
-				Name: $p.attr('name'),
-				Tags: $p.attr('tags'),
+				Name: htmlDecode($p.attr('name')),
+				Tags: htmlDecode($p.attr('tags')),
 				Body: htmlDecode($p.html())
 			});
 		});
@@ -72,8 +73,8 @@
 			var p = passages[i];
 			result.passages.push({
 				Pid: i.toString(),
-				Name: p.getAttribute('tiddler'),
-				Tags: p.getAttribute('tags'),
+				Name: htmlDecode(p.getAttribute('tiddler')),
+				Tags: htmlDecode(p.getAttribute('tags')),
 				Body: htmlDecode(p.innerHTML)
 			});
 		}

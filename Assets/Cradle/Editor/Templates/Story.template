@@ -15,7 +15,7 @@ using Cradle;
 using IStoryThread = System.Collections.Generic.IEnumerable<Cradle.StoryOutput>;
 using {{storyFormatNamespace}};
 
-public partial class @{{storyName}}: {{storyFormatClass}}
+public partial class @{{{storyName}}}: {{storyFormatClass}}
 {
 	#region Variables
 	// ---------------
@@ -25,12 +25,12 @@ public partial class @{{storyName}}: {{storyFormatClass}}
 		public VarDefs()
 		{
 			{{#vars}}
-			VarDef("{{.}}", () => this.@{{.}}, val => this.@{{.}} = val);
+			VarDef("{{{.}}}", () => this.@{{{.}}}, val => this.@{{{.}}} = val);
 			{{/vars}}
 		}
 
 		{{#vars}}
-		public StoryVar @{{.}};
+		public StoryVar @{{{.}}};
 		{{/vars}}
 	}
 
@@ -51,7 +51,7 @@ public partial class @{{storyName}}: {{storyFormatClass}}
 
 	@{{storyName}}()
 	{
-		this.StartPassage = "{{startPassage}}";
+		this.StartPassage = "{{{startPassage}}}";
 
 		base.Vars = new VarDefs() { Story = this, StrictMode = {{strictMode}} };
 
@@ -72,27 +72,27 @@ public partial class @{{storyName}}: {{storyFormatClass}}
 
 	{{#passages}}
 	// .............
-	// #{{Pid}}: {{Name}}
+	// #{{Pid}}: {{{Name}}}
 
 	void passage{{Pid}}_Init()
 	{
-		this.Passages["{{Name}}"] = new StoryPassage("{{Name}}", new string[]{ {{& Tags}} }, passage{{Pid}}_Main);
+		this.Passages[@"{{{Name}}}"] = new StoryPassage(@"{{{Name}}}", new string[]{ {{& Tags}} }, passage{{Pid}}_Main);
 	}
 
-	#line 1 "{{DirectiveName}}"
+	#line 1 "{{{DirectiveName}}}"
 	IStoryThread passage{{Pid}}_Main()
 	{
 		{{#Code}}
-		{{& .}}
+		{{{& .}}}
 		{{/Code}}
 	}
 
 	{{#Fragments}}
-	#line 1 "{{DirectiveName}}#frag#{{FragId}}"
+	#line 1 "{{{DirectiveName}}}#frag#{{FragId}}"
 	IStoryThread passage{{Pid}}_Fragment_{{FragId}}()
 	{
 		{{#Code}}
-		{{& .}}
+		{{{& .}}}
 		{{/Code}}
 	}
 	{{/Fragments}}

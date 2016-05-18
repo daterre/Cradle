@@ -186,16 +186,19 @@ public class TwineTextPlayer : MonoBehaviour {
 		if (output is StoryText)
 		{
 			var text = (StoryText)output;
-			foreach (Match m in rx_splitText.Matches(text.Text))
+			if (!string.IsNullOrEmpty(text.Text))
 			{
-				string word = m.Value;
-				Text uiWord = (Text)Instantiate(WordTemplate);
-				uiWord.gameObject.SetActive(true);
-				uiWord.text = word;
-				uiWord.name = word;
-				AddToUI(uiWord.rectTransform, output, uiInsertIndex);
-				if (uiInsertIndex >= 0)
-					uiInsertIndex++;
+				foreach (Match m in rx_splitText.Matches(text.Text))
+				{
+					string word = m.Value;
+					Text uiWord = (Text)Instantiate(WordTemplate);
+					uiWord.gameObject.SetActive(true);
+					uiWord.text = word;
+					uiWord.name = word;
+					AddToUI(uiWord.rectTransform, output, uiInsertIndex);
+					if (uiInsertIndex >= 0)
+						uiInsertIndex++;
+				}
 			}
 		}
 		else if (output is StoryLink)

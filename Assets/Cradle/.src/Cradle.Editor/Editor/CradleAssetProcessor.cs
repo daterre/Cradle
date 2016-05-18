@@ -94,7 +94,7 @@ namespace Cradle.Editor
                 TemplatePassageData[] passageData = importer.Passages.Select(p => new TemplatePassageData()
                     {
                         Pid = p.Pid,
-                        Name = p.Name,
+                        Name = p.Name.Replace("\"", "\"\""),
                         Tags = p.Tags,
                         Code = p.Code.Main.Split(new string[]{ Environment.NewLine }, StringSplitOptions.None),
                         Fragments = p.Code.Fragments.Select((frag, i) => new TemplatePassageFragment()
@@ -157,6 +157,7 @@ namespace Cradle.Editor
 						switch (error.ErrorNumber)
 						{
 							//case "CS0246":
+							case "CS0103":
 							case "":
 								continue;
 								

@@ -59,7 +59,7 @@ namespace Cradle.StoryFormats.Sugar
 
 		protected string previous()
 		{
-			return this.PassageHistory.LastOrDefault();
+			return this.PassageHistory.Count < 2 ? null : this.PassageHistory[this.PassageHistory.Count-2];
 		}
 
 		protected StoryVar visited(params string[] passageNames)

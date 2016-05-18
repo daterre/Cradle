@@ -77,6 +77,9 @@ namespace Cradle.Editor.StoryFormats.Sugar
 		static Regex rx_Vars = new Regex(string.Format(@"\$([a-zA-Z_][a-zA-Z0-9_]*){0}", RX_NOQUOTES),
 				RegexOptions.Singleline | RegexOptions.Multiline
 			);
+
+		static Regex rx_params = new Regex("\"([^\"]*)\"|'([^']*)'|([^\\s]+)");
+
 		static Regex rx_Operator = new Regex(string.Format(
 				@"\b(and|or|is not|is|to|not|eq|gt|gte|lt|lte)\b{0}", RX_NOQUOTES),
 				RegexOptions.Singleline | RegexOptions.Multiline
@@ -98,7 +101,7 @@ namespace Cradle.Editor.StoryFormats.Sugar
 		// ---------------------------
 		#endregion
 	
-		static Dictionary<string, SugarCodeGenMacro> CodeGenMacros = new Dictionary<string, SugarCodeGenMacro>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<string, SugarCodeGenMacro> CodeGenMacros = new Dictionary<string, SugarCodeGenMacro>(StringComparer.OrdinalIgnoreCase);
 		public GeneratedCode Code { get; private set; }
 		PassageData _input;
 		PassageCode _output;
@@ -112,8 +115,9 @@ namespace Cradle.Editor.StoryFormats.Sugar
 			CodeGenMacros["run"] = BuiltInCodeGenMacros.Assignment;
 			
 			CodeGenMacros["if"] = 
-			CodeGenMacros["elseif"] = 
-			CodeGenMacros["else"] = 
+			CodeGenMacros["elseif"] =
+			CodeGenMacros["else"] =
+			CodeGenMacros["/if"] = 
 			CodeGenMacros["endif"] = BuiltInCodeGenMacros.Conditional;
 
 			CodeGenMacros["for"] =
@@ -131,8 +135,12 @@ namespace Cradle.Editor.StoryFormats.Sugar
 			CodeGenMacros["br"] = BuiltInCodeGenMacros.LineBreak;
 
 			CodeGenMacros["display"] = BuiltInCodeGenMacros.Display;
+			
 			CodeGenMacros["="] = 
 			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
+
+			CodeGenMacros["back"] =
+			CodeGenMacros["return"] = BuiltInCodeGenMacros.Back;
 
 			// Unsupported macros. Recognize them but don't output anything	
 			CodeGenMacros["remember"] = null;
@@ -353,7 +361,7 @@ namespace Cradle.Editor.StoryFormats.Sugar
 		//	});
 		//}
 
-		internal string BuildExpression(string expression)
+		public string BuildExpression(string expression)
 		{
 			string clean = expression;
 
@@ -382,7 +390,21 @@ namespace Cradle.Editor.StoryFormats.Sugar
 			});
 
 			return clean;
-		} 
+		}
+
+		public static string ParamsWithCommas(string rawParams)
+		{
+			string output = string.Empty;
+			MatchCollection matches = rx_params.Matches(rawParams);
+			for (int i = 0; i < matches.Count; i++)
+			{
+				output += matches[i].Value;
+				if (i < matches.Count - 1)
+					output += ", ";
+			}
+
+			return output;
+		}
 	}
 
 	[Serializable]
