@@ -67,18 +67,18 @@ For **objects**, the following extension functions are available:
 ### Macros
 Macros that work:
 * `<<set>>`. `<<run>>`  (both single and multiple variables)
-* `<<print>>`, `<<=>>`
+* `<<print>>`, `<<=>>` (**however** it doesn't support dynamic Twine markup, it will just print everything verbatim)
 * `<<display>>` (including Sugarcane's [shorthand](#https://twinery.org/wiki/display) syntax)
 * `<<if>>` .. `<<else>>` .. `<<endif>>`
-* `<<for>>` with `<<continue>>` and `<<break>>` (but the shorthand format without init and post expressions is not supported)
+* `<<for>>` with `<<continue>>` and `<<break>>` (**however** the shorthand format without init and post expressions is not supported)
 * `<<nobr>>`, `<<silently>>`
+* `<<back>>`, `<<return>>` (with string parameters only, not with full link syntax)
 
 Macros that **don't work yet**:
 * `<<unset>>`, `<<remember>>`, `<<forget>>`
 * `<<goto>>`
 * `<<->>`
-* `<<actions>>`, `<<choice>>`
-* `<<back>>`, `<<return>>`, 
+* `<<actions>>`, `<<choice>>` 
 * `<<click>>`, `<<button>>`
 * `<<script>>`
 * `<<textinput>>`, `<<radio>`, `<<radiobutton>>`, `<<checkbox>>`, `<<textarea>>`, `<<textbox>>`
