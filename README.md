@@ -360,7 +360,7 @@ void enterYardCutscene()
 ```
 
 Notes:
-* Only one cue of every type is allowed per passage. You can't define 2 enter cues for a single passage.
+* You can have multiple StoryCue attributes on a single method.
 * The StoryCue attribute takes precedence over the method's name, so if an attribute is present the method's name is ignored, even if it looks like a valid cue name.
 
 ##### Coroutine cues
