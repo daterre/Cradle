@@ -73,7 +73,7 @@ A story-driven game relies on player choices to unfold, often branching out in m
 **It is not a Twine emulator.**
 Cradle is not meant to be a Unity-based version of Twine (even though it comes pretty close with the [TwineTextPlayer](#twinetextplayer)). It is also not an embedded HTML player in Unity. Rather, it turns a Twine file into a standard Unity script which, when added to a scene, runs the story and exposes its text and links to other game scripts, which can use them creatively.
 
-**It is not a dailog editor.**
+**It is not only for text and dialog.**
 Twine can be an excellent interactive dialog editor, but it can do many other things as well. Cradle doesn't make any assumptions about how your story will be used or displayed in your game. You could choose to trigger a story choice when the player clicks on a certain object, or treat a specific passage as a cue to play a cutscene.
 
 ### Installation

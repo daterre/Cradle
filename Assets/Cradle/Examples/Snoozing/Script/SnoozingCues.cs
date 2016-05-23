@@ -239,6 +239,8 @@ public class SnoozingCues : MonoBehaviour {
 	public float her_minFadeoutTime = 3f;
 	public float her_maxFadeoutTime = 1f;
 	public AudioSource her_sfxBreathing;
+	public AudioSource her_sfxMatch;
+	public AudioSource her_sfxMatchLight;
 	int her_outputIndex = 0;
 	bool her_lineTriggered = false;
 	bool her_done = false;
@@ -284,6 +286,9 @@ public class SnoozingCues : MonoBehaviour {
 			
 			color.a = Mathf.Clamp(color.a + move * her_alphaFactor, 0f, 1f);
 			uiImage.color = color;
+
+			if (!her_sfxMatch.isPlaying)
+				her_sfxMatch.Play();
 		}
 
 		// Show another line
@@ -310,6 +315,10 @@ public class SnoozingCues : MonoBehaviour {
 			// Show the closing line break, if any
 			if (output != null)
 				uiTextPlayer.DisplayOutput(output);
+
+			// Play the match light sound
+			if (!her_done)
+				her_sfxMatchLight.Play();
 
 			her_lineTriggered = true;
 		}
@@ -360,18 +369,9 @@ public class SnoozingCues : MonoBehaviour {
 		}
 	}
 
-	void sea_Exit()
+	IEnumerator sea_Exit()
 	{
 		ImageFade.Start(uiImage, 1f, 0f, 0f);
-	}
-
-	IEnumerator anxiety_Exit()
-	{
-		return SnoozeFadeOut(alarmWakeUpDelay);
-	}
-
-	IEnumerator dreaming_Exit()
-	{
 		return SnoozeFadeOut(alarmWakeUpDelay);
 	}
 
@@ -380,6 +380,11 @@ public class SnoozingCues : MonoBehaviour {
 
 	public AudioSource relationship_sfxCough;
 	public AudioClip[] relationship_sfxCoughSounds;
+
+	void relationship_Enter()
+	{
+		StartCoroutine(SnoozeFadeOut(2f, noise: 0.3f, underwater: 0f));
+	}
 
 	IEnumerator relationship_Output(StoryOutput output)
 	{
@@ -398,77 +403,114 @@ public class SnoozingCues : MonoBehaviour {
 		}
 	}
 
+	IEnumerator relationship_Exit()
+	{
+		return SnoozeFadeOut(alarmWakeUpDelay);
+	}
+
 	// ...........................
 	// work
 
 	public Image work_ppCursor;
 	public Image work_ppTemplate;
 	public Sprite[] work_ppImages;
+	public AudioSource work_sfxOffice;
+	public AudioSource work_sfxMouseClick;
 	const int work_minShapes = 2;
 	const int work_maxShapes = 8;
 
 	IEnumerator work_Enter()
 	{
-		StartCoroutine(SnoozeFadeOut(2f, noise: 1f, underwater: 0f));
+		StartCoroutine(SnoozeFadeOut(2f, noise: 0.3f, underwater: 0f));
 		uiTextPlayer.AutoDisplay = false;
 		work_ppCursor.gameObject.SetActive(true);
 		Cursor.visible = false;
 
-		// Wait a frame for all Twine output from this passage
-		yield return null;
+		// Fade in the ambient. Because there's a yield null in here, all passage output will be 
+		// available by the time this is done
+		work_sfxOffice.volume = 0f;
+		work_sfxOffice.Play();
+		for (float t = 0; t <= 1f; t += Time.deltaTime)
+		{
+			work_sfxOffice.volume = t/1f;
+			yield return null;
+		}
 
 		var shapes = new List<GameObject>();
 		bool[] shown = new bool[work_ppImages.Length];
-		List<StoryText> texts = story.GetCurrentText().ToList();
+		bool waitingForLine = true;
 
-		for (int i = 0; i <= texts.Count; i++)
+		// Handle all output
+		for (int i = 0; i < story.Output.Count; i++)
 		{
-			bool done = i == texts.Count;
-			int targetClickCount = Random.Range(work_minShapes, work_maxShapes);
-
-			for (int count = 0; count < targetClickCount; count++)
+			// Exit When reaching the continue link
+			if (story.Output[i] is StoryLink)
 			{
-				while (!Input.GetMouseButtonDown(0))
-					yield return null;
+				var continueLink = (StoryLink)story.Output[i];
 
-				var shape = (GameObject)Instantiate(work_ppTemplate.gameObject);
-				shape.SetActive(true);
-				shapes.Add(shape);
-
-				// every third click, show a shape we haven't shown it yet
-				int imgIndex = -1;
-				if (count % 3 == 0) {
-					for (int s = 0; s < shown.Length; s++) { 
-						if (!shown[s]) {
-							imgIndex = s;
-						}
-					}
-				}
-				if (imgIndex < 0)
-					imgIndex = Random.Range(0, work_ppImages.Length);
-				shown[imgIndex] = true;
-
-				var img = shape.GetComponent<Image>();
-				img.rectTransform.SetParent(work_ppTemplate.rectTransform.parent);
-				img.sprite = work_ppImages[imgIndex];
-				img.transform.position = Input.mousePosition;
-				yield return null;
-			}
-
-			if (done)
-			{
 				SoundAlarm();
-				yield return new WaitForSeconds(alarmWakeUpDelay);
-				
+
+				for (float t = 0; t <= alarmWakeUpDelay; t += Time.deltaTime)
+				{
+					work_sfxOffice.volume = 1f - (t / alarmWakeUpDelay);
+					yield return null;
+				}
+				work_sfxOffice.Stop();
+
 				for (int j = 0; j < shapes.Count; j++)
 					GameObject.Destroy(shapes[j]);
 
-				story.DoLink("continue");
+				story.DoLink(continueLink);
+				break;
 			}
-			else
+
+			// Otherwise, display a line
+			if (waitingForLine)
 			{
-				uiTextPlayer.DisplayOutput(texts[i]);
+				waitingForLine = false;
+
+				int targetClickCount = Random.Range(work_minShapes, work_maxShapes);
+				for (int count = 0; count < targetClickCount; count++)
+				{
+					while (!Input.GetMouseButtonDown(0))
+						yield return null;
+
+					// Play click sound
+					work_sfxMouseClick.Play();
+
+					// Add shape
+					var shape = (GameObject)Instantiate(work_ppTemplate.gameObject);
+					shape.SetActive(true);
+					shapes.Add(shape);
+
+					// every third click, show a shape we haven't shown it yet
+					int imgIndex = -1;
+					if (count % 3 == 0)
+					{
+						for (int s = 0; s < shown.Length; s++)
+						{
+							if (!shown[s])
+							{
+								imgIndex = s;
+							}
+						}
+					}
+					if (imgIndex < 0)
+						imgIndex = Random.Range(0, work_ppImages.Length);
+					shown[imgIndex] = true;
+
+					var img = shape.GetComponent<Image>();
+					img.rectTransform.SetParent(work_ppTemplate.rectTransform.parent);
+					img.sprite = work_ppImages[imgIndex];
+					img.transform.position = Input.mousePosition;
+					yield return null;
+				}
 			}
+
+			uiTextPlayer.DisplayOutput(story.Output[i]);
+
+			// Pause when reaching a line break
+			waitingForLine = story.Output[i] is LineBreak;
 		}
 	}
 
@@ -504,8 +546,9 @@ public class SnoozingCues : MonoBehaviour {
 	const float street_maxSpeed = 6f;
 	const float street_slowTime = 2.5f;
 	const float street_walkTimeTarget = 0.1f;
-	const float street_walkTimeSpeed = 5f;
-	int street_currentLine = 0;
+	const float street_walkTimeSpeed = 3f;
+	int street_currentOutput = 0;
+	bool street_lineShown = false;
 
 	IEnumerator street_Enter()
 	{
@@ -520,7 +563,8 @@ public class SnoozingCues : MonoBehaviour {
 		street_speed = street_minSpeed;
 		street_FootstepsPaused = false;
 		street_walkTime = 0f;
-		street_currentLine = 0;
+		street_currentOutput = 0;
+		street_lineShown = false;
 
 		street_sfxStreet.time = 0f;
 		street_sfxStreet.Play();
@@ -570,10 +614,11 @@ public class SnoozingCues : MonoBehaviour {
 		if (street_walkTime >= street_walkTimeTarget)
 		{
 			street_walkTime = 0f;
-			List<StoryText> texts = story.GetCurrentText().ToList();
 
-			if (street_currentLine >= texts.Count - 1)
+			if (street_currentOutput >= story.Output.Count - 1)
 			{
+				street_lineShown = false;
+
 				if (story.CurrentPassageName == "street3")
 					StartCoroutine(street_alarm());
 				else
@@ -581,8 +626,15 @@ public class SnoozingCues : MonoBehaviour {
 			}
 			else
 			{
-				uiTextPlayer.DisplayOutput(texts[street_currentLine]);
-				street_currentLine++;
+				while (true)
+				{
+					StoryOutput output = story.Output[street_currentOutput++];
+					uiTextPlayer.DisplayOutput(output);
+					street_lineShown |= output is StoryText;
+
+					if (street_lineShown && output is LineBreak)
+						break;
+				}
 				StartCoroutine(street_PauseFootSteps());
 			}
 		}
@@ -597,13 +649,13 @@ public class SnoozingCues : MonoBehaviour {
 	IEnumerator street2_Enter()
 	{
 		yield return StartCoroutine(street_PauseFootSteps());
-		street_currentLine = 0;
+		street_currentOutput = 0;
 	}
 
 	IEnumerator street3_Enter()
 	{
 		yield return StartCoroutine(street_PauseFootSteps());
-		street_currentLine = 0;
+		street_currentOutput = 0;
 	}
 
 	void street2_Update()
@@ -628,23 +680,12 @@ public class SnoozingCues : MonoBehaviour {
 		story.DoLink("continue");
 	}
 
-	void street3_Exit()
+	IEnumerator street3_Exit()
 	{
 		ImageFade.Start(uiImage, 1f, 0f, 0.1f);
 		uiTextPlayer.AutoDisplay = true;
+		return SnoozeFadeOut(alarmWakeUpDelay);
 	}
-
-	//IEnumerator street3_alarm(StoryText continueLink)
-	//{
-	//	SoundAlarm();
-	//	for (float t = 0; t <= alarmWakeUpDelay; t += Time.deltaTime)
-	//	{
-	//		street_sfx.volume = 1f - (t / alarmWakeUpDelay);
-	//		yield return null;
-	//	}
-	//	street_sfx.Stop();
-	//	story.DoLink(continueLink);
-	//}
 	
 	// ...........................
 	// getUp

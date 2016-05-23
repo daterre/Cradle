@@ -69,6 +69,7 @@ Macros that work:
 * `<<set>>`. `<<run>>`  (both single and multiple variables)
 * `<<print>>`, `<<=>>` (**however** it doesn't support dynamic Twine markup, it will just print everything verbatim)
 * `<<display>>` (including Sugarcane's [shorthand](#https://twinery.org/wiki/display) syntax)
+* `<<goto>>` (aborts the current passage completely)
 * `<<if>>` .. `<<else>>` .. `<<endif>>`
 * `<<for>>` with `<<continue>>` and `<<break>>` (**however** the shorthand format without init and post expressions is not supported)
 * `<<nobr>>`, `<<silently>>`
@@ -76,7 +77,6 @@ Macros that work:
 
 Macros that **don't work yet**:
 * `<<unset>>`, `<<remember>>`, `<<forget>>`
-* `<<goto>>`
 * `<<->>`
 * `<<actions>>`, `<<choice>>` 
 * `<<click>>`, `<<button>>`

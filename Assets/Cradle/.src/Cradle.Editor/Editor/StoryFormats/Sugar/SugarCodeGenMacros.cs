@@ -49,6 +49,15 @@ namespace Cradle.Editor.StoryFormats.Sugar
 		};
 		
 		// ......................
+		public static SugarCodeGenMacro GoTo = (transcoder, macro, argument) =>
+		{
+			transcoder.Code.Indent();
+			transcoder.Code.Buffer
+				.AppendFormat("yield return abort(goToPassage: {0});", transcoder.BuildExpression(argument))
+				.AppendLine();
+		};
+
+		// ......................
 
 		public static SugarCodeGenMacro DisplayShorthand = (transcoder, macro, argument) =>
 		{

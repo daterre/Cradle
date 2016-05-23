@@ -318,9 +318,7 @@ namespace Cradle
 			if (aborted != null)
 			{
 				CuesInvoke(CuesFind("Aborted"));
-				if (aborted.GoToPassage != null)
-					this.GoTo(aborted.GoToPassage);
-
+				
 				_lastThreadResult = ThreadResult.Aborted;
 			}
 			else
@@ -335,6 +333,9 @@ namespace Cradle
 			}
 
 			CurrentLinkInAction = null;
+
+			if (aborted != null && aborted.GoToPassage != null)
+				this.GoTo(aborted.GoToPassage);
 		}
 
 		/// <summary>

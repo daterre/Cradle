@@ -135,6 +135,7 @@ namespace Cradle.Editor.StoryFormats.Sugar
 			CodeGenMacros["br"] = BuiltInCodeGenMacros.LineBreak;
 
 			CodeGenMacros["display"] = BuiltInCodeGenMacros.Display;
+			CodeGenMacros["goto"] = BuiltInCodeGenMacros.GoTo;
 			
 			CodeGenMacros["="] = 
 			CodeGenMacros["print"] = BuiltInCodeGenMacros.Print;
