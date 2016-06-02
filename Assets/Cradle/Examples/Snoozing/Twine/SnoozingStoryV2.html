@@ -65,7 +65,7 @@ var LZString={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234
 		<p id="init-lacking">Apologies! Your web browser lacks required capabilities. Please consider upgrading it or switching to a more modern web browser.</p>
 		<p id="init-loading">Initializing. Please wait&hellip;<br /><progress></progress></p>
 	</div>
-	<div id="store-area" hidden><tw-storydata name="SnoozingStory" startnode="1" creator="Twine" creator-version="2.0.11" ifid="265127E2-1ABE-4E11-B493-43853AE09449" format="SugarCube" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css"></style><script role="script" id="twine-user-script" type="text/twine-javascript"></script><tw-passagedata pid="1" name="alarm" tags="" position="822,91">&lt;&lt;set $wait = 1&gt;&gt;
+	<div id="store-area" hidden><tw-storydata name="SnoozingStory" startnode="1" creator="Twine" creator-version="2.0.11" ifid="265127E2-1ABE-4E11-B493-43853AE09449" format="SugarCube" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css"></style><script role="script" id="twine-user-script" type="text/twine-javascript"></script><tw-passagedata pid="1" name="alarm" tags="" position="821,91">&lt;&lt;set $wait = 1&gt;&gt;
 ...
 
 &lt;&lt;if not $again &gt;&gt;
@@ -79,12 +79,12 @@ My alarm clock.
 [[Time to get up.|getUp]]
 
 &lt;&lt;if visited(&quot;her&quot;, &quot;relationship&quot;, &quot;work&quot;, &quot;street&quot;, &quot;sea&quot;)&gt;&gt;
-[[snooze=|no snooze]]
+[[snooze=|alone]]
 &lt;&lt;else&gt;&gt;
 [[snooze=|snooze]]
 &lt;&lt;set $again=true&gt;&gt;
 &lt;&lt;endif&gt;&gt;</tw-passagedata>
-<tw-passagedata pid="2" name="getUp" tags="" position="1287,179">&lt;&lt;print either(&quot;Here it goes again&quot;, &quot;Out of coffee&quot;, &quot;I can&#39;t breath&quot;, &quot;Must leave at 7:00&quot;)&gt;&gt;
+<tw-passagedata pid="2" name="getUp" tags="" position="1265,93">&lt;&lt;print either(&quot;Here it goes again&quot;, &quot;Forgot to get coffee&quot;, &quot;I need air&quot;, &quot;Train leaves at 7:00&quot;)&gt;&gt;
 
 
 &lt;&lt;set $wait = 4&gt;&gt;
@@ -114,10 +114,9 @@ THE END</tw-passagedata>
 can&#39;t
 i
 see
-you
+her
 [[continue=|alarm]]</tw-passagedata>
-<tw-passagedata pid="7" name="relationship" tags="" position="185,612">She knows it.
-&lt;&lt;set $click = true&gt;&gt;
+<tw-passagedata pid="7" name="relationship" tags="" position="185,612">She knows it. &lt;&lt;set $click = true&gt;&gt;
 She looks at you,
 and she knows it.
 Pretends not to.
@@ -130,10 +129,12 @@ A little cheat,
 [[continue=|alarm]]</tw-passagedata>
 <tw-passagedata pid="8" name="work" tags="" position="434,703">Two days till the meeting.
 Two days.
-Everyone
-is going to hate me.
-I&#39;m a clown
-Why do I
+Everyone is going to
+hate me
+Think I&#39;m a clown
+I can&#39;t
+take it
+
 [[continue=|alarm]]</tw-passagedata>
 <tw-passagedata pid="9" name="street" tags="" position="1020,793">&lt;&lt;set $wait = 1&gt;&gt;
 I&#39;m late.
@@ -143,14 +144,16 @@ Shit.
 [[continue=|street2]]</tw-passagedata>
 <tw-passagedata pid="10" name="street2" tags="" position="1187,781">&lt;&lt;set $wait = 1&gt;&gt;
 My bag is empty.
+...
 No, it&#39;s not.
 There&#39;s a half-eaten sandwich.
 It&#39;s hers.
 [[continue=|street3]]</tw-passagedata>
 <tw-passagedata pid="11" name="street3" tags="" position="1347,725">&lt;&lt;set $wait = 1&gt;&gt;
 I should throw it out.
-Maybe she&#39;ll want it?
-Her lips touched it
+But maybe she&#39;ll want it?
+Her lips touched it.
+Lips
 [[continue=|alarm]]</tw-passagedata>
 <tw-passagedata pid="12" name="sea" tags="" position="1441,474">&lt;&lt;set $click = true&gt;&gt;
 i can breath
@@ -161,14 +164,15 @@ i can&#39;t see the sky.
 
 but it&#39;s warm
 
-i&#39;ll go deep
+go deep
 
-just sleep
+always sleep
 &lt;&lt;set $click = false&gt;&gt;
 [[continue=|alarm]]</tw-passagedata>
-<tw-passagedata pid="13" name="no snooze" tags="" position="1077,27">This is too much.
+<tw-passagedata pid="13" name="alone" tags="" position="1077,27">Just an empty body, &lt;&lt;set $wait = 2&gt;&gt;
+alone. &lt;&lt;set $wait = 4&gt;&gt;
 
-[[Time to get up.|getUp]]</tw-passagedata>
+[[Must get up.|getUp]]</tw-passagedata>
 </tw-storydata>
 </div>
 	<script id="script-sugarcube" type="text/javascript">

@@ -159,7 +159,7 @@ public class TwineTextPlayer : MonoBehaviour {
 	IEnumerator Wait(float wait, bool click, StoryOutput output)
 	{
 		if (wait > 0f)
-		yield return new WaitForSeconds(wait);
+			yield return new WaitForSeconds(wait);
 
 		if (click)
 		{

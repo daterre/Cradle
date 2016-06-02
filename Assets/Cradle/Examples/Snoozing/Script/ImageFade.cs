@@ -7,18 +7,18 @@ public static class ImageFade
 {
 	static Dictionary<Component, Coroutine> _fades = new Dictionary<Component, Coroutine>();
 
-	public static YieldInstruction Start(Graphic img, float from, float to, float time)
+	public static YieldInstruction Start(Graphic img, float from, float to, float time, System.Action onComplete = null)
 	{
 		Stop(img);
-		var coroutine = img.StartCoroutine(AnimateGraphic(img, from, to, time));
+		var coroutine = img.StartCoroutine(AnimateGraphic(img, from, to, time, onComplete));
 		_fades.Add(img, coroutine);
 		return coroutine;
 	}
 
-	public static YieldInstruction Start(CanvasGroup group, MonoBehaviour script, float from, float to, float time)
+	public static YieldInstruction Start(CanvasGroup group, MonoBehaviour script, float from, float to, float time, System.Action onComplete = null)
 	{
 		Stop(group, script);
-		var coroutine = script.StartCoroutine(AnimateGroup(group, from, to, time));
+		var coroutine = script.StartCoroutine(AnimateGroup(group, from, to, time, onComplete));
 		_fades.Add(group, coroutine);
 		return coroutine;
 	}
@@ -49,7 +49,7 @@ public static class ImageFade
 		return _fades.ContainsKey(img);
 	}
 
-	static IEnumerator AnimateGraphic(Graphic img, float from, float to, float time)
+	static IEnumerator AnimateGraphic(Graphic img, float from, float to, float time, System.Action onComplete = null)
 	{
 		Color color = img.color;
 		float state = (color.a - from) / (to - from);
@@ -66,9 +66,12 @@ public static class ImageFade
 		color.a = to;
 		img.color = color;
 		_fades.Remove(img);
+
+		if (onComplete != null)
+			onComplete.Invoke();
 	}
 
-	static IEnumerator AnimateGroup(CanvasGroup group, float from, float to, float time)
+	static IEnumerator AnimateGroup(CanvasGroup group, float from, float to, float time, System.Action onComplete = null)
 	{
 		float state = (group.alpha - from) / (to - from);
 
@@ -80,5 +83,8 @@ public static class ImageFade
 
 		group.alpha = to;
 		_fades.Remove(group);
+
+		if (onComplete != null)
+			onComplete.Invoke();
 	}
 }

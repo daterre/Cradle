@@ -30,7 +30,7 @@ namespace Cradle.Editor.StoryFormats.Sugar
 				(?'macro'
 					<<
 						\s*
-						((?'macroName'\/?[a-z_=\-][a-z0-9_]*)\b\s*)?
+						((?'macroName'\/?[a-z_=\-][a-z0-9_]*)\s*)?
 						(?'macroArg'
 							(?>(?'quote'""))?
 							.*?
@@ -281,7 +281,7 @@ namespace Cradle.Editor.StoryFormats.Sugar
 					}
 					else
 					{
-						macro = BuiltInCodeGenMacros.Print;
+						macro = BuiltInCodeGenMacros.Display;
 					}
 
 					if (macro != null)
