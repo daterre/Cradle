@@ -1,9 +1,10 @@
 fileFormatVersion: 2
 guid: 44953b58cebc8df4b909569ef09cdf65
-timeCreated: 1464881655
+timeCreated: 1465472383
 licenseType: Pro
 TextureImporter:
-  fileIDToRecycleName: {}
+  fileIDToRecycleName:
+    21300000: alone_0
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -38,18 +39,80 @@ TextureImporter:
   rGBM: 0
   compressionQuality: 50
   allowsAlphaSplitting: 0
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteBorder: {x: 89, y: 3, z: 88, w: 122}
   spritePixelsToUnits: 100
   alphaIsTransparency: 1
   textureType: 8
   buildTargetSettings: []
   spriteSheet:
-    sprites: []
+    sprites:
+    - name: alone_0
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 18
+        width: 136
+        height: 365
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: 48, y: 127.5}
+        - {x: 15, y: 174.5}
+        - {x: -18, y: 174.5}
+        - {x: -27, y: 168.5}
+        - {x: -58, y: 126.5}
+        - {x: -58, y: -180.5}
+        - {x: 41, y: -180.5}
+        - {x: 51, y: -114.5}
+        - {x: 51, y: 113.5}
+      - - {x: -46, y: -52.5}
+        - {x: -50, y: -56.5}
+        - {x: -50, y: -61.5}
+        - {x: -42, y: -61.5}
+        - {x: -41, y: -60.5}
+        - {x: -41, y: -57.5}
+        - {x: -45, y: -52.5}
+      - - {x: -59, y: 28.5}
+        - {x: -59, y: 23.5}
+        - {x: -57, y: 19.5}
+        - {x: -55, y: 19.5}
+        - {x: -53, y: 20.5}
+        - {x: -51, y: 25.5}
+        - {x: -55, y: 30.5}
+        - {x: -57, y: 30.5}
+      - - {x: -58, y: 49.5}
+        - {x: -55, y: 50.5}
+        - {x: -55, y: 53.5}
+        - {x: -58, y: 54.5}
+        - {x: -60, y: 52.5}
+      - - {x: -62, y: 91.5}
+        - {x: -65, y: 87.5}
+        - {x: -65, y: 84.5}
+        - {x: -63, y: 82.5}
+        - {x: -60, y: 83.5}
+        - {x: -56, y: 86.5}
+        - {x: -56, y: 87.5}
+        - {x: -57, y: 90.5}
+      - - {x: -59, y: 122.5}
+        - {x: -63, y: 118.5}
+        - {x: -63, y: 115.5}
+        - {x: -61, y: 113.5}
+        - {x: -57, y: 114.5}
+        - {x: -56, y: 118.5}
+        - {x: -56, y: 122.5}
+      - - {x: 44, y: 144.5}
+        - {x: 38, y: 136.5}
+        - {x: 38, y: 126.5}
+        - {x: 39, y: 125.5}
+        - {x: 44, y: 121.5}
+        - {x: 49, y: 121.5}
+        - {x: 49, y: 144.5}
     outline: []
   spritePackingTag: 
   userData: 

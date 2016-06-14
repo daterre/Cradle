@@ -3,9 +3,81 @@
     "result": {
         "passages": [
             {
-                "Body": "That's it, pretty much",
-                "Name": "FenderBender",
+                "Body": "<<set $wait = 1>>\n...\n\n<<if not $again >>\n<<set $wait = 2>>\n? ?\n\n<<endif>>\n<<set $wait = 1.5>>\nMy alarm clock.\n<<set $wait = 1.5>>\n[[Time to get up.|getUp]]\n\n<<if visited(\"her\", \"relationship\", \"work\", \"street\", \"sea\")>>\n[[snooze=|alone]]\n<<else>>\n[[snooze=|snooze]]\n<<set $again=true>>\n<<endif>>",
+                "Name": "alarm",
                 "Pid": "1",
+                "Tags": ""
+            },
+            {
+                "Body": "<<print either(\"Here it goes again\", \"Forgot to get coffee\", \"I need air\", \"Train leaves at 7:00\")>>\n\n\n<<set $wait = 4>>\nTHE END",
+                "Name": "getUp",
+                "Pid": "2",
+                "Tags": ""
+            },
+            {
+                "Body": "<<set $wait = 1>>\n<<print either(\"I can't handle this right now.\", \"Keep my eyes closed.\")>>\n[[dream=Dream|dreaming]]\n[[anxiety=Anxiety|anxiety]]\n[[her=Her|her]]",
+                "Name": "snooze",
+                "Pid": "3",
+                "Tags": ""
+            },
+            {
+                "Body": "<<if $dream is \"sea\">>\n\t<<set $dream = \"street\">>\n<<elseif $dream is \"street\">>\n\t<<set $dream = \"sea\">>\n<<else>>\n\t<<set $dream = either(\"sea\", \"street\")>>\n<<endif>>\n<<goto $dream>>",
+                "Name": "dreaming",
+                "Pid": "4",
+                "Tags": ""
+            },
+            {
+                "Body": "<<if $anxiety is \"work\">>\n\t<<set $anxiety = \"relationship\">>\n<<elseif $anxiety is \"relationship\">>\n\t<<set $anxiety = \"work\">>\n<<else>>\n\t<<set $anxiety = either(\"work\", \"relationship\")>>\n<<endif>>\n<<goto $anxiety>>",
+                "Name": "anxiety",
+                "Pid": "5",
+                "Tags": ""
+            },
+            {
+                "Body": "why\ncan't\ni\nsee\nyou\n[[continue=|alarm]]",
+                "Name": "her",
+                "Pid": "6",
+                "Tags": ""
+            },
+            {
+                "Body": "She knows it. <<set $click = true>>\nShe looks at you,\nand she knows it.\nPretends not to.\nShe smiles.\nShe's kind.\nYou're not.\nYou're a cheat.\nA little cheat,\n<<set $click = false>>\n[[continue=|alarm]]",
+                "Name": "relationship",
+                "Pid": "7",
+                "Tags": ""
+            },
+            {
+                "Body": "Two days till the meeting.\nTwo days.\nEveryone is going to\nhate me\nThink I'm a clown\nI can't\ntake it\n\n[[continue=|alarm]]",
+                "Name": "work",
+                "Pid": "8",
+                "Tags": ""
+            },
+            {
+                "Body": "<<set $wait = 1>>\nI'm late.\n\nWhere are my keys?\nShit.\n[[continue=|street2]]",
+                "Name": "street",
+                "Pid": "9",
+                "Tags": ""
+            },
+            {
+                "Body": "<<set $wait = 1>>\nMy bag is empty.\n...\nNo, it's not.\nThere's a half-eaten sandwich.\nIt's hers.\n[[continue=|street3]]",
+                "Name": "street2",
+                "Pid": "10",
+                "Tags": ""
+            },
+            {
+                "Body": "<<set $wait = 1>>\nI should throw it out.\nBut maybe she'll want it?\nHer lips touched it.\nLips\n[[continue=|alarm]]",
+                "Name": "street3",
+                "Pid": "11",
+                "Tags": ""
+            },
+            {
+                "Body": "<<set $click = true>>\ni can breath\n\ni can fly\n\ni can't see the sky.\n\nbut it's warm\n\ngo deep\n\nalways sleep\n<<set $click = false>>\n[[continue=|alarm]]",
+                "Name": "sea",
+                "Pid": "12",
+                "Tags": ""
+            },
+            {
+                "Body": "Just an empty body, <<set $wait = 2>>\nalone. <<set $wait = 4>>\n\n[[Must get up.|getUp]]",
+                "Name": "alone",
+                "Pid": "13",
                 "Tags": ""
             }
         ],

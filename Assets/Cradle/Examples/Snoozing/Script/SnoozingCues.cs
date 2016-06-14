@@ -4,12 +4,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Cradle;
+using UnityStandardAssets.ImageEffects;
 
 public class SnoozingCues : MonoBehaviour {
 
+	public Canvas uiCanvas;
 	public TwineTextPlayer uiTextPlayer;
 	public Image uiImage;
+	public RectTransform cursor;
 	public Animator uiTitleScreen;
+	public AudioSource sfxMorning;
 	const float alarmWakeUpDelay = 0.3f;
 	Coroutine _beginStory = null;
 	
@@ -21,6 +25,21 @@ public class SnoozingCues : MonoBehaviour {
 		alarm_sfxVolume = alarm_sfx.volume;
 	}
 
+	IEnumerator Start()
+	{
+		// Fade in the audio
+		sfxMorning.Play();
+		sfxMorning.volume = 0;
+
+		for (float t = 0; t <= 1f; t += Time.deltaTime)
+		{
+			sfxMorning.volume = t;
+			yield return null; // wait a frame
+		}
+
+		sfxMorning.volume = 1f;
+	}
+
 	void Update()
 	{
 		// Detect escape button press and quit
@@ -28,6 +47,8 @@ public class SnoozingCues : MonoBehaviour {
 		{
 			Application.Quit();
 		}
+
+		cursor.transform.position = CursorGetPos();
 	}
 
 	// Called by the Play button on the title screen
@@ -37,24 +58,43 @@ public class SnoozingCues : MonoBehaviour {
 			return;
 
 		uiTextPlayer.Clear();
+		Cursor.visible = false;
+		
+		this.story.Reset();
+
 		uiTitleScreen.SetTrigger("play");
 		_beginStory = StartCoroutine(BeginStory());
 	}
 
 	IEnumerator BeginStory()
 	{
-		yield return new WaitForSeconds(2f);
-		uiTitleScreen.gameObject.SetActive(false);
-		
-		this.story.Reset();
+		//yield return new WaitForSeconds(2f);
+
+		for (float t = 0; t <= 2f; t += Time.deltaTime)
+		{
+			sfxMorning.volume = 1f-(t/2f);
+			yield return null; // wait a frame
+		}
+		sfxMorning.Stop();
+
+		uiTitleScreen.gameObject.SetActive(false);	
 		this.story.Begin();
 		_beginStory = null;
 	}
 
-	void EndStory()
+	IEnumerator EndStory()
 	{
 		uiTitleScreen.gameObject.SetActive(true);
 		uiTitleScreen.SetTrigger("end");
+
+		sfxMorning.Play();
+		for (float t = 0; t <= 5f; t += Time.deltaTime)
+		{
+			sfxMorning.volume = t / 5f;
+			yield return null; // wait a frame
+		}
+
+		Cursor.visible = true;
 	}
 
 	// ...........................
@@ -65,11 +105,14 @@ public class SnoozingCues : MonoBehaviour {
 	public Animator alarm_buttonAnimator;
 	public Button alarm_buttonObject;
 	public CanvasGroup alarm_buttonGroup;
-	bool alarm_buttonClicked = false;
+	public RectTransform alarm_cursor;
+	bool alarm_buttonClicked;
 	float alarm_sfxVolume;
 
 	IEnumerator alarm_Enter()
 	{
+		Camera.main.GetComponent<NoiseAndScratches>().enabled = false;
+
 		alarm_buttonClicked = false;
 		alarm_buttonGroup.alpha = 0f;
 		alarm_buttonObject.gameObject.SetActive(false);
@@ -83,11 +126,23 @@ public class SnoozingCues : MonoBehaviour {
 
 		uiImage.sprite = alarm_imgPhone;
 		ImageFade.Start(uiImage, 0f, 1f, 4f);
+		
+		CursorSet(alarm_cursor, 4f);
 
 		alarm_buttonAnimator.gameObject.SetActive(true);
 		alarm_buttonObject.gameObject.SetActive(true);
 		alarm_buttonAnimator.SetBool("alarm", true);
 		ImageFade.Start(alarm_buttonGroup, this, 0f, 1f, 0.2f);
+	}
+
+	void alarm_Done()
+	{
+		CursorHoverActions(
+			cursorAnimator => cursorAnimator.SetBool("hover", true),
+			cursorAnimator => cursorAnimator.SetBool("hover", false),
+			new StoryLink[] { story.GetCurrentLinks().Where(link => link.PassageName == "getUp").First() },
+			new GameObject[] { alarm_buttonObject.gameObject }
+		);
 	}
 
 	void alarm_Update()
@@ -108,13 +163,20 @@ public class SnoozingCues : MonoBehaviour {
 	{
 		alarm_sfx.loop = false;
 
-		ImageFade.Start(uiImage, 1f, 0f, 0f);
+		const float alarmStopTime = 0.1f;
+		ImageFade.Start(uiImage, 1f, 0f, alarmStopTime);
+		ImageFade.Start(alarm_buttonGroup, this, 1f, 0f, alarmStopTime);
+		CursorHide(alarmStopTime);
+		CursorHoverClear(
+			new StoryLink[] { story.GetCurrentLinks().Where(link => link.PassageName == "getUp").First() },
+			new GameObject[] { alarm_buttonObject.gameObject }
+		);
 
-		alarm_buttonObject.gameObject.SetActive(true);
+		//yield return new WaitForSeconds(alarmStopTime);
+
+		alarm_buttonObject.gameObject.SetActive(false);
 		alarm_buttonAnimator.SetBool("alarm", false);
 		alarm_buttonAnimator.gameObject.SetActive(false);
-		ImageFade.Start(alarm_buttonGroup, this, 1f, 0f, 0f);
-		
 	}
 
 	// ...........................
@@ -128,9 +190,12 @@ public class SnoozingCues : MonoBehaviour {
 	public Image snooze_imgDreamHalo;
 	public AnimationCurve snooze_xCurve;
 	public AnimationCurve snooze_yCurve;
+	public RectTransform snooze_cursor;
+	public float snooze_noiseIntensity = 0.1f;
 
 	const float snooze_fadeIn = 4f;
-	const float snooze_fadeOut = 2f; 
+	const float snooze_fadeOut = 2f;
+	const float snooze_herTrigger = 0.3f;
 
 	IEnumerator snooze_Enter()
 	{
@@ -145,6 +210,8 @@ public class SnoozingCues : MonoBehaviour {
 		alarm_sfx.Stop();
 
 		yield return new WaitForSeconds(2f);
+
+		CursorSet(snooze_cursor, snooze_fadeIn);
 
 		snooze_sfxNoise.volume = 0f;
 		snooze_sfxUnderwater.volume = 0f;
@@ -163,6 +230,13 @@ public class SnoozingCues : MonoBehaviour {
 		snooze_imgDreamEye.color = colorDream;
 		snooze_imgDreamHalo.color = colorDream;
 
+		var cameraNoise = Camera.main.GetComponent<NoiseAndScratches>();
+		cameraNoise.grainIntensityMin = 0f;
+		cameraNoise.grainIntensityMax = 0f;
+		cameraNoise.enabled = true;
+
+		Animator cursorAnimator = cursor.GetComponentInChildren<Animator>();
+
 		float t = 0;
 		while (true)
 		{
@@ -176,6 +250,15 @@ public class SnoozingCues : MonoBehaviour {
 
 			snooze_sfxNoise.volume = anxiety * boost * fadeIn;
 			snooze_sfxUnderwater.volume = dreaming * boost * fadeIn;
+
+			cameraNoise.grainIntensityMin = snooze_noiseIntensity * fadeIn;
+			cameraNoise.grainIntensityMax = snooze_noiseIntensity * fadeIn;
+
+			cursorAnimator.SetInteger("snooze",
+				boost < snooze_herTrigger ? 0 :
+				anxiety > dreaming ? 1 :
+				-1
+			);
 
 			colorAnxiety.a = anxiety * boost * fadeIn;
 			colorDream.a = dreaming * boost * fadeIn;
@@ -194,8 +277,10 @@ public class SnoozingCues : MonoBehaviour {
 				ImageFade.Start(snooze_imgAnxietyEye, 1f, 0f, imgFadeOutTime);
 				ImageFade.Start(snooze_imgAnxietyHalo, 1f, 0f, imgFadeOutTime);
 
-				const float herTrigger = 0.3f;
-				if (boost < herTrigger) {
+				CursorHide(snooze_fadeOut);
+
+				
+				if (boost < snooze_herTrigger) {
 					story.DoLink("her");
 					StartCoroutine(SnoozeFadeOut(snooze_fadeOut));
 				}
@@ -231,6 +316,7 @@ public class SnoozingCues : MonoBehaviour {
 	// her
 
 	public Sprite her_image;
+	public RectTransform her_cursorMatch;
 	public float her_minScreenMove = 0.01f;
 	public float her_maxScreenMove = 0.01f;
 	public float her_alphaFactor = 4f;
@@ -241,10 +327,11 @@ public class SnoozingCues : MonoBehaviour {
 	public AudioSource her_sfxBreathing;
 	public AudioSource her_sfxMatch;
 	public AudioSource her_sfxMatchLight;
-	int her_outputIndex = 0;
-	bool her_lineTriggered = false;
-	bool her_done = false;
+	int her_outputIndex;
+	bool her_lineTriggered;
+	bool her_done;
 	Vector3 her_lastMousePos;
+	Animator her_cursorFlame;
 
 	IEnumerator her_Enter()
 	{
@@ -265,6 +352,9 @@ public class SnoozingCues : MonoBehaviour {
 			her_sfxBreathing.volume = t / breathFadeInTime;
 			yield return null;
 		}
+
+		CursorSet(her_cursorMatch, 3f);
+		her_cursorFlame = this.cursor.GetComponentInChildren<Animator>();
 	}
 
 	void her_Update()
@@ -318,7 +408,10 @@ public class SnoozingCues : MonoBehaviour {
 
 			// Play the match light sound
 			if (!her_done)
+			{
 				her_sfxMatchLight.Play();
+				her_cursorFlame.SetTrigger("light");
+			}
 
 			her_lineTriggered = true;
 		}
@@ -344,6 +437,7 @@ public class SnoozingCues : MonoBehaviour {
 
 	void her_Exit()
 	{
+		CursorHide(0.1f);
 		ImageFade.Start(uiImage, 1f, 0f, 0.1f);
 		uiTextPlayer.AutoDisplay = true;
 	}
@@ -352,13 +446,20 @@ public class SnoozingCues : MonoBehaviour {
 	// sea
 
 	public Sprite sea_image;
-	int sea_current = 0;
+	public RectTransform sea_cursor;
+	public AudioClip[] sea_sfxBubbleSounds;
+	public AudioSource sea_sfxBubbles;
+	int sea_current;
 
 	void sea_Enter()
 	{
+		sea_current = 0;
+
 		uiImage.sprite = sea_image;
 		ImageFade.Start(uiImage, 0f, 1f, 8f);
 		StartCoroutine(SnoozeFadeOut(2f, noise: 0f, underwater: 1f));
+		
+		CursorSet(sea_cursor, 8f);
 	}
 
 	IEnumerator sea_Output(StoryOutput output)
@@ -367,10 +468,16 @@ public class SnoozingCues : MonoBehaviour {
 		{
 			yield return StartCoroutine(ClickForAlarm(output as StoryLink));
 		}
+		else if (output is StoryText && output.Text.Trim().Length > 0)
+		{
+			sea_sfxBubbles.PlayOneShot(sea_sfxBubbleSounds[Random.Range(0, sea_sfxBubbleSounds.Length)], sea_sfxBubbles.volume);
+		}
 	}
 
 	IEnumerator sea_Exit()
 	{
+		CursorHide();
+
 		ImageFade.Start(uiImage, 1f, 0f, 0f);
 		return SnoozeFadeOut(alarmWakeUpDelay);
 	}
@@ -380,39 +487,53 @@ public class SnoozingCues : MonoBehaviour {
 
 	public AudioSource relationship_sfxCough;
 	public AudioClip[] relationship_sfxCoughSounds;
+	public RectTransform relationship_cursorEye;
+	Animator relationship_cursorAnimator;
+	bool relationship_lastClick;
 
 	void relationship_Enter()
 	{
+		relationship_lastClick = false;
+
 		StartCoroutine(SnoozeFadeOut(2f, noise: 0.3f, underwater: 0f));
+
+		CursorSet(relationship_cursorEye, 2f);
+
+		relationship_cursorAnimator = cursor.GetComponentInChildren<Animator>();
+	}
+
+	void relationship_Update()
+	{
+		if (!relationship_lastClick && Input.GetMouseButtonUp(0))
+			relationship_cursorAnimator.SetTrigger("open");
 	}
 
 	IEnumerator relationship_Output(StoryOutput output)
 	{
-		if (output is StoryText && Random.Range(0,2) == 0)
+		if (output is StoryText && output.Text.Trim().Length > 0)
 		{
-			if (!relationship_sfxCough.isPlaying)
-			{
-				relationship_sfxCough.clip = relationship_sfxCoughSounds[Random.Range(0, relationship_sfxCoughSounds.Length)];
-				relationship_sfxCough.time = 0f;
-				relationship_sfxCough.Play();
-			}
+			relationship_sfxCough.PlayOneShot(
+				relationship_sfxCoughSounds[Random.Range(0, relationship_sfxCoughSounds.Length)],
+				relationship_sfxCough.volume);
 		}
 		else if (output is StoryLink && output.Name == "continue")
 		{
+			relationship_lastClick = true;
 			yield return StartCoroutine(ClickForAlarm(output as StoryLink));
 		}
 	}
 
 	IEnumerator relationship_Exit()
 	{
+		CursorHide(alarmWakeUpDelay);
 		return SnoozeFadeOut(alarmWakeUpDelay);
 	}
 
 	// ...........................
 	// work
 
-	public Image work_ppCursor;
 	public Image work_ppTemplate;
+	public RectTransform work_cursor;
 	public Sprite[] work_ppImages;
 	public AudioSource work_sfxOffice;
 	public AudioSource work_sfxMouseClick;
@@ -423,8 +544,7 @@ public class SnoozingCues : MonoBehaviour {
 	{
 		StartCoroutine(SnoozeFadeOut(2f, noise: 0.3f, underwater: 0f));
 		uiTextPlayer.AutoDisplay = false;
-		work_ppCursor.gameObject.SetActive(true);
-		Cursor.visible = false;
+		CursorSet(work_cursor);
 
 		// Fade in the ambient. Because there's a yield null in here, all passage output will be 
 		// available by the time this is done
@@ -480,6 +600,9 @@ public class SnoozingCues : MonoBehaviour {
 
 					// Add shape
 					var shape = (GameObject)Instantiate(work_ppTemplate.gameObject);
+					shape.transform.SetParent(work_ppTemplate.rectTransform.parent);
+					shape.transform.localScale = work_ppTemplate.transform.localScale;
+					shape.transform.position = CursorGetPos();
 					shape.SetActive(true);
 					shapes.Add(shape);
 
@@ -500,9 +623,7 @@ public class SnoozingCues : MonoBehaviour {
 					shown[imgIndex] = true;
 
 					var img = shape.GetComponent<Image>();
-					img.rectTransform.SetParent(work_ppTemplate.rectTransform.parent);
 					img.sprite = work_ppImages[imgIndex];
-					img.transform.position = Input.mousePosition;
 					yield return null;
 				}
 			}
@@ -514,15 +635,9 @@ public class SnoozingCues : MonoBehaviour {
 		}
 	}
 
-	void work_Update()
-	{
-		work_ppCursor.transform.position = Input.mousePosition;
-	}
-
 	IEnumerator work_Exit()
 	{
-		work_ppCursor.gameObject.SetActive(false);
-		Cursor.visible = true;
+		CursorHide();
 		uiTextPlayer.AutoDisplay = true;
 		return SnoozeFadeOut(alarmWakeUpDelay);
 	}
@@ -531,6 +646,7 @@ public class SnoozingCues : MonoBehaviour {
 	// street
 
 	public Sprite street_image;
+	public RectTransform street_cursor;
 	public AudioSource street_sfxStreet;
 	public AudioSource street_sfxFootstep1;
 	public AudioSource street_sfxFootstep2;
@@ -541,12 +657,12 @@ public class SnoozingCues : MonoBehaviour {
 	bool street_FootstepsPaused;
 	bool street_lastIsLeft = false;
 	float street_walkTime = 0f;
-	const float street_speedBoost = 1f;
+	const float street_speedBoost = 2f;
 	const float street_minSpeed = 0f;
 	const float street_maxSpeed = 6f;
 	const float street_slowTime = 2.5f;
 	const float street_walkTimeTarget = 0.1f;
-	const float street_walkTimeSpeed = 3f;
+	const float street_walkTimeSpeed = 5f;
 	int street_currentOutput = 0;
 	bool street_lineShown = false;
 
@@ -556,6 +672,8 @@ public class SnoozingCues : MonoBehaviour {
 		StartCoroutine(SnoozeFadeOut(snooze_fadeOut));
 		uiImage.sprite = street_image;
 		ImageFade.Start(uiImage, 0f, 1f, 3f);
+		
+		CursorSet(street_cursor, 1f);
 
 		street_lastStepTime = 0f;
 		street_lastClickTime = 0f;
@@ -598,6 +716,9 @@ public class SnoozingCues : MonoBehaviour {
 
 			audio.time = 0f;
 			audio.Play();
+
+			// shake image
+			uiImage.GetComponent<Animator>().SetTrigger("sidewalkShake");
 
 			// switch feet
 			street_lastIsLeft = !street_lastIsLeft;
@@ -682,9 +803,88 @@ public class SnoozingCues : MonoBehaviour {
 
 	IEnumerator street3_Exit()
 	{
+		CursorHide();
+
 		ImageFade.Start(uiImage, 1f, 0f, 0.1f);
 		uiTextPlayer.AutoDisplay = true;
 		return SnoozeFadeOut(alarmWakeUpDelay);
+	}
+
+	// ...........................
+	// alone
+
+	public Animator alone_body;
+	public float alone_noiseIntensity = 0.3f;
+
+	IEnumerator alone_Enter()
+	{
+		// Fade out alarm
+		const float fadeOutTime = 0.1f;
+		for (float fade = 0; fade <= fadeOutTime; fade += Time.deltaTime)
+		{
+			alarm_sfx.volume = Mathf.Lerp(alarm_sfxVolume, 0f, fade / fadeOutTime);
+			yield return null;
+		}
+
+		alarm_sfx.Stop();
+
+		yield return new WaitForSeconds(2f);
+
+		alone_body.gameObject.SetActive(true);
+		alone_body.SetBool("on", true);
+
+		const float fadeInTime = 1.5f;
+
+		var cameraNoise = Camera.main.GetComponent<NoiseAndScratches>();
+		cameraNoise.grainIntensityMin = 0f;
+		cameraNoise.grainIntensityMax = 0f;
+		cameraNoise.enabled = true;
+		for (float t = 0f; t <= fadeInTime; t+=Time.deltaTime)
+		{
+			cameraNoise.grainIntensityMin = Mathf.Clamp01(t / fadeInTime) * alone_noiseIntensity;
+			cameraNoise.grainIntensityMax = Mathf.Clamp01(t / fadeInTime) * alone_noiseIntensity;
+			yield return null;
+		}
+
+		CursorSet(alarm_cursor, 0.5f);
+		CursorHoverActions(
+			cursorAnimator => alone_body.SetBool("on", false),
+			cursorAnimator => alone_body.SetBool("on", true),
+			objects: new GameObject[] { alone_body.gameObject }
+		);
+
+		yield return new WaitForSeconds(3.5f);
+
+		CursorHoverActions(
+			cursorAnimator => cursorAnimator.SetBool("hover", true),
+			cursorAnimator => cursorAnimator.SetBool("hover", false),
+			new StoryLink[] {story.GetCurrentLinks().Where(link => link.PassageName == "getUp").First()}
+		);
+	}
+
+	IEnumerator alone_Exit()
+	{
+		story.Pause();
+
+		CursorHoverClear(objects: new GameObject[] { alone_body.gameObject });
+		CursorHide(0.3f);
+
+
+		yield return new WaitForSeconds(0.5f);
+		alone_body.SetBool("on", false);
+		uiTextPlayer.Clear();
+
+		const float fadeOutTime = 2f;
+		var cameraNoise = Camera.main.GetComponent<NoiseAndScratches>();
+		for (float t = 0f; t <= fadeOutTime; t += Time.deltaTime)
+		{
+			cameraNoise.grainIntensityMin = Mathf.Clamp01(1f - t / fadeOutTime) * alone_noiseIntensity;
+			cameraNoise.grainIntensityMax = Mathf.Clamp01(1f - t / fadeOutTime) * alone_noiseIntensity;
+			yield return null;
+		}
+		cameraNoise.enabled = false;
+
+		story.Resume();
 	}
 	
 	// ...........................
@@ -695,7 +895,7 @@ public class SnoozingCues : MonoBehaviour {
 
 	void getUp_Enter()
 	{
-		EndStory();
+		StartCoroutine(EndStory());
 	}
 
 	// ======================================
@@ -715,14 +915,159 @@ public class SnoozingCues : MonoBehaviour {
 		alarm_sfx.Play();
 	}
 
-	IEnumerator ClickForAlarm(StoryLink continueLink)
+	IEnumerator ClickForAlarm(StoryLink continueLink, System.Action action = null)
 	{
 		// Wait for a click, play alarm and then advance
 		do { yield return null; }
 		while (!uiTextPlayer.WasClicked());
+		
+		if (action != null)
+			action.Invoke();
+
 		SoundAlarm();
 		yield return new WaitForSeconds(alarmWakeUpDelay);
 		story.DoLink(continueLink);
 	}
-	
+
+	void CursorSet(RectTransform prefab, float fadeIn = 0f)
+	{
+		Image img = null;
+		CanvasGroup group = null;
+
+		// Stop any cursor fades
+		img = this.cursor.GetComponentInChildren<Image>();
+		group = this.cursor.GetComponentInChildren<CanvasGroup>();
+		
+		if (group != null)
+			ImageFade.Stop(group, this);
+		else if (img != null)
+			ImageFade.Stop(img);
+
+		// Remove all cursor content
+		for (int i = 0; i < this.cursor.childCount; i++)
+			GameObject.Destroy(this.cursor.GetChild(i).gameObject);
+
+		this.cursor.DetachChildren();
+
+		// Create a new cursor
+		RectTransform child = Instantiate(prefab);
+		child.SetParent(this.cursor);
+		child.localPosition = prefab.localPosition;
+		child.localScale = prefab.localScale;
+		
+		if (fadeIn > 0f)
+		{
+			group = child.GetComponent<CanvasGroup>();
+			img = child.GetComponent<Image>();
+
+			if (group != null)
+			{
+				group.alpha = 0f;
+			}
+			else if (img != null)
+			{
+				Color c = img.color;
+				c.a = 0f;
+				img.color = c;
+			}
+		}
+
+		CursorShow(fadeIn);
+	}
+
+	void CursorShow(float fadeIn = 0f)
+	{
+		cursor.gameObject.SetActive(true);
+		
+		// Fade in if necessary
+		if (fadeIn > 0f)
+		{
+			CanvasGroup group = this.cursor.GetComponentInChildren<CanvasGroup>();
+			Image img = this.cursor.GetComponentInChildren<Image>();
+			if (group != null)
+				ImageFade.Start(group, this, 0f, 1f, fadeIn);
+			else if (img != null)
+				ImageFade.Start(img, 0f, 1f, fadeIn);
+		}
+
+	}
+
+	void CursorHide(float fadeOut = 0f)
+	{
+		// Fade out if necessary
+		if (fadeOut > 0f)
+		{
+			CanvasGroup group = this.cursor.GetComponentInChildren<CanvasGroup>();
+			Image img = this.cursor.GetComponentInChildren<Image>();
+			if (group = null)
+			{
+				ImageFade.Start(group, this, 1f, 0f, fadeOut, () => this.cursor.gameObject.SetActive(false));
+				return;
+			}
+			else if (img != null)
+			{
+				ImageFade.Start(img, 1f, 0f, fadeOut, () => this.cursor.gameObject.SetActive(false));
+				return;
+			}
+		}
+
+		this.cursor.gameObject.SetActive(false);
+	}
+
+	Vector3 CursorGetPos()
+	{
+		Vector2 pos;
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(uiCanvas.transform as RectTransform, Input.mousePosition, uiCanvas.worldCamera, out pos);
+		return uiCanvas.transform.TransformPoint(pos);
+	}
+
+	void CursorHoverActions(System.Action<Animator> onEnter, System.Action<Animator> onExit, StoryLink[] links = null, GameObject[] objects = null)
+	{
+		IEnumerable<GameObject> all = null;
+		
+		if (links != null)
+			all = uiTextPlayer.Container
+				.GetComponentsInChildren<TwineTextPlayerElement>()
+				.Where(elem => links.Contains(elem.SourceOutput))
+				.Select(elem => elem.gameObject);
+
+		if (objects != null)
+			all = all != null ? all.Concat(objects) : objects;
+
+		Animator cursorAnimator = cursor.GetComponentInChildren<Animator>();
+		foreach(GameObject obj in all)
+		{
+			PointerHover hover = obj.GetComponent<PointerHover>();
+			if (hover == null)
+				hover = obj.AddComponent<PointerHover>();
+
+			hover.OnPointerEnter = () => onEnter(cursorAnimator);
+			hover.OnPointerExit = () => onExit(cursorAnimator);
+		}
+	}
+
+	void CursorHoverClear(StoryLink[] links = null, GameObject[] objects = null)
+	{
+		IEnumerable<GameObject> all = null;
+
+		if (links != null)
+			all = uiTextPlayer.Container
+				.GetComponentsInChildren<TwineTextPlayerElement>()
+				.Where(elem => links.Contains(elem.SourceOutput))
+				.Select(elem => elem.gameObject);
+
+		if (objects != null)
+			all = all != null ? all.Concat(objects) : objects;
+
+		Animator cursorAnimator = cursor.GetComponentInChildren<Animator>();
+		foreach (GameObject obj in all)
+		{
+			PointerHover hover = obj.GetComponent<PointerHover>();
+			if (hover == null)
+				continue;
+
+			hover.OnPointerEnter = null;
+			hover.OnPointerExit = null;
+		}
+	}
 }
