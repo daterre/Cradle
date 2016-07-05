@@ -23,7 +23,6 @@ public class TwineTextPlayer : MonoBehaviour {
 
 	static Regex rx_splitText = new Regex(@"(\s+|[^\s]+)");
 
-	// Use this for initialization
 	void Start () {
 		if (!Application.isPlaying)
 			return;
@@ -182,6 +181,9 @@ public class TwineTextPlayer : MonoBehaviour {
 			.OrderBy(elem => elem.SourceOutput.Index)
 			.LastOrDefault();
 		int uiInsertIndex = last == null ? -1 : last.transform.GetSiblingIndex() + 1;
+
+		// Temporary hack to allow other scripts to change the templates based on the output's Style property
+		SendMessage("Twine_BeforeDisplayOutput", output, SendMessageOptions.DontRequireReceiver);
 
 		if (output is StoryText)
 		{
