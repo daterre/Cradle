@@ -1,4 +1,4 @@
-![Cradle](Assets/Cradle/Documentation/cradle-logo.png)
+<img src='https://raw.github.com/daterre/Cradle/master/Assets/Cradle/Documentation/cradle-logo.png' width='200' alt="Cradle">
 *Twine and Twine-like stories in Unity.*
 
 **[Cradle](http://github.com/daterre/Cradle)** (formerly **UnityTwine**) is a plugin for [Unity](http://unity3d.com) that powers the storytelling side of a game. Based on the foundations of **[Twine](http://twinery.org)**, it imports Twine stories, plays them and makes it easy to add custom interactivity via scripting.
