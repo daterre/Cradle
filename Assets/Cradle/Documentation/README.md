@@ -1,4 +1,4 @@
-<img src='https://raw.github.com/daterre/Cradle/master/Assets/Cradle/Documentation/cradle-logo.png' width='200' alt="Cradle">
+<img src='https://raw.github.com/daterre/Cradle/master/Assets/Cradle/Documentation/cradle-logo.png' width='50%' alt="Cradle">
 
 *Twine and Twine-like stories in Unity.*
 
@@ -14,21 +14,21 @@ programmers and artists can develop the interaction and presentation without wor
 4. Use [cues](#cues) to script story interaction, or use the included [TwineTextPlayer](#twinetextplayer).
 
 #### Examples
-[Snoozing](http://daterre.com/projects/snoozing/) is a short interactive story created with Cradle. The entire source code is included here on GitHub (in the Examples folder) and in the Unity asset store package.
+[Snoozing](http://daterre.com/projects/snoozing/) is a short interactive story created with Cradle. The entire source code is [available here](Assets/Cradle/Examples) and in the Unity asset store package.
 
 #### Contribute
 Cradle is in active development. It is currently being used for the development of the puzzle-adventure game [Clastic Morning](http://daterre.com/works/clastic/), as well as other smaller projects. Hopefully it will be useful to anyone looking to create narrative-based games in Unity.
 
 If you use Cradle in your project or game jam and find bugs, develop extra features, or even just have general feedback, please contribute by submitting to this GitHub page. Thank you!
 
-Logo design by [Eran Hilleli](http://eranhill.tumblr.com/)
+Logo design by [Eran Hilleli](http://eranhill.tumblr.com/).
 
 ## Documentation
 
 **Table of Contents**
 - [Overview](#overview)
 	- [What is Cradle?](#what-is-cradle)
-	- [What is it not?](#what-is-cradle)
+	- [What is it not?](#what-is-it-not)
 - [Installation](#installation)
 - [Importing a story](#importing-a-story)
 	- [Exporting from Twine](#exporting-from-twine)
@@ -178,7 +178,7 @@ void Start() {
 	story.Begin();
 }
 
-void story_OnOutput(TwineOutput output) {
+void story_OnOutput(StoryOutput output) {
 	// Do something with the output here
 	Debug.Log(output.Text);
 }
@@ -240,7 +240,7 @@ void Update() {
 
 Notes:
 
-* Variables are all of type StoryVar, which is a dynamic value type that can represent a string, a number, a boolean or any other type supported by the story format in use. You can also extend
+* Variables are all of type StoryVar, which is a dynamic value type that can represent a string, a number, a boolean or any other type supported by the story format in use.  
 
 #### Story state
 When a story is playing, it can have one of several states. The state of the story is accessible from the Story.State property.
