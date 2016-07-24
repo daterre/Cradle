@@ -415,9 +415,9 @@ public SoundEffectsMacros: Cradle.RuntimeMacros
 
 Here's how to use it in Harlowe:
 ```
-Gareth sits down at the desk and press the play button.
-(sfx-stop:"ambient")
-(sfx-play:"recording")
+Gareth stares intently at the screen and presses the play button.
+(sfx-stop: "ambient")
+(sfx-play: "recording")
 ```
 
 Notes:
