@@ -1,4 +1,4 @@
-<img src='https://raw.github.com/daterre/Cradle/master/Assets/Cradle/Documentation/cradle-logo.png' width='300' alt="Cradle">
+<img src='https://raw.github.com/daterre/Cradle/master/Assets/Cradle/Documentation/cradle-logo.png' width='250' alt="Cradle">
 
 *Twine and Twine-like stories in Unity.*
 
