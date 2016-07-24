@@ -1,4 +1,4 @@
-<img src='https://raw.github.com/daterre/Cradle/master/Assets/Cradle/Documentation/cradle-logo.png' width='50%' alt="Cradle">
+<img src='https://raw.github.com/daterre/Cradle/master/Assets/Cradle/Documentation/cradle-logo.png' width='300' alt="Cradle">
 
 *Twine and Twine-like stories in Unity.*
 
@@ -204,7 +204,7 @@ To activate it and enter the "grandma" passage you must call `Story.DoLink("Visi
 ```
 [[visitGrandma = Visit your grandmother|grandma]]
 ```
-Now you can call `Story.DoLink("visitGrandma")` and it will work. As long as the writer keeps the name intact, changing the rest of the text will not affect scriping.
+Now you can call `Story.DoLink("visitGrandma")` and it will work. As long as the writer keeps the name intact, changing the rest of the text will not affect scripting.
 
 Why not just use the target passage as the link's name, you ask? For two reasons:
 
@@ -298,7 +298,7 @@ IEnumerator castle_Enter() {
 #### Cues
 Cradle includes a powerful cue system that allows scripts to easily run in conjuction with the current passage.
 
-**Note**: Before version 2.0 cues were called 'hooks', this was changed to avoid confusion with the term hook as it used in the Harlowe story format.
+**Note**: Before version 2.0 cues were called 'hooks', this was changed to avoid confusion with the term hook as it is used in the Harlowe story format.
 
 ##### Simple example
 
