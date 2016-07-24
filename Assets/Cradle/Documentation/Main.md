@@ -385,7 +385,51 @@ Notes:
 Cradle can be extended to include macros and var types that do not exist within the original story format.
 
 ##### Runtime macros
-(TODO)
+Runtime macros are the simplest kind of extension to add to Cradle. A runtime macro is simply a function that you can call from within a story passage. It can't generate any additional story output or affect the flow of passages, but it can trigger some Unity-specific functionality at precise points in your story.
+
+1. Create a normal C# script (i.e. not in any of the Editor folders)
+2. Instead of `MonoBehaviour`, your class should inherit from `Cradle.RuntimeMacros`
+3. To expose a method as a runtime macro, simply decorate it with the `[RuntimeMacro]` attribute. If you want the name of the macro as written in Twine to be different from the C# method name, simply add the name to the attribute: `[RuntimeMacro("sfx")]`
+4. Import your story.
+
+Here is a complete example that plays/stops an audio source:
+
+```c#
+using UnityEngine;
+
+public SoundEffectsMacros: Cradle.RuntimeMacros
+{
+	[RuntimeMacro]
+	public void sfxPlay(string soundName)
+	{
+		GameObject.Find(soundName).GetComponent<AudioSource>().Play();
+	}
+
+	[RuntimeMacro]
+	public void sfxStop(string soundName)
+	{
+		GameObject.Find(soundName).GetComponent<AudioSource>().Stop();
+	}
+}
+```
+
+Here's how to use it in Harlowe:
+```
+Gareth sits down at the desk and press the play button.
+(sfx-stop:"ambient")
+(sfx-play:"recording")
+```
+
+Notes:
+* To access the Story component from within a macro, simple use `this.Story`
+* If you want to add properties that can be assigned from the editor, it is recommended to pass the call onto a regular MonoBehaviour script attached to the same GameObject as your Story component. For example, `this.Story.SendMessage("PlaySound", soundName);` will pass the macro onto any script attached to that GameObject, where properties can be defined/assigned and the actual work can be done.
+* An instance of this class is created once per story. So any member variables will exist for the lifetime of your Story component.
+* When played in the browser, the Sugarcane/Cube story formats might throw an error if an unrecognized function is encountered. The easiest way to avoid this is to create a custom dummy JavaScript function that will avoid the error. Example (add this in your story's script):
+
+```js
+window.sfx = function() {};
+window.sfxStop = function() {};
+```
 
 ##### Variable types
 (TODO)
