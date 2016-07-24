@@ -50,11 +50,11 @@ Logo design by [Eran Hilleli](http://eranhill.tumblr.com/).
 		- [Setting up a cue script](#setting-up-a-cue-script)
 		- [Cue types](#cue-types)
 		- [Coroutine cues](#coroutine-cues)
-	- [Extending](#extending)
-		- [Runtime macros](#runtime-macros)
-		- [Variable types](#variable-types)
-		- [Code generation macros](#code-generation-macros)
-		- [Addition story formats](#additional-story-formats)
+- [Extending](#extending)
+	- [Runtime macros](#runtime-macros)
+	- [Variable types](#variable-types)
+	- [Code generation macros](#code-generation-macros)
+	- [Addition story formats](#additional-story-formats)
 - [Source code](#source-code)
 - [Change log](#change-log)
 
@@ -381,10 +381,10 @@ Notes:
 * After the first yield, the story will be Idle and all the the passage output will be available. This is because the passage continues execution after calling the cue, so by the time the coroutine has done waiting, the passage is complete. To pause execution until the coroutine ends, use `Pause()` and `Resume()` ([example](#pause-and-resume))
 
 
-#### Extending
+### Extending
 Cradle can be extended to include macros and var types that do not exist within the original story format.
 
-##### Runtime macros
+#### Runtime macros
 Runtime macros are the simplest kind of extension to add to Cradle. A runtime macro is simply a function that you can call from within a story passage. It can't generate any additional story output or affect the flow of passages, but it can trigger some Unity-specific functionality at precise points in your story.
 
 1. Create a normal C# script (i.e. not in any of the Editor folders)
@@ -431,13 +431,13 @@ window.sfx = function() {};
 window.sfxStop = function() {};
 ```
 
-##### Variable types
+#### Variable types
 (TODO)
 
-##### Code generation macros
+#### Code generation macros
 (TODO)
 
-##### Additional story formats
+#### Additional story formats
 (TODO)
 
 ### Source code
