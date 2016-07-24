@@ -427,7 +427,7 @@ Notes:
 * When played in the browser, the Sugarcane/Cube story formats might throw an error if an unrecognized function is encountered. The easiest way to avoid this is to create a custom dummy JavaScript function that will avoid the error. Example (add this in your story's script):
 
 ```js
-window.sfx = function() {};
+window.sfxPlay = function() {};
 window.sfxStop = function() {};
 ```
 
