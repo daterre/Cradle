@@ -441,9 +441,7 @@ window.sfxStop = function() {};
 (TODO)
 
 ### Source code
-The plugin source code is available in the Assets/Cradle/.src directory on GitHub (the period prefix hides this folder from Unity). To compile using Visual Studio on Windows, open Cradle.sln and run "Build Solution" (F6). The DLLs created will replace the previous DLLs in the the Cradle plugin directory.
-
-MonoDevelop-compatible projects will be added shortly.
+The plugin source code is available in the Assets/Cradle/.src directory on GitHub (the period prefix hides this folder from Unity). There are separate solutions for Visual Studio and MonoDevelop. To build, open the appropriate solution for your IDE and run "Build Solution" (Visual Studio) or "Build All" (MonoDevelop). The DLLs created will replace the previous DLLs in the the Cradle plugin directory.
 
 ### Change log
 

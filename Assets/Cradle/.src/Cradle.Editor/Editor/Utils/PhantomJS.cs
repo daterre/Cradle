@@ -31,9 +31,12 @@ namespace Cradle.Editor.Utils
 				"phantom.js",
 				url,
 				bridgeScriptPath == null ? null : string.Format(" \"{0}\"",bridgeScriptPath)
-			);
-			phantomJS.Start();
-			string outputJson = phantomJS.StandardOutput.ReadToEnd();
+            );
+           
+            // On Mac, the phantomjs binary requires execute permissions (755), this should be set by Install.cs in the Phantom directory
+            phantomJS.Start();
+			
+            string outputJson = phantomJS.StandardOutput.ReadToEnd();
 			phantomJS.WaitForExit();
 
 			//PhantomOutput<ResultT> output = JsonUtility.FromJson<PhantomOutput<ResultT>>(outputJson);

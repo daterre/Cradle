@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6800AAA0-D6B3-4AC1-8AD2-77999B98EF7D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Cradle.Editor</RootNamespace>
+    <AssemblyName>Cradle.Editor</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Editor\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Editor\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Nustache.Core">
+      <HintPath>..\..\Editor\ThirdParty\Nustache\Nustache.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="UnityEditor">
+      <HintPath>C:\Program Files\Unity\Editor\Data\Managed\UnityEditor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>C:\Program Files\Unity\Editor\Data\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Editor\Attributes.cs" />
+    <Compile Include="Editor\Exceptions.cs" />
+    <Compile Include="Editor\Importers\TwineHtmlImporter.cs" />
+    <Compile Include="Editor\Importers\TweeImporter.cs" />
+    <Compile Include="Editor\StoryFormats\Harlowe\HarloweCodeGenMacros.cs" />
+    <Compile Include="Editor\StoryFormats\Harlowe\HarloweTranscoder.cs" />
+    <Compile Include="Editor\StoryFormats\Sugar\SugarCodeGenMacros.cs" />
+    <Compile Include="Editor\StoryFormats\Sugar\SugarTranscoder.cs" />
+    <Compile Include="Editor\StoryFormatTranscoder.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsArrayConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsDateConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsDictionaryConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsEnumConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsForwardConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsGuidConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsIEnumerableConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsKeyValuePairConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsNullableConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsPrimitiveConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsReflectedConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsTypeConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\fsWeakReferenceConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\Unity\AnimationCurve_DirectConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\Unity\Bounds_DirectConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\Unity\Gradient_DirectConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\Unity\Keyframe_DirectConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\Unity\LayerMask_DirectConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Converters\Unity\Rect_DirectConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsAotCompilationManager.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsBaseConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsConfig.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsContext.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsConverterRegistrar.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsData.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsDirectConverter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsExceptions.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsIgnoreAttribute.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsISerializationCallbacks.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsJsonParser.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsJsonPrinter.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsMemberSerialization.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsObjectAttribute.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsObjectProcessor.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsPropertyAttribute.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsResult.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\fsSerializer.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Internal\fsCyclicReferenceManager.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Internal\fsOption.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Internal\fsPortableReflection.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Internal\fsTypeExtensions.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Internal\fsVersionedType.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Internal\fsVersionManager.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Reflection\fsMetaProperty.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Reflection\fsMetaType.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Reflection\fsReflectionUtility.cs" />
+    <Compile Include="Editor\ThirdParty\FullSerializer\Reflection\fsTypeLookup.cs" />
+    <Compile Include="Editor\CradleAssetProcessor.cs" />
+    <Compile Include="Editor\StoryImporter.cs" />
+    <Compile Include="Editor\PassageData.cs" />
+    <Compile Include="Editor\StoryInspector.cs" />
+    <Compile Include="Editor\Utils\CodeGenUtils.cs" />
+    <Compile Include="Editor\Utils\PhantomJS.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cradle\Cradle.VS.csproj">
+      <Project>{37c652fc-470e-412b-a63d-452a216e0066}</Project>
+      <Name>Cradle</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Unity Full v3.5</TargetFrameworkProfile>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,26 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityTwine", "Cradle\Cradle.MD.csproj", "{37C652FC-470E-412B-A63D-452A216E0066}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityTwine.Editor", "Cradle.Editor\Cradle.Editor.MD.csproj", "{6800AAA0-D6B3-4AC1-8AD2-77999B98EF7D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{37C652FC-470E-412B-A63D-452A216E0066}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37C652FC-470E-412B-A63D-452A216E0066}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37C652FC-470E-412B-A63D-452A216E0066}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37C652FC-470E-412B-A63D-452A216E0066}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6800AAA0-D6B3-4AC1-8AD2-77999B98EF7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6800AAA0-D6B3-4AC1-8AD2-77999B98EF7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6800AAA0-D6B3-4AC1-8AD2-77999B98EF7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6800AAA0-D6B3-4AC1-8AD2-77999B98EF7D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
