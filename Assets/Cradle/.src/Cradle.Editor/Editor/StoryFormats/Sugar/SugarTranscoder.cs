@@ -190,7 +190,7 @@ namespace Cradle.Editor.StoryFormats.Sugar
 			{
 				output = PhantomJS.Run<SugarStoryData>(
 					new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
-					new System.Uri(Application.dataPath + "/Cradle/Editor/.js/StoryFormats/Sugar/sugar.bridge.js").AbsolutePath
+					Application.dataPath + "/Cradle/Editor/.js/StoryFormats/Sugar/sugar.bridge.js"
 				);
 			}
 			catch (StoryImportException)
