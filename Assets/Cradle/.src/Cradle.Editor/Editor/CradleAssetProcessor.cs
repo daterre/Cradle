@@ -128,9 +128,12 @@ namespace Cradle.Editor
 				// ======================================
 				// Compile
 
-                // This environment variable is not set on Mac for some reason
+                // Unity bug fix: This environment variable is not set on Mac for some reason - https://github.com/AngryAnt/Behave-release/issues/21
 				if (Application.platform == RuntimePlatform.OSXEditor)
-					Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ":/Applications/Unity/Unity.app/Contents/Frameworks/Mono/bin");
+					Environment.SetEnvironmentVariable("PATH", string.Format("{0}:{1}",
+						Environment.GetEnvironmentVariable("PATH"),
+						Path.Combine(EditorApplication.applicationContentsPath, "Frameworks/Mono/bin")
+					));
 
 				// Detect syntax errors
 				
