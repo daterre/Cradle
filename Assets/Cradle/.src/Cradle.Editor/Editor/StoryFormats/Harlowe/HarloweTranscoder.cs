@@ -112,7 +112,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			{
 				output = PhantomJS.Run<HarloweStoryData>(
 					new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
-					new System.Uri(Application.dataPath + "/Cradle/Editor/.js/StoryFormats/Harlowe/harlowe.bridge.js").AbsolutePath
+					Application.dataPath + "/Cradle/Editor/.js/StoryFormats/Harlowe/harlowe.bridge.js"
 				);
 			}
 			catch(StoryImportException)

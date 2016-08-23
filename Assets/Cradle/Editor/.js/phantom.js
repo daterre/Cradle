@@ -52,7 +52,7 @@ if (bridgeJsPath) {
 	try { bridgeJS = fs.read(bridgeJsPath); }
 	catch(ex)
 	{
-		page.onError("Bridge script could not be loaded: " + ex.message);
+		page.onError(ex);
 		end(1);
 	}
 }

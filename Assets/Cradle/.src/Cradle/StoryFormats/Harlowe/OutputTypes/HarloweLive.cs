@@ -8,9 +8,9 @@ namespace Cradle.StoryFormats.Harlowe
 {
 	public class HarloweLive : EmbedFragment
 	{
-		public float Milliseconds;
+		public float seconds;
 
-		public HarloweLive(float ms, Func<IStoryThread> fragment)
+		public HarloweLive(float seconds, Func<IStoryThread> fragment)
 			: base(fragment)
 		{
 		}
