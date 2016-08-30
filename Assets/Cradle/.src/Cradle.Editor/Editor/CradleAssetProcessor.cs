@@ -129,11 +129,23 @@ namespace Cradle.Editor
 				// Compile
 
                 // Unity bug fix: This environment variable is not set on Mac for some reason - https://github.com/AngryAnt/Behave-release/issues/21
-				if (Application.platform == RuntimePlatform.OSXEditor)
-					Environment.SetEnvironmentVariable("PATH", string.Format("{0}:{1}",
-						Environment.GetEnvironmentVariable("PATH"),
-						Path.Combine(EditorApplication.applicationContentsPath, "Frameworks/Mono/bin")
-					));
+                if (Application.platform == RuntimePlatform.OSXEditor)
+                {
+                    string monoBinPath = Path.Combine(EditorApplication.applicationContentsPath, "Frameworks/Mono/bin");
+
+                    // Unity 5.4 and up
+                    if (!Directory.Exists(monoBinPath))
+                        monoBinPath = Path.Combine(EditorApplication.applicationContentsPath, "Mono/bin");
+
+                    // Huh?
+                    if (!Directory.Exists(monoBinPath))
+                        Debug.LogError("For some reason I can't find the Mono directory inside Unity.app. Please open an issue on github.com/daterre/Cradle");
+
+                    Environment.SetEnvironmentVariable("PATH", string.Format("{0}:{1}",
+                            Environment.GetEnvironmentVariable("PATH"),
+                            monoBinPath
+                        ));
+                }
 
 				// Detect syntax errors
 				
