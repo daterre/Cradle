@@ -17,13 +17,14 @@ public class UnityTwineTestMacros: RuntimeMacros
 	[RuntimeMacro]
 	public void assertStyle(string setting, StoryVar value)
 	{
+		StoryStyle style = this.Story.GetCurrentStyle();
 		IntegrationTest.Assert(
-			value == this.Story.Style.GetValues(setting).LastOrDefault(),
-			string.Format("Style's \"{0}\" setting is not {1}", setting, value)
+			value == style[setting],
+			string.Format("Group's \"{0}\" style setting is not {1}", setting, value)
 		);
 		IntegrationTest.Assert(
-			this.Story.Output.Reverse<StoryOutput>().Any(output => value == output.Style.GetValues(setting).LastOrDefault()),
-			string.Format("Style's \"{0}\" setting was not applied to any output", setting)
+			this.Story.Output.Reverse<StoryOutput>().Any(output => value == output.GetAppliedStyle()[setting]),
+			string.Format("The \"{0}\" style setting was not applied to any output", setting)
 		);
 	}
 
@@ -31,12 +32,12 @@ public class UnityTwineTestMacros: RuntimeMacros
 	public void assertHook(string hookName)
 	{
 		IntegrationTest.Assert(
-			this.Story.Style.GetValues<HarloweHook>(HarloweStyleSettings.Hook).Any(val => val.HookName == hookName),
-			string.Format("Can't find a Harlowe-hook named {0} in the current style.", hookName)
+			this.Story.CurrentGroup.Style.Get<string>(HarloweStyleSettings.Hook) == hookName,
+			string.Format("The current group isn't defined as a Harlowe-hook named'{0}'.", hookName)
 		);
 		IntegrationTest.Assert(
-			this.Story.Output.Reverse<StoryOutput>().Any(output => output.Style.GetValues<HarloweHook>(HarloweStyleSettings.Hook).Any(val => val.HookName == hookName)),
-			string.Format("A Harlowe-hook named {0} wasn't applied to any output, despite being in scope.", hookName)
+			this.Story.Output.Reverse<StoryOutput>().Any(output => output.GetAppliedStyle().Get<string>(HarloweStyleSettings.Hook) == hookName),
+			string.Format("The Harlowe-hook '{0}' wasn't applied to any output, despite being in scope.", hookName)
 		);
 	}
 

@@ -236,6 +236,9 @@ namespace Cradle.Editor
 					}
 				}
 
+				// Remove custom line directives so they won't interfere with debugging the final script
+				output = Regex.Replace(output, @"^\s*\#line\b.*$", string.Empty, RegexOptions.Multiline);
+
 				// Passed syntax check, save to file
 				string csFile = Path.Combine(Path.GetDirectoryName(assetPath), Path.GetFileNameWithoutExtension(assetPath) + ".cs");
 				File.WriteAllText(csFile, output, Encoding.UTF8);

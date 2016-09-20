@@ -137,11 +137,11 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				if (usage != MacroUsage.LineAndHook)
 					throw new StoryFormatTranscodeException(string.Format("'{0}' macro must be followed by a Harlowe-hook", linkToken.name));
 
-				hookName = System.Guid.NewGuid().ToString("N");
+				hookName = System.Guid.NewGuid().ToString("N").Substring(0,6); // should be enough uniqueness...
 
 				if (linkType != LinkType.LinkRepeat)
 				{
-					transcoder.Code.Buffer.AppendFormat("using (ApplyStyle(\"hook\", hook(\"{0}\")))", hookName).AppendLine();
+					transcoder.Code.Buffer.AppendFormat("using (Group(\"hook\", \"{0}\"))", hookName).AppendLine();
 					transcoder.Code.Indentation++;
 					transcoder.Code.Indent();
 					indented = true;
@@ -190,9 +190,9 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 
 				if (linkType == LinkType.LinkRepeat)
 				{
-					transcoder.Code.Buffer.Append(", wrap: true));").AppendLine();
+					transcoder.Code.Buffer.Append("));").AppendLine();
 					transcoder.Code.Indent();
-					transcoder.Code.Buffer.AppendFormat("using (ApplyStyle(\"hook\", hook(\"{0}\"))) {{}}", hookName);
+					transcoder.Code.Buffer.AppendFormat("using (Group(\"hook\", \"{0}\")) {{}}", hookName);
 				}
 				else if (linkType == LinkType.LinkReveal)
 				{
@@ -334,15 +334,15 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 
 			if (usage == MacroUsage.Inline)
 			{
-				transcoder.Code.Buffer.AppendFormat("style({0}, {1}", option, isHook ? "hook(" : null);
+				transcoder.Code.Buffer.AppendFormat("style({0}", option);
 				transcoder.GenerateExpression(macroToken.tokens, start: 1);
-				transcoder.Code.Buffer.AppendFormat("{0})", isHook ? ")" : null);
+				transcoder.Code.Buffer.Append(")");
 			}
 			else if (usage == MacroUsage.LineAndHook)
 			{
-				transcoder.Code.Buffer.AppendFormat("using (ApplyStyle({0}, {1}", option, isHook ? "hook(" : null);
+				transcoder.Code.Buffer.AppendFormat("using (Group({0}, ", option);
 				transcoder.GenerateExpression(macroToken.tokens, start: 1);
-				transcoder.Code.Buffer.AppendFormat("{0})) {{", isHook ? ")" : null);
+				transcoder.Code.Buffer.Append(")) {");
 				transcoder.Code.Buffer.AppendLine();
 
 				// Advance to hook

@@ -19,10 +19,11 @@ public class StoryInspector : Editor
 		EditorGUILayout.Separator();
 
 		EditorGUILayout.LabelField("Story State", story.State.ToString());
+		EditorGUILayout.LabelField("Current Passage", story.CurrentPassageName);
 
 		EditorGUILayout.Separator();
 
-		EditorGUI.indentLevel++;
+		int defaultIndent = EditorGUI.indentLevel;
 
 		for(int i = 0; i < story.Output.Count; i++)
 		{
@@ -31,22 +32,17 @@ public class StoryInspector : Editor
 			if (output is Embed)
 				continue;
 
-			if (output is StyleTag)
+			int groupCount = 0;
+			OutputGroup group = output.Group;
+			while (group != null)
 			{
-				var tag = (StyleTag)output;
-				if (tag.TagType == StyleTagType.Closer)
-					EditorGUI.indentLevel--;
+				groupCount++;
+				group = group.Group;
 			}
-
+			EditorGUI.indentLevel = defaultIndent + groupCount;
 			EditorGUILayout.LabelField(output.ToString());
-
-			if (output is StyleTag)
-			{
-				var tag = (StyleTag)output;
-				if (tag.TagType == StyleTagType.Opener)
-					EditorGUI.indentLevel++;
-			}
 		}
-		EditorGUI.indentLevel--;
+		
+		EditorGUI.indentLevel = defaultIndent;
 	}
 }

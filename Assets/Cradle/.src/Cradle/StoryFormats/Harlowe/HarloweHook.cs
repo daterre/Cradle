@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+/*
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -12,9 +14,9 @@ namespace Cradle.StoryFormats.Harlowe
 
 		public override string ToString()
 		{
-			return HookName;
+			return HookName + " (hook)";
 		}
 	}
    
 }
-
+*/

@@ -21,18 +21,12 @@ public class TwineTextPlayerElementEditor : Editor {
 		EditorGUILayout.LabelField("Name", output.Name);
 		EditorGUILayout.LabelField("Text", output.Text);
 
-		StoryStyle style = output.Style;
-		if (style != null)
-		{
-			EditorGUILayout.LabelField("Style");
-			EditorGUI.indentLevel++;
-			foreach(string option in style.SettingNames)
-			{
-				List<object> values = style.GetValues(option);
-				foreach(object val in values)
-					EditorGUILayout.LabelField(option, val.ToString());
-			}
-			EditorGUI.indentLevel--;
-		}
+		EditorGUILayout.LabelField("Style");
+		EditorGUI.indentLevel++;
+		StoryStyle style = output.GetAppliedStyle();
+		foreach(var pair in style)
+			EditorGUILayout.LabelField(pair.Key, pair.Value != null ? pair.Value.ToString() : null);
+		EditorGUI.indentLevel--;
+		
 	}
 }

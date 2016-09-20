@@ -13,7 +13,7 @@ SceneSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 6
+  serializedVersion: 7
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -37,12 +37,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
+  m_IndirectSpecularColor: {r: 0.37356448, g: 0.3811204, b: 0.35887685, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 6
+  serializedVersion: 7
   m_GIWorkflowMode: 0
-  m_LightmapsMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -53,17 +53,22 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
-    serializedVersion: 3
+    serializedVersion: 4
     m_Resolution: 2
     m_BakeResolution: 40
     m_TextureWidth: 1024
     m_TextureHeight: 1024
+    m_AO: 0
     m_AOMaxDistance: 1
-    m_Padding: 2
     m_CompAOExponent: 0
+    m_CompAOExponentDirect: 0
+    m_Padding: 2
     m_LightmapParameters: {fileID: 0}
+    m_LightmapsBakeMode: 1
     m_TextureCompression: 1
+    m_DirectLightInLightProbes: 1
     m_FinalGather: 0
+    m_FinalGatherFiltering: 1
     m_FinalGatherRayCount: 1024
     m_ReflectionCompression: 2
   m_LightingDataAsset: {fileID: 0}
@@ -103,7 +108,6 @@ MonoBehaviour:
   AutoPlay: 0
   StartPassage: Macros_Links
   AdditionalCues: []
-  OutputStyleTags: 1
   DebugMode: 0
 --- !u!1001 &2114699216
 Prefab:
@@ -186,43 +190,43 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 22453728, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22453728, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22453728, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 22453728, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 17
       objectReference: {fileID: 0}
     - target: {fileID: 22467320, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22467320, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22467320, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 38
       objectReference: {fileID: 0}
     - target: {fileID: 22467320, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 22453732, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22453732, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22453732, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchoredPosition.x
@@ -230,23 +234,23 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 22453730, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22453730, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22453730, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -43
       objectReference: {fileID: 0}
     - target: {fileID: 22453730, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 22453730, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 17
       objectReference: {fileID: 0}
     - target: {fileID: 22453726, guid: c4ae6fc83f0d4f64091afc0dccd76dd6, type: 2}
       propertyPath: m_SizeDelta.y

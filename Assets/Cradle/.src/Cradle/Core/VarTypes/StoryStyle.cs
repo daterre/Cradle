@@ -2,18 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using List = System.Collections.Generic.List<object>;
 
 namespace Cradle
 {
-	/// <summary>
-	/// An immutable type that represents settings for a scope. Combine settings with the + operator.
-	/// </summary>
-	public class StoryStyle: VarType
+	public class StoryStyle: VarType, IDictionary<string, object>
 	{
 		public const string EvaluatedValContextOption = "evaluated-expression";
 
-		Dictionary<string, List> _settings = new Dictionary<string, List>();
+		Dictionary<string, object> _settings = new Dictionary<string, object>();
 
 		public StoryStyle()
 		{
@@ -21,12 +17,14 @@ namespace Cradle
 
 		public StoryStyle(string name, object value)
 		{
-			Set(name, value);
+			this[name] = value;
 		}
 
-		public StoryStyle(StoryVar val)
+		public StoryStyle(StoryVar booleanExpression)
 		{
-			Set(val);
+			// When giving a single value
+			if (booleanExpression.ConvertValueTo<bool>())
+				this[EvaluatedValContextOption] = booleanExpression;
 		}
 
 		public static implicit operator StoryStyle(StoryVar styleVar)
@@ -49,67 +47,49 @@ namespace Cradle
 			return StoryVar.Combine(Operator.Add, a, b).ConvertValueTo<StoryStyle>();
 		}
 
-		public List<T> GetValues<T>(string setting)
+		public object this[string setting]
 		{
-			List values;
-			if (!_settings.TryGetValue(setting, out values))
-				return new List<T>();
+			get
+			{
+				object val = null;
+				_settings.TryGetValue(setting, out val);
+				return val;
+			}
+			set { _settings[setting] = value; }
+		}
+
+		public T Get<T>(string setting)
+		{
+			object val = null;
+			if (_settings.TryGetValue(setting, out val))
+				return (T)val;
 			else
-				return new List<T>(values.Select(obj => (T)obj));
-		}
-
-		public List GetValues(string name)
-		{
-			return GetValues<object>(name);
-		}
-
-		public Dictionary<string,List>.KeyCollection SettingNames
-		{
-			get { return _settings.Keys; }
-		}
-
-		void Set(string name, object value)
-		{
-			List values;
-			if (!_settings.TryGetValue(name, out values))
-				_settings[name] = values = new List();
-
-			if (!values.Contains(value))
-				values.Add(value);
-		}
-
-		void Set(StoryVar booleanExpression)
-		{
-			if (booleanExpression.ConvertValueTo<bool>())
-				Set(EvaluatedValContextOption, booleanExpression);
+				return default(T);
 		}
 
 		public StoryStyle GetCopy()
 		{
 			var copy = new StoryStyle()
 			{
-				_settings = new Dictionary<string, List>()
+				_settings = new Dictionary<string, object>(this._settings)
 			};
-
-			foreach (var entry in this._settings)
-				copy._settings[entry.Key] = new List(entry.Value);
 
 			return copy;
 		}
 
 		public override StoryVar GetMember(StoryVar member)
 		{
-			throw new NotImplementedException();
+			return new StoryVar(this[member]);
 		}
 
 		public override void SetMember(StoryVar member, StoryVar value)
 		{
-			throw new NotImplementedException();
+			this[member] = value;
 		}
 
 		public override void RemoveMember(StoryVar member)
 		{
-			throw new NotImplementedException();
+			_settings.Remove(member);
 		}
 
 		public override bool Compare(Operator op, object b, out bool result)
@@ -126,9 +106,8 @@ namespace Cradle
 			var bStyle = (StoryStyle)b;
 
 			var combined = this.GetCopy();
-			foreach (string setting in bStyle.SettingNames)
-				foreach (object value in bStyle.GetValues(setting))
-					combined.Set(setting, value);
+			foreach (var entry in bStyle._settings)
+				combined[entry.Key] = entry.Value;
 
 			result = combined;
 			return true;
@@ -149,6 +128,81 @@ namespace Cradle
 		public override IVarType Duplicate()
 		{
 			return this.GetCopy();
+		}
+
+		public void Add(string key, object value)
+		{
+			_settings.Add(key, value);
+		}
+
+		public bool ContainsKey(string key)
+		{
+			return _settings.ContainsKey(key);
+		}
+
+		public ICollection<string> Keys
+		{
+			get { return _settings.Keys; }
+		}
+
+		public bool Remove(string key)
+		{
+			return _settings.Remove(key);
+		}
+
+		bool IDictionary<string, object>.TryGetValue(string key, out object value)
+		{
+			return _settings.TryGetValue(key, out value);
+		}
+
+		public ICollection<object> Values
+		{
+			get { return _settings.Values; }
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return ((System.Collections.IEnumerable)_settings).GetEnumerator();
+		}
+
+		void ICollection<KeyValuePair<string, object>>.Add(KeyValuePair<string, object> item)
+		{
+			((ICollection<KeyValuePair<string, object>>)_settings).Add(item);
+		}
+
+		public void Clear()
+		{
+			_settings.Clear();
+		}
+
+		bool ICollection<KeyValuePair<string, object>>.Contains(KeyValuePair<string, object> item)
+		{
+			return ((ICollection<KeyValuePair<string, object>>)_settings).Contains(item);
+		}
+
+		void ICollection<KeyValuePair<string, object>>.CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
+		{
+			((ICollection<KeyValuePair<string, object>>)_settings).CopyTo(array, arrayIndex);
+		}
+
+		public int Count
+		{
+			get { return _settings.Count; }
+		}
+
+		bool ICollection<KeyValuePair<string, object>>.IsReadOnly
+		{
+			get { return ((ICollection<KeyValuePair<string, object>>)_settings).IsReadOnly; }
+		}
+
+		bool ICollection<KeyValuePair<string, object>>.Remove(KeyValuePair<string, object> item)
+		{
+			return ((ICollection<KeyValuePair<string, object>>)_settings).Remove(item);
+		}
+
+		IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
+		{
+			return ((IEnumerable<KeyValuePair<string, object>>)_settings).GetEnumerator();
 		}
 	}
 }

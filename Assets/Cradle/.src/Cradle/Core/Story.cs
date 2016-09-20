@@ -22,7 +22,6 @@ namespace Cradle
 		public bool AutoPlay = true;
         public string StartPassage = "Start";
 		public GameObject[] AdditionalCues;
-		public bool OutputStyleTags = true;
 
 		public event Action<StoryPassage> OnPassageEnter;
 		public event Action<StoryState> OnStateChanged;
@@ -35,7 +34,6 @@ namespace Cradle
 		public RuntimeVars Vars { get; protected set; }
 		public string CurrentPassageName { get; private set; }
 		public StoryLink CurrentLinkInAction { get; private set; }
-		public StoryStyle Style { get; private set; }
 		public int NumberOfLinksDone { get; private set; }
         public List<string> PassageHistory {get; private set; }
 		public float PassageTime { get { return _timeAccumulated + (Time.time - _timeChangedToPlay); } }
@@ -45,11 +43,12 @@ namespace Cradle
 		ThreadResult _lastThreadResult = ThreadResult.Done;
 		Cue[] _passageUpdateCues = null;
 		string _passageWaitingToEnter = null;
+		bool _passageEnterCueInvoked = false;
 		Dictionary<string, List<Cue>> _cueCache = new Dictionary<string, List<Cue>>();
 		MonoBehaviour[] _cueTargets = null;
 		float _timeChangedToPlay = 0f;
 		float _timeAccumulated;
-		List<StyleScope> _scopes = new List<StyleScope>();
+		Stack<OutputGroup> _groupStack = new Stack<OutputGroup>();
 
 		protected Stack<int> InsertStack = new Stack<int>();
 
@@ -83,7 +82,6 @@ namespace Cradle
 			_state = StoryState.Idle;
 			this.Output = new List<StoryOutput>();
 			this.Tags = new string[0];
-			this.Style = new StoryStyle();
 
 			NumberOfLinksDone = 0;
 			PassageHistory.Clear();
@@ -205,7 +203,17 @@ namespace Cradle
 			else {
 				this.State = StoryState.Playing;
 				_timeAccumulated = Time.time - _timeChangedToPlay;
-				ExecuteCurrentThread();
+
+				// The passage enter cue hasn't been invoked yet, probably because of a Pause() call in an OnPassageEnter event.
+				if (!_passageEnterCueInvoked)
+				{
+					CuesInvoke(CuesGet(this.CurrentPassageName, "Enter"));
+					_passageEnterCueInvoked = true;
+				}
+
+				// Continue un-pausing only if the passage enter cue didn't pause again
+				if (this.State == StoryState.Playing)
+					ExecuteCurrentThread();
 			}
 		}
 
@@ -233,12 +241,13 @@ namespace Cradle
 		void Enter(string passageName)
 		{
 			_passageWaitingToEnter = null;
+			_passageEnterCueInvoked = false;
 			_timeAccumulated = 0;
 			_timeChangedToPlay = Time.time;
 
 			this.InsertStack.Clear();
 			this.Output.Clear();
-			this.Style = new StoryStyle();
+			_groupStack.Clear();
 			_passageUpdateCues = null;
 
 			StoryPassage passage = GetPassage(passageName);
@@ -247,25 +256,25 @@ namespace Cradle
 
             PassageHistory.Add(passageName);
 
-			// Invoke the general passage enter event
-			if (this.OnPassageEnter != null)
-				this.OnPassageEnter(passage);
-
-			// Get update cues for calling during update
-			_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
-
 			// Prepare the thread enumerator
 			_currentThread = CollapseThread(GetPassageThread(passage).Invoke()).GetEnumerator();
 			CurrentLinkInAction = null;
 
 			this.State = StoryState.Playing;
-			CuesInvoke(CuesGet(passage.Name, "Enter"));
+			
+			// Invoke the general passage enter event
+			if (this.OnPassageEnter != null)
+				this.OnPassageEnter(passage);
 
 			// Story was paused, wait for it to resume
 			if (this.State == StoryState.Paused)
 				return;
 			else
+			{
+				CuesInvoke(CuesGet(passage.Name, "Enter"));
+				_passageEnterCueInvoked = true;
 				ExecuteCurrentThread();
+			}
 		}
 
 		/// <summary>
@@ -274,6 +283,7 @@ namespace Cradle
 		void ExecuteCurrentThread()
 		{
 			Abort aborted = null;
+			UpdateCuesRefresh();
 
 			while (_currentThread.MoveNext())
 			{
@@ -292,9 +302,7 @@ namespace Cradle
 				if (output is EmbedPassage)
 				{
 					CuesInvoke(CuesGet(output.Name, "Enter"));
-
-					// Refresh the update cues
-					_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
+					UpdateCuesRefresh();
 				}
 
 				// Send output
@@ -409,7 +417,8 @@ namespace Cradle
 
 		void OutputSend(StoryOutput output, bool add = false)
 		{
-			output.Style = this.Style;
+			if (_groupStack.Count > 0)
+				output.Group = _groupStack.Peek();
 
 			if (add)
 				OutputAdd(output);
@@ -446,56 +455,50 @@ namespace Cradle
 		}
 
 		// ---------------------------------
-		// Scope control
+		// Grouping and style
 
-		protected StyleScope ApplyStyle(string setting, object value)
+		protected GroupScope Group(string setting, object value)
 		{
-			return ApplyStyle(new StoryStyle(setting, value));
+			return Group(new StoryStyle(setting, value));
 		}
 
-		protected StyleScope ApplyStyle(StoryStyle style)
+		protected GroupScope Group(StoryStyle style)
 		{
-			return ScopeOpen(style);
+			var group = new OutputGroup(style);
+			OutputSend(group, add: true);
+
+			return Group(group);
 		}
 
-		/// <summary>
-		/// Helper method to create a new style scope.
-		/// </summary>
-		StyleScope ScopeOpen(StoryStyle style)
+		protected GroupScope Group(OutputGroup group)
 		{
-			StyleScope scope = new StyleScope()
-			{
-				Style = style
-			};
-			scope.OnDisposed += ScopeClose;
+			var scope = new GroupScope(group);
+			scope.OnDisposed += GroupScopeClose;
 
-			_scopes.Add(scope);
-			ScopeBuildStyle();
-
-			if (OutputStyleTags)
-				OutputSend(new StyleTag(StyleTagType.Opener, scope.Style), add: true);
+			_groupStack.Push(scope.Group);
 
 			return scope;
 		}
 
-		void ScopeClose(StyleScope scope)
+		void GroupScopeClose(GroupScope scope)
 		{
-			scope.OnDisposed -= ScopeClose;
-
-			if (OutputStyleTags)
-				OutputSend(new StyleTag(StyleTagType.Closer, scope.Style), add: true);
-
-			_scopes.Remove(scope);
-			ScopeBuildStyle();
+			scope.OnDisposed -= GroupScopeClose;
+			if (_groupStack.Pop() != scope.Group)
+				throw new System.Exception("Unexpected group was closed.");
 		}
 
-		void ScopeBuildStyle()
+		public OutputGroup CurrentGroup
 		{
-			StoryStyle style = new StoryStyle();
-			for (int i = 0; i < _scopes.Count; i++)
-				style += _scopes[i].Style;
+			get { return _groupStack.Peek(); }
+		}
 
-			this.Style = style;
+		public StoryStyle GetCurrentStyle()
+		{
+			OutputGroup group = _groupStack.Count > 0 ? _groupStack.Peek() : null;
+			if (group != null)
+				return group.GetAppliedStyle() + group.Style; // Combine styles
+			else
+				return new StoryStyle();
 		}
 		
 		// ---------------------------------
@@ -599,6 +602,12 @@ namespace Cradle
 		void Update()
 		{
 			CuesInvoke(_passageUpdateCues);
+		}
+
+		void UpdateCuesRefresh()
+		{
+			// Get update cues for calling during update
+			_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
 		}
 
 		void CuesInvoke(IEnumerable<Cue> cues, params object[] args)

@@ -25,10 +25,10 @@ namespace Cradle.Editor.Utils
 			phantomJS.StartInfo.UseShellExecute = false;
 			phantomJS.StartInfo.CreateNoWindow = true;
 			phantomJS.StartInfo.RedirectStandardOutput = true;
-			phantomJS.StartInfo.WorkingDirectory = Application.dataPath + "/Cradle/Editor/.js";
+			phantomJS.StartInfo.WorkingDirectory = Application.dataPath + "/Cradle/Editor/js";
 			phantomJS.StartInfo.FileName = Application.dataPath + binPath;
 			phantomJS.StartInfo.Arguments = string.Format ("\"{0}\" \"{1}\"{2}",
-				"phantom.js",
+				"phantom.js_",
 				url,
 				bridgeScriptPath == null ? null : string.Format(" \"{0}\"",bridgeScriptPath)
             );

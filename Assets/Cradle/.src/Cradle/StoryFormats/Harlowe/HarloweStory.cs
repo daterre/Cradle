@@ -11,6 +11,7 @@ namespace Cradle.StoryFormats.Harlowe
 	public abstract class HarloweStory: Story
 	{
 		public bool DebugMode = false;
+		Stack<HarloweEnchantment> _activeEnchantments = new Stack<HarloweEnchantment>();
 
 		public HarloweStory()
 		{
@@ -51,10 +52,12 @@ namespace Cradle.StoryFormats.Harlowe
 					yield return passage(footerPassage);
 		}
 
+		/*
 		protected HarloweHook hook(StoryVar hookName)
 		{
 			return new HarloweHook() { HookName = hookName };
 		}
+		*/
 
 		protected StoryVar hookRef(StoryVar hookName)
 		{
@@ -69,32 +72,39 @@ namespace Cradle.StoryFormats.Harlowe
 
 			HarloweEnchantment lastHookEnchantment = null;
 
-            foreach(StoryOutput output in this.Output)
+            for (int i = 0; i < this.Output.Count; i++)
             {
+				StoryOutput output = this.Output[i];
+
                 if (isHookRef)
                 {
-					HarloweHook hook = output.Style
-						.GetValues<HarloweHook>(HarloweStyleSettings.Hook)
-						.Where(h => h.HookName == str)
-						.FirstOrDefault();
-					
-					// Check if matching hook found in the current context, otherwise skip
-					if (hook == null)
+					// Check if matching hook found in the current group, otherwise skip
+					if (!(output is OutputGroup))
+						continue;
+
+					var group = output as OutputGroup;
+					if (group.Style.Get<string>(HarloweStyleSettings.Hook) != str)
 						continue;
 
 					// Matching hook was found, but enchantment metadata is not up to date
-					if (lastHookEnchantment == null || lastHookEnchantment.Hook != hook)
+					if (lastHookEnchantment == null || lastHookEnchantment.HookGroup != group)
 					{
 						lastHookEnchantment = new HarloweEnchantment() {
 							ReferenceType = HarloweEnchantReferenceType.Hook,
 							Command = command,
-							Hook = hook,
+							HookGroup = group,
 							Affected = new List<StoryOutput>()
 						};
 						enchantments.Add(lastHookEnchantment);
 					}
 
-					lastHookEnchantment.Affected.Add(output);
+					// Add all outputs associated with this group
+					i++;
+					while (i < this.Output.Count && this.Output[i].BelongsToGroup(group))
+					{
+						lastHookEnchantment.Affected.Add(this.Output[i]);
+						i++;
+					}
                 }
                 else if (output is StoryText)
                 {
@@ -115,7 +125,7 @@ namespace Cradle.StoryFormats.Harlowe
 
 		protected IStoryThread wrapFragmentWithHook(string hookName, Func<IStoryThread> fragment)
 		{
-			using (ApplyStyle("hook", hook(hookName)))
+			using (Group("hook", hookName))
 				yield return this.fragment(fragment);
 		}
 
@@ -125,13 +135,11 @@ namespace Cradle.StoryFormats.Harlowe
 			yield return this.fragment(fragment);
 		}
 
-		protected IStoryThread enchantHook(string hookName, HarloweEnchantCommand enchantCommand, Func<IStoryThread> fragment, bool wrap = false, bool linkTextPrefix = false)
+		protected IStoryThread enchantHook(string hookName, HarloweEnchantCommand enchantCommand, Func<IStoryThread> fragment, bool linkTextPrefix = false)
 		{
 			// Special fragment features, if necessary
 			Func<IStoryThread> f2 = !linkTextPrefix ? fragment : () => prefixFragmentWithLinkText(fragment);
-			Func<IStoryThread> f3 = !wrap ? f2 : () => wrapFragmentWithHook(hookName, f2);
-
-			yield return enchant(hookRef(hookName), enchantCommand, f3);
+			yield return enchant(hookRef(hookName), enchantCommand, f2);
 		}
 
 		protected EmbedFragment enchantIntoLink(StoryVar reference, Func<IStoryThread> linkAction)
@@ -143,16 +151,21 @@ namespace Cradle.StoryFormats.Harlowe
 		{
 			foreach(HarloweEnchantment enchantment in enchantments)
 			{
-				// Update insert index, remove replaced outputs
-				bool hasAffected = enchantment.Affected.Count > 0;
-				int index = -1;
+				bool isHookRef = enchantment.ReferenceType == HarloweEnchantReferenceType.Hook;
+				int index = isHookRef && enchantment.Command != HarloweEnchantCommand.Append ?
+					enchantment.HookGroup.Index + 1 :
+					-1;
 
-				if (hasAffected)
+				if (enchantment.Affected.Count > 0)
 				{
-					index = enchantment.Command == HarloweEnchantCommand.Append ?
-						enchantment.Affected.Last().Index + 1 :
-						enchantment.Affected[0].Index;
+					if (index == -1)
+					{
+						index =
+							enchantment.Command == HarloweEnchantCommand.Append ? enchantment.Affected.Last().Index + 1 :
+							enchantment.Affected[0].Index;
+					}
 
+					// Remove affected outputs to be replaced
 					if (enchantment.Command == HarloweEnchantCommand.Replace)
 					{
 						for (int i = 0; i < enchantment.Affected.Count; i++)
@@ -161,12 +174,16 @@ namespace Cradle.StoryFormats.Harlowe
 				}
 
 				this.InsertStack.Push(index);
+				_activeEnchantments.Push(enchantment);
 
-				using (ApplyStyle(HarloweStyleSettings.Enchantment, enchantment))
+				GroupScope scope = isHookRef ? scope = Group(enchantment.HookGroup) : null;
+				using (scope)
 				{
 					// Execute the enchantment thread
 					yield return this.fragment(fragment);
 				}
+
+				_activeEnchantments.Pop();
 
 				// Reset the index
 				this.InsertStack.Pop();
@@ -175,40 +192,37 @@ namespace Cradle.StoryFormats.Harlowe
 
 		IStoryThread EnchantIntoLink(Func<IStoryThread> linkAction)
 		{
-			var enchantment = this.Style.GetValues<HarloweEnchantment>(HarloweStyleSettings.Enchantment).Last();
+			HarloweEnchantment enchantment = _activeEnchantments.Peek();
 			foreach(StoryOutput affected in enchantment.Affected)
 			{
 				if (!(affected is StoryText))
 					continue;
 					//yield return affected;
 
-				using (ApplyStyle(affected.Style))
+				if (enchantment.ReferenceType == HarloweEnchantReferenceType.Text)
 				{
-					if (enchantment.ReferenceType == HarloweEnchantReferenceType.Text)
+					MatchCollection matches = enchantment.Occurences.Matches(affected.Text);
+					int startCharIndex = 0;
+					foreach (Match m in matches)
 					{
-						MatchCollection matches = enchantment.Occurences.Matches(affected.Text);
-						int startCharIndex = 0;
-						foreach (Match m in matches)
-						{
-							// Return text till here
-							if (m.Index > startCharIndex)
-								yield return new StoryText(affected.Text.Substring(startCharIndex, m.Index - startCharIndex));
+						// Return text till here
+						if (m.Index > startCharIndex)
+							yield return new StoryText(affected.Text.Substring(startCharIndex, m.Index - startCharIndex));
 
-							// Return text of this match
-							yield return new StoryLink(m.Value, linkAction);
-							startCharIndex = m.Index + m.Length;
-						}
+						// Return text of this match
+						yield return new StoryLink(m.Value, linkAction);
+						startCharIndex = m.Index + m.Length;
+					}
 
-						// Return remaining text
-						if (startCharIndex < affected.Text.Length)
-							yield return new StoryText(affected.Text.Substring(startCharIndex));
-					}
-					else
-					{
-						// See commented out EnchantIntoLinkUndo
-						//yield return new TwineLink(affected.Text, () => EnchantIntoLinkUndo(linkAction));
-						yield return new StoryLink(affected.Text, linkAction);
-					}
+					// Return remaining text
+					if (startCharIndex < affected.Text.Length)
+						yield return new StoryText(affected.Text.Substring(startCharIndex));
+				}
+				else
+				{
+					// See commented out EnchantIntoLinkUndo
+					//yield return new TwineLink(affected.Text, () => EnchantIntoLinkUndo(linkAction));
+					yield return new StoryLink(affected.Text, linkAction);
 				}
 			}
 		}
@@ -235,14 +249,14 @@ namespace Cradle.StoryFormats.Harlowe
 		public HarloweEnchantReferenceType ReferenceType;
 		public HarloweEnchantCommand Command;
 		public List<StoryOutput> Affected;
-		public HarloweHook Hook;
+		public OutputGroup HookGroup;
 		public string Text;
 		public Regex Occurences;
 
 		public override string ToString()
 		{
 			return string.Format("{0}: {1}", Command, ReferenceType == HarloweEnchantReferenceType.Hook ? 
-				string.Format("hook({0})", Hook.HookName) :
+				string.Format("hook({0})", HookGroup.Style[HarloweStyleSettings.Hook]) :
 				string.Format("\"{0}\"", this.Text)
 			);
 		}

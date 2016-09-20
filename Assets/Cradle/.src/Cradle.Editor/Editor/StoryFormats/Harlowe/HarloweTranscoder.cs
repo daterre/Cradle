@@ -112,7 +112,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			{
 				output = PhantomJS.Run<HarloweStoryData>(
 					new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
-					Application.dataPath + "/Cradle/Editor/.js/StoryFormats/Harlowe/harlowe.bridge.js"
+					Application.dataPath + "/Cradle/Editor/js/StoryFormats/Harlowe/harlowe.bridge.js_"
 				);
 			}
 			catch(StoryImportException)
@@ -236,7 +236,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 
 						case "hook":
 							// This is only for unhandled hooks
-							GenerateStyleScope(string.Format("\"hook\", hook(\"{0}\")", token.name), tokens[t].tokens);
+							GenerateStyleScope(string.Format("\"hook\", \"{0}\"", token.name), tokens[t].tokens);
 							break;
 						default:
 							break;
@@ -275,9 +275,9 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 		{
 			Code.Indent();
 			if (conditional)
-				Code.Buffer.AppendFormat("var styl{0} = style({1}); if (styl{0}) using (ApplyStyle(styl{0})) {{", ++StyleCounter, styleParams);
+				Code.Buffer.AppendFormat("var styl{0} = style({1}); if (styl{0}) using (Group(styl{0})) {{", ++StyleCounter, styleParams);
 			else
-				Code.Buffer.AppendFormat("using (ApplyStyle({0})) {{", styleParams);
+				Code.Buffer.AppendFormat("using (Group({0})) {{", styleParams);
 
 			Code.Buffer.AppendLine();
 			Code.Indentation++;
@@ -291,6 +291,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 		{
 			GeneratedCode outer = Code;
 			Code = new GeneratedCode();
+			Code.Collapsed = outer.Collapsed; // inherit collpased whitespace setting
 			GenerateBody(tokens, true );
 			_output.Fragments.Add(Code.Buffer.ToString());
 			Code = outer;
@@ -411,6 +412,8 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 					return WrapInVarIfNecessary(string.Format("{0}/1000f", token.value), tokens, tokenIndex);
 				case "colour":
 					return WrapInVarIfNecessary(string.Format("\"{0}\"", token.text), tokens, tokenIndex);
+				case "text":
+					return token.text == "null" ? "StoryVar.Empty" : token.text;
 				case "grouping":
 					if(IsWrapInVarRequired(tokens, tokenIndex))
 						Code.Buffer.Append(" v");
@@ -423,7 +426,10 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 						throw new StoryFormatTranscodeException("'it' or 'its' used without first mentioning a variable");
 					return string.Format("{0}[\"{1}\"]", _lastVariable, token.name);
 				case "property":
-					return string.Format("[\"{0}\"]", token.name);
+					string prop = string.Format("[\"{0}\"]", token.name);
+					if (_lastVariable != null)
+						_lastVariable += prop;
+					return prop;
 				case "belongingProperty":
 					Code.Buffer.AppendFormat("v(\"{0}\").AsMemberOf[", token.name);
 					AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);

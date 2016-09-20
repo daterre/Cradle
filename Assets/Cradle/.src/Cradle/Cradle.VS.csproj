@@ -37,14 +37,14 @@
     <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\Attributes.cs" />
     <Compile Include="Core\Exceptions.cs" />
-    <Compile Include="Core\OutputTypes\StyleTag.cs" />
+    <Compile Include="Core\OutputTypes\OutputGroup.cs" />
     <Compile Include="Core\OutputTypes\Abort.cs" />
     <Compile Include="Core\OutputTypes\Embed.cs" />
     <Compile Include="Core\OutputTypes\LineBreak.cs" />
     <Compile Include="Core\OutputTypes\StoryLink.cs" />
     <Compile Include="Core\OutputTypes\StoryPassage.cs" />
     <Compile Include="Core\OutputTypes\StoryText.cs" />
-    <Compile Include="Core\StyleScope.cs" />
+    <Compile Include="Core\GroupScope.cs" />
     <Compile Include="Core\StoryOutput.cs" />
     <Compile Include="Core\RuntimeMacros.cs" />
     <Compile Include="Core\RuntimeVars.cs" />

@@ -47,6 +47,11 @@ namespace Cradle
 			get { return GetInnerValue(this); }
 		}
 
+		public static StoryVar Empty
+		{
+			get { return new StoryVar(null); }
+		}
+
 		private static object GetInnerValue(object obj, bool duplicate = false)
 		{
 			var twVar = default(StoryVar);
@@ -201,6 +206,9 @@ namespace Cradle
 		{
 			object a = GetInnerValue(left);
 			object b = GetInnerValue(right);
+
+			if (a == null && b == null)
+				return true;
 
 			bool result;
 			IVarTypeService service;
