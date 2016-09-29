@@ -847,7 +847,11 @@ public class SnoozingCues : MonoBehaviour {
 			street_sfxStreet.GetComponent<AudioLowPassFilter>()
 		};
 		for (int i = 0; i < lowPass.Length; i++)
+		#if UNITY_WEBGL
+			lowPass[i].GetComponent<AudioSource>().volume = 1f;
+		#else
 			lowPass[i].enabled = true;
+		#endif
 
 		float r = 0;
 		do
@@ -862,9 +866,15 @@ public class SnoozingCues : MonoBehaviour {
 			_bloom.intensity = Mathf.Lerp(_bloomBaseValue, 2.5f, r);
 
 			// Audio
+			#if UNITY_WEBGL
+			float vol = Mathf.Lerp(0.2f, 1f, street_arousalLowPassCurve.Evaluate(r));
+			for (int i = 0; i < lowPass.Length; i++)
+				lowPass[i].GetComponent<AudioSource>().volume = vol;
+			#else
 			float lpass = Mathf.Lerp(street_arousalLowPassValue, 10000f, street_arousalLowPassCurve.Evaluate(r));
 			for (int i = 0; i < lowPass.Length; i++)
 				lowPass[i].cutoffFrequency = lpass;
+			#endif
 
 			yield return null;
 			street_arousalLevel += street_arousalPace[street_arousalCounter] * Time.deltaTime;

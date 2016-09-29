@@ -19,8 +19,8 @@ PlayerSettings:
   m_VirtualRealitySplashScreen: {fileID: 0}
   defaultScreenWidth: 1024
   defaultScreenHeight: 768
-  defaultScreenWidthWeb: 960
-  defaultScreenHeightWeb: 600
+  defaultScreenWidthWeb: 1024
+  defaultScreenHeightWeb: 768
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
   m_ActiveColorSpace: 0
@@ -466,7 +466,7 @@ PlayerSettings:
   Tizen::VR::enable: 0
   WebGL::VR::enable: 0
   WebGL::analyzeBuildSize: 0
-  WebGL::dataCaching: 0
+  WebGL::dataCaching: 1
   WebGL::useEmbeddedResources: 0
   WebPlayer::VR::enable: 0
   WiiU::VR::enable: 0
@@ -497,7 +497,7 @@ PlayerSettings:
   UNet_ServiceEnabled::UNet_ServiceEnabled: False
   Unity_Ads_ServiceEnabled::Unity_Ads_ServiceEnabled: False
   WebGL::emscriptenArgs: 
-  WebGL::template: APPLICATION:Default
+  WebGL::template: APPLICATION:Minimal
   additionalIl2CppArgs::additionalIl2CppArgs: 
   vectorPropertyNames:
   - Android::VR::enabledDevices

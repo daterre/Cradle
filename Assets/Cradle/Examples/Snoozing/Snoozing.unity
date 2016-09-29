@@ -4731,7 +4731,7 @@ MonoBehaviour:
   snooze_noiseIntensity: 0.1
   her_image: {fileID: 21300000, guid: 4dfce491407405b468c0bdc4e7b9d940, type: 3}
   her_cursorMatch: {fileID: 22406778, guid: e75e5194c8ab3434886f820943a4a9ea, type: 2}
-  her_minScreenMove: 0.05
+  her_minScreenMove: 0.2
   her_maxScreenMove: 0.1
   her_alphaFactor: 0.35
   her_alphaLineTriggerUp: 0.9
