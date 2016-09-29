@@ -343,7 +343,7 @@ The following cues types are supported (replace 'passage' with the name of a pas
 * `passage_Enter()` - called immediately when a passage is entered. This means after Begin, DoLink or GoTo are called  and whenever a sub-passage is embedded via a macro (i.e. Twine's `display` macro)
 * `passage_Exit()` - called on the current passages just before a new main passage is entered via DoLink or GoTo. (An embedded sub-passage's exit cue is called before that of the passage which embedded it, in a last-in-first-out order.)
 * `passage_Done()` - called when the passage is done executing and the story has entered the Idle state. All [passage output](#reading-story-content) is available.
-* `passage_ActionDone(StoryLink link)` - called after a link's action has been completed, and before the next passage is entered (if specified)
+* `passage_link_Done()` - called after a link's action has been completed, and before the next passage is entered (if specified). (replace 'link' with the name of a link)
 * `passage_Update()` - when the story is in the Idle state, this cue is called once per frame.
 * `passage_Output(StoryOutput output)` - whenever a passage generates output (text, links, etc.), this cue receives it. 
 
