@@ -19,8 +19,6 @@ public class TwineTextPlayer : MonoBehaviour {
 	public bool AutoDisplay = true;
 	public bool ShowNamedLinks = true;
 
-	bool _clicked = false;
-
 	static Regex rx_splitText = new Regex(@"(\s+|[^\s]+)");
 
 	void Start () {
@@ -84,26 +82,7 @@ public class TwineTextPlayer : MonoBehaviour {
 		}
 	}
 	#endif
-
-	void LateUpdate()
-	{
-		if (!Application.isPlaying)
-			return;
-
-		_clicked = false;
-	}
-
-	public void RegisterClick()
-	{
-		_clicked = true;
-	}
-
-	public bool WasClicked()
-	{
-		bool clicked = _clicked;
-		return clicked;
-	}
-
+	
 	public void Clear()
 	{
 		for (int i = 0; i < Container.childCount; i++)
@@ -121,26 +100,7 @@ public class TwineTextPlayer : MonoBehaviour {
 		if (!this.AutoDisplay)
 			return;
 
-		// Check if a wait is needed
-		float wait = 0f;
-		if (Story.Vars.ContainsKey("wait"))
-			wait = (float) Story.Vars["wait"].ConvertValueTo<double>();
-
-		// Check if a click in needed (only for links and non-empty text lines)
-		bool click =
-			Story.Vars.ContainsKey("click") &&
-			(output is StoryLink || output is StoryText) &&
-			output.Text.Length > 0 &&
-			Story.Vars["click"].ConvertValueTo<bool>();
-		;
-
-		if (click || wait > 0f)
-		{
-			Story.Pause();
-			StartCoroutine(Wait(wait, click, output));
-		}
-		else
-			DisplayOutput(output);
+		DisplayOutput(output);
 	}
 
 	void Story_OnOutputRemoved(StoryOutput outputThatWasRemoved)
@@ -152,25 +112,6 @@ public class TwineTextPlayer : MonoBehaviour {
 			elem.transform.SetParent(null);
 			GameObject.Destroy(elem.gameObject);
 		}
-	}
-
-
-	IEnumerator Wait(float wait, bool click, StoryOutput output)
-	{
-		if (wait > 0f)
-			yield return new WaitForSeconds(wait);
-
-		if (click)
-		{
-			while (!this.WasClicked())
-				yield return null;
-		}
-
-		DisplayOutput(output);
-
-		yield return null;
-		Story.Vars["wait"] = 0.0;
-		Story.Resume();
 	}
 
 	public void DisplayOutput(StoryOutput output)
@@ -206,7 +147,7 @@ public class TwineTextPlayer : MonoBehaviour {
 		else if (output is StoryLink)
 		{
 			var link = (StoryLink)output;
-			if (!ShowNamedLinks && link.Name != link.Text)
+			if (!ShowNamedLinks && link.IsNamed)
 				return;
 
 			Button uiLink = (Button)Instantiate(LinkTemplate);

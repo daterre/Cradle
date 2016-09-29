@@ -37,7 +37,7 @@ public static class ImageFade
 	public static void Stop(CanvasGroup group, MonoBehaviour script)
 	{
 		Coroutine current;
-		if (!_fades.TryGetValue(script, out current))
+		if (!_fades.TryGetValue(group, out current))
 			return;
 
 		script.StopCoroutine(current);
@@ -74,10 +74,12 @@ public static class ImageFade
 	static IEnumerator AnimateGroup(CanvasGroup group, float from, float to, float time, System.Action onComplete = null)
 	{
 		float state = (group.alpha - from) / (to - from);
+		string name = group.ToString();
 
 		for (float t = state * time; t <= time; t += Time.deltaTime)
 		{
-			group.alpha = Mathf.Lerp(from, to, t / time);
+			try { group.alpha = Mathf.Lerp(from, to, t / time); }
+			catch (MissingReferenceException) { Debug.LogErrorFormat("Still trying to animate '{0}' even though its gone", name); }
 			yield return null;
 		}
 

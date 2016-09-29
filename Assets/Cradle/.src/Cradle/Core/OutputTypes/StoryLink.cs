@@ -13,6 +13,7 @@ namespace Cradle
         public string PassageName;
 		public Dictionary<string,object> Parameters;
 		public Func<IStoryThread> Action;
+		public bool IsNamed;
 
 		static Regex rx_Name = new Regex(@"^((?<name>[^=]+?)\s*=\s*)", RegexOptions.ExplicitCapture);
 
@@ -29,6 +30,7 @@ namespace Cradle
 				{
 					this.Name = m.Success ? m.Groups["name"].Value : text;
 					this.Text = text.Substring(m.Index + m.Length);
+					this.IsNamed = true;
 					return;
 				}
 			}
@@ -36,6 +38,7 @@ namespace Cradle
 			// Name syntax didn't do anything so use the text as-is
 			this.Name = text;
 			this.Text = text;
+			this.IsNamed = false;
         }
 
 		public StoryLink(string text, string passageName, bool useNameSyntax = true) :

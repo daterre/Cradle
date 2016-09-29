@@ -288,26 +288,30 @@ namespace Cradle
 			while (_currentThread.MoveNext())
 			{
 				StoryOutput output = _currentThread.Current;
-
-				// Abort this thread
-				if (output is Abort)
+				
+				// If output is not null, process it. Otherwise, just check if story was paused and continue
+				if (output != null)
 				{
-					aborted = (Abort) output;
-					break;
+					// Abort this thread
+					if (output is Abort)
+					{
+						aborted = (Abort)output;
+						break;
+					}
+
+					OutputAdd(output);
+
+					// Let the handlers and cues kick in
+					if (output is EmbedPassage)
+					{
+						CuesInvoke(CuesGet(output.Name, "Enter"));
+						UpdateCuesRefresh();
+					}
+
+					// Send output
+					OutputSend(output);
+					CuesInvoke(CuesFind("Output"), output);
 				}
-
-				OutputAdd(output);
-
-				// Let the handlers and cues kick in
-				if (output is EmbedPassage)
-				{
-					CuesInvoke(CuesGet(output.Name, "Enter"));
-					UpdateCuesRefresh();
-				}
-
-				// Send output
-				OutputSend(output);
-				CuesInvoke(CuesFind("Output"), output);
 
 				// Story was paused, wait for it to resume
 				if (this.State == StoryState.Paused)
@@ -335,7 +339,7 @@ namespace Cradle
 				if (CurrentLinkInAction == null)
 					CuesInvoke(CuesFind("Done"));
 				else
-					CuesInvoke(CuesFind("ActionDone"), CurrentLinkInAction);
+					CuesInvoke(CuesFind("Done", CurrentLinkInAction.Name));
 
 				_lastThreadResult = ThreadResult.Done;
 			}
@@ -380,7 +384,8 @@ namespace Cradle
 					// Output the content
 					foreach (StoryOutput innerOutput in CollapseThread(embeddedThread))
 					{
-						innerOutput.EmbedInfo = embed;
+						if (innerOutput != null)
+							innerOutput.EmbedInfo = embed;
 						yield return innerOutput;
 					}
 				}
@@ -629,10 +634,10 @@ namespace Cradle
 		}
 
 
-		IEnumerable<Cue> CuesFind(string cueName, bool reverse = false, bool allowCoroutines = true)
+		IEnumerable<Cue> CuesFind(string cueName, string linkName = null, bool reverse = false, bool allowCoroutines = true)
 		{
 			// Get main passage's cues
-			List<Cue> mainCues = CuesGet(this.CurrentPassageName, cueName, allowCoroutines);
+			List<Cue> mainCues = CuesGet(this.CurrentPassageName, cueName, linkName, allowCoroutines);
 
 			// Return them here only if not reversing
 			if (!reverse && mainCues != null)
@@ -655,7 +660,7 @@ namespace Cradle
 				if (passageEmbed == null)
 					continue;
 
-				List<Cue> cues = CuesGet(passageEmbed.Name, cueName, allowCoroutines);
+				List<Cue> cues = CuesGet(passageEmbed.Name, cueName, linkName, allowCoroutines);
 				if (cues != null)
 				{
 					for (int h = 0; h < cues.Count; h++)
@@ -714,9 +719,9 @@ namespace Cradle
 			return _cueTargets;
 		}
 
-		List<Cue> CuesGet(string passageName, string cueName, bool allowCoroutines = true)
+		List<Cue> CuesGet(string passageName, string cueName, string linkName = null, bool allowCoroutines = true)
 		{
-			string methodName = passageName + "_" + cueName;
+			string methodName = passageName + "_" + (linkName != null ? linkName + "_" : null) + cueName;
 
 			List<Cue> cues = null;
 
@@ -734,7 +739,7 @@ namespace Cradle
 					methodsFound.AddRange(targetType.GetMethods(_cueMethodFlags)
 						.Where(m => m.GetCustomAttributes(typeof(StoryCueAttribute), true)
 							.Cast<StoryCueAttribute>()
-							.Where(attr => attr.PassageName == passageName && attr.CueName == cueName)
+							.Where(attr => attr.PassageName == passageName && attr.LinkName == linkName && attr.CueName == cueName)
 							.Count() > 0
 						));
 

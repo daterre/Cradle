@@ -1,18 +1,18 @@
 (dp0
 S'buildDestination'
 p1
-S''
+VD:\u005cProjects\u005cUnityTwine\u005cgit\u005cAssets\u005cCradle\u005cExamples\u005cSnoozing\u005cTwine\u005cSnoozingStoryV2.html
 p2
 sS'saveDestination'
 p3
-S'D:\\Projects\\UnityTwine\\git\\Assets\\Examples\\Snoozing\\Twine\\Snoozing.tws'
+S'D:\\Projects\\UnityTwine\\git\\Assets\\Cradle\\Examples\\Snoozing\\Twine\\Snoozing.tws'
 p4
 sS'metadata'
 p5
 (dp6
 sS'target'
 p7
-S'sugarcane'
+S'sugarcube-2'
 p8
 sS'storyPanel'
 p9
@@ -27,8 +27,8 @@ I00
 sS'pos'
 p15
 (lp16
-I305
-aI21
+I307
+aI20
 asS'passage'
 p17
 (itiddlywiki
@@ -37,7 +37,7 @@ p18
 (dp20
 S'text'
 p21
-V<<display "alarm">>
+V<<goto "alarm">>
 p22
 sS'title'
 p23
@@ -48,14 +48,14 @@ p25
 ctime
 struct_time
 p26
-((I2015
-I5
-I31
-I14
-I2
-I39
-I6
-I151
+((I2016
+I9
+I27
+I13
+I57
+I13
+I1
+I271
 I1
 tp27
 (dp28
@@ -93,21 +93,21 @@ Tiddler
 p40
 (dp41
 g21
-V<<set $wait = 1>>\u000a...\u000a\u000a<<if not $again >>\u000a<<set $wait = 2>>\u000a? ?\u000a\u000a<<endif>>\u000a<<set $wait = 1.5>>\u000aMy alarm clock.\u000a<<set $wait = 1.5>>\u000a[[Time to get up.|getUp]]\u000a[[snooze=|snooze]]\u000a<<set $again=true>>
+V<<wait 1>>...\u000a\u000a<<if not $again >><<wait 2>>? ?\u000a<<endif>><<wait 1.5>>My alarm clock.\u000a\u000a<<wait 1.5>>[[Time to get up.|getUp]]\u000a\u000a<<nobr>>\u000a	<<if visited("her", "relationship", "work", "street", "sea")>>\u000a	[[snooze=|alone]]\u000a	<<else>>\u000a	[[snooze=|snooze]]\u000a	<<set $again=true>>\u000a	<<endif>>\u000a<</nobr>>
 p42
 sg23
 Valarm
 p43
 sg25
 g26
-((I2015
-I6
+((I2016
 I9
-I13
-I47
+I29
+I10
+I57
 I17
-I1
-I160
+I3
+I273
 I1
 tp44
 (dp45
@@ -135,29 +135,29 @@ g14
 I00
 sg15
 (lp54
-I708
-aI370
+I821
+aI883
 asg17
 (itiddlywiki
 Tiddler
 p55
 (dp56
 g21
-V<<set $wait = 1>>\u000a<<print either("I can't handle this right now.", "Keep my eyes closed.")>>\u000a[[dream=Dream|dreaming]]\u000a[[anxiety=Anxiety|anxiety]]\u000a[[her=Her|her]]\u000a
+V<<wait 1>>\u000a<<print either("I can't handle this right now.", "Keep my eyes closed.")>>\u000a[[street=|street]]\u000a[[sea=|sea]]\u000a[[her=|her]]\u000a[[work=|work]]\u000a[[relationship=|relationship]]\u000a
 p57
 sg23
 Vsnooze
 p58
 sg25
 g26
-((I2015
-I6
+((I2016
 I9
-I15
+I29
+I9
+I9
 I23
-I45
-I1
-I160
+I3
+I273
 I1
 tp59
 (dp60
@@ -182,32 +182,32 @@ tp66
 Rp67
 sbsa(dp68
 g14
-I01
+I00
 sg15
 (lp69
-F1073.0
-aF143.0
+F1278.0
+aF138.0
 asg17
 (itiddlywiki
 Tiddler
 p70
 (dp71
 g21
-V<<print either("here it goes again", "out of coffee", "i can't breath", "must leave at 7:00")>>\u000a\u000a\u000a<<set $wait = 4>>\u000aTHE END
+V<<print either("here it goes again", "out of coffee", "just breath", "must leave at 7:00")>>\u000a\u000a<<wait 5>>THE END
 p72
 sg23
 VgetUp
 p73
 sg25
 g26
-((I2015
-I6
+((I2016
 I9
-I20
-I54
-I51
-I1
-I160
+I29
+I11
+I4
+I21
+I3
+I273
 I1
 tp74
 (dp75
@@ -235,29 +235,29 @@ g14
 I00
 sg15
 (lp84
-F610.0
-aF524.0
+F1075.0
+aF360.0
 asg17
 (itiddlywiki
 Tiddler
 p85
 (dp86
 g21
-V<<if $anxiety is "work">>\u000a	<<set $anxiety = "relationship">>\u000a<<elseif $anxiety is "relationship">>\u000a	<<set $anxiety = "work">>\u000a<<else>>\u000a	<<set $anxiety = either("work", "relationship")>>\u000a<<endif>>\u000a<<display $anxiety>>
+Vwhy\u000acan't\u000ai\u000asee\u000ayou\u000a[[continue=|alarm]]
 p87
 sg23
-Vanxiety
+Vher
 p88
 sg25
 g26
-((I2015
-I6
+((I2016
 I9
-I17
-I2
-I11
-I1
-I160
+I29
+I10
+I49
+I54
+I3
+I273
 I1
 tp89
 (dp90
@@ -285,29 +285,29 @@ g14
 I00
 sg15
 (lp99
-F922.0
-aF508.0
+I1343
+aI356
 asg17
 (itiddlywiki
 Tiddler
 p100
 (dp101
 g21
-Vwhen\u000awill\u000ai\u000afeel\u000ayou\u000a[[continue|alarm]]
+V<<waitforclick>>\u000ai can breath\u000a<<waitforclick>>\u000ai can fly\u000a<<waitforclick>>\u000ai can't see the sky.\u000a<<waitforclick>>\u000ait's warm\u000a<<waitforclick>>\u000ajust go deep\u000a<<waitforclick>>\u000ai will always sleep\u000a\u000a[[continue=|alarm]]
 p102
 sg23
-Vher
+Vsea
 p103
 sg25
 g26
-((I2015
-I6
-I7
-I14
+((I2016
 I9
-I4
-I6
-I158
+I29
+I10
+I50
+I19
+I3
+I273
 I1
 tp104
 (dp105
@@ -321,8 +321,8 @@ g26
 I5
 I31
 I13
-I37
-I39
+I40
+I14
 I6
 I151
 I1
@@ -335,29 +335,29 @@ g14
 I00
 sg15
 (lp114
-F766.0
-aF537.0
+I847
+aI622
 asg17
 (itiddlywiki
 Tiddler
 p115
 (dp116
 g21
-V<<if $dream is "sea">>\u000a	<<set $dream = "street">>\u000a<<elseif $dream is "street">>\u000a	<<set $dream = "sea">>\u000a<<else>>\u000a	<<set $dream = either("sea", "street")>>\u000a<<endif>>\u000a<<display $dream>>
+V<<wait 1>>I'm late. \u000aWhere are my keys?\u000aShit.\u000a[[continue=|street2]]
 p117
 sg23
-Vdreaming
+Vstreet
 p118
 sg25
 g26
-((I2015
-I6
+((I2016
 I9
-I17
-I2
 I29
-I1
-I160
+I10
+I49
+I16
+I3
+I273
 I1
 tp119
 (dp120
@@ -371,8 +371,8 @@ g26
 I5
 I31
 I13
-I37
-I39
+I42
+I22
 I6
 I151
 I1
@@ -385,29 +385,29 @@ g14
 I00
 sg15
 (lp129
-I1440
-aI472
+I487
+aI374
 asg17
 (itiddlywiki
 Tiddler
 p130
 (dp131
 g21
-V<<set $click = true>>\u000ai can breath\u000a\u000ai can fly\u000a\u000ai can't see the sky.\u000a\u000ait's warm\u000a\u000ajust go deep\u000a\u000ai will always sleep\u000a<<set $click = false>>\u000a[[continue=|alarm]]
+VTwo days till the meeting.\u000aTwo days.\u000aEveryone is going to\u000ahate me.\u000aWho needs this. Why\u000ame\u000a[[continue=|alarm]]
 p132
 sg23
-Vsea
+Vwork
 p133
 sg25
 g26
 ((I2015
 I6
-I7
-I13
-I21
-I22
-I6
-I158
+I9
+I15
+I43
+I14
+I1
+I160
 I1
 tp134
 (dp135
@@ -421,8 +421,8 @@ g26
 I5
 I31
 I13
-I40
-I14
+I50
+I56
 I6
 I151
 I1
@@ -435,29 +435,29 @@ g14
 I00
 sg15
 (lp144
-I760
-aI856
+F268.0
+aF373.0
 asg17
 (itiddlywiki
 Tiddler
 p145
 (dp146
 g21
-V<<set $wait = 1>>\u000aI'm late. \u000aWhere are my keys?\u000aShit.\u000a[[continue=|street2]]
+V<<waitforclick>>She knows it.\u000a<<waitforclick>>She looks at you,\u000a<<waitforclick>>and she knows it.\u000a<<waitforclick>>Pretends not to.\u000a<<waitforclick>>She smiles.\u000a<<waitforclick>>She's kind.\u000a<<waitforclick>>You're not.\u000a<<waitforclick>>You're shit.\u000a<<waitforclick>>A little shit,\u000a\u000a[[continue=|alarm]]
 p147
 sg23
-Vstreet
+Vrelationship
 p148
 sg25
 g26
-((I2015
-I6
-I7
-I16
-I50
-I31
-I6
-I158
+((I2016
+I9
+I27
+I14
+I52
+I0
+I1
+I271
 I1
 tp149
 (dp150
@@ -471,8 +471,8 @@ g26
 I5
 I31
 I13
-I42
-I22
+I56
+I13
 I6
 I151
 I1
@@ -485,29 +485,29 @@ g14
 I00
 sg15
 (lp159
-I238
-aI765
+F845.0
+aF492.0
 asg17
 (itiddlywiki
 Tiddler
 p160
 (dp161
 g21
-VTwo days till the meeting.\u000aTwo days.\u000aEveryone is going to\u000ahate me.\u000aWho needs this. Why\u000ame\u000a[[continue=|alarm]]
+V<<wait 1>>My bag is empty.\u000aNo, it's not.\u000aThere's a half-eaten sandwich.\u000aIt's hers.\u000a\u000a[[continue=|street3]]
 p162
 sg23
-Vwork
+Vstreet2
 p163
 sg25
 g26
-((I2015
-I6
+((I2016
 I9
-I15
-I43
-I14
-I1
-I160
+I29
+I10
+I49
+I25
+I3
+I273
 I1
 tp164
 (dp165
@@ -518,13 +518,13 @@ sg31
 sg33
 g26
 ((I2015
-I5
-I31
-I13
-I50
-I56
 I6
-I151
+I2
+I12
+I35
+I9
+I1
+I153
 I1
 tp169
 (dp170
@@ -535,29 +535,29 @@ g14
 I00
 sg15
 (lp174
-F80.0
-aF658.0
+F842.0
+aF362.0
 asg17
 (itiddlywiki
 Tiddler
 p175
 (dp176
 g21
-VShe knows it.\u000a<<set $click = true>>\u000aShe looks at you,\u000aand she knows it.\u000aPretends not to.\u000aShe smiles.\u000aShe's kind.\u000aYou're not.\u000aYou're shit.\u000aA little shit,\u000a<<set $click = false>>\u000a[[continue=|alarm]]
+V<<wait 1>>She put it in my bag\u000a\u000aHer lips touched it\u000a\u000aLips\u000a\u000atouched\u000a\u000a[[continue=|alarm]]
 p177
 sg23
-Vrelationship
+Vstreet3
 p178
 sg25
 g26
-((I2015
-I6
-I7
-I17
-I7
+((I2016
+I9
+I29
+I10
 I49
-I6
-I158
+I38
+I3
+I273
 I1
 tp179
 (dp180
@@ -568,13 +568,13 @@ sg31
 sg33
 g26
 ((I2015
-I5
-I31
-I13
-I56
-I13
 I6
-I151
+I2
+I12
+I35
+I31
+I1
+I153
 I1
 tp184
 (dp185
@@ -585,29 +585,29 @@ g14
 I00
 sg15
 (lp189
-I1026
-aI796
+I27
+aI132
 asg17
 (itiddlywiki
 Tiddler
 p190
 (dp191
 g21
-VI can fit it.\u000aIt fits.\u000aI'm so good.\u000a\u000a[[continue|machine2]]
+V// Cradle code gen macros defined here as dummy macros, so they don't break the HTML version\u000aMacro.add("waitforclick", {skipArgs: true, handler: function() {}});\u000aMacro.add("wait", {skipArgs: true, handler: function() {}});
 p192
 sg23
-Vmachine
+Vscript
 p193
 sg25
 g26
-((I2015
-I6
+((I2016
+I9
+I29
 I8
-I22
-I22
-I33
-I0
-I159
+I49
+I12
+I3
+I273
 I1
 tp194
 (dp195
@@ -615,225 +615,127 @@ tp196
 Rp197
 sg31
 (lp198
-sg33
+Vscript
+p199
+asg33
 g26
-((I2015
-I5
-I31
-I14
-I8
+((I2016
+I9
+I27
+I13
 I16
-I6
-I151
+I29
 I1
-tp199
-(dp200
-tp201
-Rp202
-sbsa(dp203
+I271
+I1
+tp200
+(dp201
+tp202
+Rp203
+sbsa(dp204
 g14
 I00
 sg15
-(lp204
-F608.0
-aF889.0
+(lp205
+F29.0
+aF269.0
 asg17
 (itiddlywiki
 Tiddler
-p205
-(dp206
+p206
+(dp207
 g21
-V<<set $wait = 1>>\u000aMy bag is empty.\u000aNo, it's not.\u000aThere's a half-eaten sandwich.\u000aIt's hers.\u000a[[continue=|street3]]
-p207
-sg23
-Vstreet2
+VSnoozing
 p208
+sg23
+VStoryTitle
+p209
 sg25
 g26
-((I2015
-I6
+((I2016
 I9
+I27
+I13
 I17
-I0
-I24
+I22
 I1
-I160
+I271
 I1
-tp209
-(dp210
-tp211
-Rp212
+tp210
+(dp211
+tp212
+Rp213
 sg31
-(lp213
+(lp214
 sg33
 g26
-((I2015
-I6
-I2
-I12
-I35
+((I2016
 I9
+I27
+I13
+I17
+I12
 I1
-I153
+I271
 I1
-tp214
-(dp215
-tp216
-Rp217
-sbsa(dp218
+tp215
+(dp216
+tp217
+Rp218
+sbsa(dp219
 g14
-I00
+I01
 sg15
-(lp219
-F441.0
-aF876.0
+(lp220
+I1490
+aI32
 asg17
 (itiddlywiki
 Tiddler
-p220
-(dp221
+p221
+(dp222
 g21
-V<<set $wait = 1>>\u000aMaybe she'll want it?\u000aHer lips touched it\u000a\u000a[[continue=|alarm]]
-p222
-sg23
-Vstreet3
+V<<wait 4>>My empty body,\u000a<<wait 2>>please get up.\u000a<<wait 4>>\u000a[[Please.|getUp]]\u000a
 p223
+sg23
+Valone
+p224
 sg25
 g26
-((I2015
-I6
+((I2016
 I9
-I17
+I29
+I11
+I8
+I47
 I3
-I32
+I273
 I1
-I160
-I1
-tp224
-(dp225
-tp226
-Rp227
+tp225
+(dp226
+tp227
+Rp228
 sg31
-(lp228
+(lp229
 sg33
 g26
-((I2015
-I6
-I2
-I12
-I35
-I31
+((I2016
+I9
+I27
+I17
+I41
+I51
 I1
-I153
+I271
 I1
-tp229
-(dp230
-tp231
-Rp232
-sbsa(dp233
-g14
-I00
-sg15
-(lp234
-F1163.0
-aF727.0
-asg17
-(itiddlywiki
-Tiddler
-p235
-(dp236
-g21
-VOh, those.\u000aI can fit them too.\u000aHa! No problem.\u000a\u000a[[continue|machine3]]
-p237
-sg23
-Vmachine2
-p238
-sg25
-g26
-((I2015
-I6
-I8
-I22
-I22
-I28
-I0
-I159
-I1
-tp239
-(dp240
-tp241
-Rp242
-sg31
-(lp243
-sg33
-g26
-((I2015
-I6
-I2
-I12
-I36
-I39
-I1
-I153
-I1
-tp244
-(dp245
-tp246
-Rp247
-sbsa(dp248
-g14
-I00
-sg15
-(lp249
-F1306.0
-aF649.0
-asg17
-(itiddlywiki
-Tiddler
-p250
-(dp251
-g21
-VYeah?\u000aSee?\u000aYou see that?\u000a\u000aWatch and learn you fuckers.\u000a\u000a[[continue|alarm]]
-p252
-sg23
-Vmachine3
-p253
-sg25
-g26
-((I2015
-I6
-I8
-I22
-I22
-I25
-I0
-I159
-I1
-tp254
-(dp255
-tp256
-Rp257
-sg31
-(lp258
-sg33
-g26
-((I2015
-I6
-I2
-I12
-I36
-I53
-I1
-I153
-I1
-tp259
-(dp260
-tp261
-Rp262
+tp230
+(dp231
+tp232
+Rp233
 sbsasS'scale'
-p263
+p234
 I1
 sS'snapping'
-p264
+p235
 I00
 ss.

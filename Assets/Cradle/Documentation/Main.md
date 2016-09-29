@@ -424,7 +424,7 @@ Notes:
 * To access the Story component from within a macro, simple use `this.Story`
 * If you want to add properties that can be assigned from the editor, it is recommended to pass the call onto a regular MonoBehaviour script attached to the same GameObject as your Story component. For example, `this.Story.SendMessage("PlaySound", soundName);` will pass the macro onto any script attached to that GameObject, where properties can be defined/assigned and the actual work can be done.
 * An instance of this class is created once per story. So any member variables will exist for the lifetime of your Story component.
-* When played in the browser, the Sugarcane/Cube story formats might throw an error if an unrecognized function is encountered. The easiest way to avoid this is to create a custom dummy JavaScript function that will avoid the error. Example (add this in your story's script):
+* When played in the browser, the Sugarcane/Cube story formats might throw an error if an unrecognized function is encountered. The easiest way to avoid this is to create a custom dummy JavaScript function that will avoid the error. Example (add this in your story's JavaScript):
 
 ```js
 window.sfxPlay = function() {};

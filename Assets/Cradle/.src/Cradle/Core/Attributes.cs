@@ -9,11 +9,19 @@ namespace Cradle
 	public sealed class StoryCueAttribute : Attribute
 	{
 		public string PassageName;
+		public string LinkName;
 		public string CueName;
 
 		public StoryCueAttribute(string passageName, string cueName)
 		{
 			this.PassageName = passageName;
+			this.CueName = cueName;
+		}
+
+		public StoryCueAttribute(string passageName, string linkName, string cueName)
+		{
+			this.PassageName = passageName;
+			this.LinkName = linkName;
 			this.CueName = cueName;
 		}
 	}

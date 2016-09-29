@@ -10,6 +10,7 @@ public class SnoozingCues : MonoBehaviour {
 
 	public Canvas uiCanvas;
 	public TwineTextPlayer uiTextPlayer;
+	public Button uiStoryClick;
 	public Image uiImage;
 	public RectTransform cursor;
 	public Animator uiTitleScreen;
@@ -18,11 +19,25 @@ public class SnoozingCues : MonoBehaviour {
 	Coroutine _beginStory = null;
 	
 	Story story;
+	BloomOptimized _bloom;
+	float _bloomBaseValue;
+
+	public bool Clicked { get; private set; }
 
 	void Awake()
 	{
 		this.story = GetComponent<Story>();
 		alarm_sfxVolume = alarm_sfx.volume;
+		_bloom = Camera.main.GetComponent<BloomOptimized>();
+		_bloom.enabled = false;
+		_bloomBaseValue = _bloom.intensity;
+
+		uiStoryClick.onClick.AddListener(() => Clicked = true);
+	}
+
+	void LateUpdate()
+	{
+		Clicked = false;
 	}
 
 	IEnumerator Start()
@@ -77,13 +92,16 @@ public class SnoozingCues : MonoBehaviour {
 		}
 		sfxMorning.Stop();
 
-		uiTitleScreen.gameObject.SetActive(false);	
+		uiTitleScreen.gameObject.SetActive(false);
+		_bloom.enabled = true;
+
 		this.story.Begin();
 		_beginStory = null;
 	}
 
 	IEnumerator EndStory()
 	{
+		_bloom.enabled = false;
 		uiTitleScreen.gameObject.SetActive(true);
 		uiTitleScreen.SetTrigger("end");
 
@@ -242,11 +260,12 @@ public class SnoozingCues : MonoBehaviour {
 		{
 			yield return null;
 			t += Time.deltaTime;
+			Vector2 mousePos = Input.mousePosition;
 			
 			float fadeIn = Mathf.Clamp(t / snooze_fadeIn, 0f, 1f);
-			float anxiety = snooze_yCurve.Evaluate(Input.mousePosition.y / Screen.height);
+			float anxiety = snooze_yCurve.Evaluate(mousePos.y / Screen.height);
 			float dreaming = 1f - anxiety;
-			float boost = snooze_xCurve.Evaluate(Input.mousePosition.x / Screen.width);
+			float boost = snooze_xCurve.Evaluate(mousePos.x / Screen.width);
 
 			snooze_sfxNoise.volume = anxiety * boost * fadeIn;
 			snooze_sfxUnderwater.volume = dreaming * boost * fadeIn;
@@ -267,7 +286,7 @@ public class SnoozingCues : MonoBehaviour {
 			snooze_imgDreamEye.color = colorDream;
 			snooze_imgDreamHalo.color = colorDream;
 
-			if (story.State == StoryState.Idle && fadeIn == 1f && uiTextPlayer.WasClicked())
+			if (story.State == StoryState.Idle && fadeIn > 0.5f && Clicked)
 			{
 				yield return null;
 
@@ -285,10 +304,16 @@ public class SnoozingCues : MonoBehaviour {
 					StartCoroutine(SnoozeFadeOut(snooze_fadeOut));
 				}
 				else if (anxiety > dreaming) {
-					story.DoLink("anxiety");
+					if (mousePos.x < Screen.width/2)
+						story.DoLink("relationship");
+					else
+						story.DoLink("work");
 				}
 				else {
-					story.DoLink("dream");
+					if (mousePos.x < Screen.width / 2)
+						story.DoLink("street");
+					else
+						story.DoLink("sea");
 				}
 
 				yield break;
@@ -325,7 +350,8 @@ public class SnoozingCues : MonoBehaviour {
 	public float her_minFadeoutTime = 3f;
 	public float her_maxFadeoutTime = 1f;
 	public AudioSource her_sfxBreathing;
-	public AudioSource her_sfxMatch;
+	public AudioSource her_sfxMatchStrike;
+	public AudioClip[] her_sfxMatchStrikeSounds;
 	public AudioSource her_sfxMatchLight;
 	int her_outputIndex;
 	bool her_lineTriggered;
@@ -377,8 +403,11 @@ public class SnoozingCues : MonoBehaviour {
 			color.a = Mathf.Clamp(color.a + move * her_alphaFactor, 0f, 1f);
 			uiImage.color = color;
 
-			if (!her_sfxMatch.isPlaying)
-				her_sfxMatch.Play();
+			if (!her_sfxMatchStrike.isPlaying)
+			{
+				her_sfxMatchStrike.clip = her_sfxMatchStrikeSounds[Random.Range(0, her_sfxMatchStrikeSounds.Length)];
+				her_sfxMatchStrike.Play();
+			}
 		}
 
 		// Show another line
@@ -490,6 +519,7 @@ public class SnoozingCues : MonoBehaviour {
 	public RectTransform relationship_cursorEye;
 	Animator relationship_cursorAnimator;
 	bool relationship_lastClick;
+	int relationship_cough = 0;
 
 	void relationship_Enter()
 	{
@@ -512,9 +542,11 @@ public class SnoozingCues : MonoBehaviour {
 	{
 		if (output is StoryText && output.Text.Trim().Length > 0)
 		{
-			relationship_sfxCough.PlayOneShot(
-				relationship_sfxCoughSounds[Random.Range(0, relationship_sfxCoughSounds.Length)],
-				relationship_sfxCough.volume);
+			if (!relationship_sfxCough.isPlaying)
+			{
+				relationship_sfxCough.clip = relationship_sfxCoughSounds[relationship_cough++ % relationship_sfxCoughSounds.Length];
+				relationship_sfxCough.Play();
+			}
 		}
 		else if (output is StoryLink && output.Name == "continue")
 		{
@@ -650,6 +682,15 @@ public class SnoozingCues : MonoBehaviour {
 	public AudioSource street_sfxStreet;
 	public AudioSource street_sfxFootstep1;
 	public AudioSource street_sfxFootstep2;
+	public AudioClip[] street_sfxFootstep1Sounds;
+	public AudioClip[] street_sfxFootstep2Sounds;
+	public AudioSource street_sfxMoan;
+	public Color street_arousalColor;
+	public float[] street_arousalPace;
+	public float street_arousalMaxLevel;
+	public float street_arousalLowPassValue;
+	public AnimationCurve street_arousalLowPassCurve;
+
 	float street_speed;
 	float street_lastClickTime;
 	float street_lastClickSpeed;
@@ -665,6 +706,9 @@ public class SnoozingCues : MonoBehaviour {
 	const float street_walkTimeSpeed = 5f;
 	int street_currentOutput = 0;
 	bool street_lineShown = false;
+	Coroutine street_arousalCoroutine = null;
+	int street_arousalCounter = -1;
+	float street_arousalLevel = 0;
 
 	IEnumerator street_Enter()
 	{
@@ -683,6 +727,8 @@ public class SnoozingCues : MonoBehaviour {
 		street_walkTime = 0f;
 		street_currentOutput = 0;
 		street_lineShown = false;
+		street_arousalCounter = -1;
+		street_arousalLevel = 0;
 
 		street_sfxStreet.time = 0f;
 		street_sfxStreet.Play();
@@ -696,7 +742,7 @@ public class SnoozingCues : MonoBehaviour {
 
 	void street_Update()
 	{
-		if (!street_FootstepsPaused && uiTextPlayer.WasClicked())
+		if (!street_FootstepsPaused && Clicked)
 		{
 			// Boost the street speed
 			street_speed = Mathf.Clamp(street_speed + street_speedBoost, 1f, street_maxSpeed);
@@ -713,7 +759,9 @@ public class SnoozingCues : MonoBehaviour {
 		{
 			street_lastStepTime = Time.time;
 			AudioSource audio = street_lastIsLeft ? street_sfxFootstep1 : street_sfxFootstep2;
+			AudioClip[] clips = street_lastIsLeft ? street_sfxFootstep1Sounds : street_sfxFootstep2Sounds;
 
+			audio.clip = clips[Random.Range(0, clips.Length)];
 			audio.time = 0f;
 			audio.Play();
 
@@ -753,6 +801,15 @@ public class SnoozingCues : MonoBehaviour {
 					uiTextPlayer.DisplayOutput(output);
 					street_lineShown |= output is StoryText;
 
+					if (output is StoryText && story.CurrentPassageName == "street3" && output.Text.ToLower().Contains("lips"))
+					{
+						street_arousalCounter++;
+
+						if (street_arousalCoroutine == null)
+							street_arousalCoroutine = StartCoroutine(street3_Arousal());
+							
+					}
+
 					if (street_lineShown && output is LineBreak)
 						break;
 				}
@@ -779,6 +836,43 @@ public class SnoozingCues : MonoBehaviour {
 		street_currentOutput = 0;
 	}
 
+	IEnumerator street3_Arousal()
+	{
+		street_sfxMoan.time = 0f;
+		street_sfxMoan.Play();
+
+		AudioLowPassFilter[] lowPass = new AudioLowPassFilter[] {
+			street_sfxFootstep1.GetComponent<AudioLowPassFilter>(),
+			street_sfxFootstep2.GetComponent<AudioLowPassFilter>(),
+			street_sfxStreet.GetComponent<AudioLowPassFilter>()
+		};
+		for (int i = 0; i < lowPass.Length; i++)
+			lowPass[i].enabled = true;
+
+		float r = 0;
+		do
+		{
+			// Change color
+			Color c = Color.Lerp(Color.white, street_arousalColor, r);
+			uiImage.color = c;
+			foreach (TwineTextPlayerElement text in uiTextPlayer.GetComponentsInChildren<TwineTextPlayerElement>().Where(elem => elem.SourceOutput is StoryText))
+				text.GetComponent<Text>().color = c;
+			
+			// Bloom
+			_bloom.intensity = Mathf.Lerp(_bloomBaseValue, 2.5f, r);
+
+			// Audio
+			float lpass = Mathf.Lerp(street_arousalLowPassValue, 10000f, street_arousalLowPassCurve.Evaluate(r));
+			for (int i = 0; i < lowPass.Length; i++)
+				lowPass[i].cutoffFrequency = lpass;
+
+			yield return null;
+			street_arousalLevel += street_arousalPace[street_arousalCounter] * Time.deltaTime;
+			r = Mathf.Clamp01(street_arousalLevel / street_arousalMaxLevel);
+		}
+		while (story.CurrentPassageName == "street3");
+	}
+
 	void street2_Update()
 	{
 		street_Update();
@@ -798,13 +892,27 @@ public class SnoozingCues : MonoBehaviour {
 			yield return null;
 		}
 		street_sfxStreet.Stop();
+		street_sfxMoan.Stop();
+
 		story.DoLink("continue");
 	}
 
 	IEnumerator street3_Exit()
 	{
 		CursorHide();
+		StopCoroutine(street_arousalCoroutine);
 
+		AudioLowPassFilter[] lowPass = new AudioLowPassFilter[] {
+			street_sfxFootstep1.GetComponent<AudioLowPassFilter>(),
+			street_sfxFootstep2.GetComponent<AudioLowPassFilter>(),
+			street_sfxStreet.GetComponent<AudioLowPassFilter>()
+		};
+
+		for (int i = 0; i < lowPass.Length; i++)
+			lowPass[i].enabled = false;
+
+		_bloom.intensity = _bloomBaseValue;
+		uiImage.color = Color.white;
 		ImageFade.Start(uiImage, 1f, 0f, 0.1f);
 		uiTextPlayer.AutoDisplay = true;
 		return SnoozeFadeOut(alarmWakeUpDelay);
@@ -813,6 +921,7 @@ public class SnoozingCues : MonoBehaviour {
 	// ...........................
 	// alone
 
+	public AudioSource alone_sfxMusicEnd;
 	public Animator alone_body;
 	public float alone_noiseIntensity = 0.3f;
 
@@ -829,6 +938,7 @@ public class SnoozingCues : MonoBehaviour {
 		alarm_sfx.Stop();
 
 		yield return new WaitForSeconds(2f);
+		alone_sfxMusicEnd.Play();
 
 		alone_body.gameObject.SetActive(true);
 		alone_body.SetBool("on", true);
@@ -852,14 +962,16 @@ public class SnoozingCues : MonoBehaviour {
 			cursorAnimator => alone_body.SetBool("on", true),
 			objects: new GameObject[] { alone_body.gameObject }
 		);
+	}
 
-		yield return new WaitForSeconds(3.5f);
-
-		CursorHoverActions(
-			cursorAnimator => cursorAnimator.SetBool("hover", true),
-			cursorAnimator => cursorAnimator.SetBool("hover", false),
-			new StoryLink[] {story.GetCurrentLinks().Where(link => link.PassageName == "getUp").First()}
-		);
+	void alone_Output(StoryOutput output)
+	{
+		if (output is StoryLink && ((StoryLink)output).PassageName == "getUp")
+			CursorHoverActions(
+				cursorAnimator => cursorAnimator.SetBool("hover", true),
+				cursorAnimator => cursorAnimator.SetBool("hover", false),
+				new StoryLink[] { (StoryLink)output }
+			);
 	}
 
 	IEnumerator alone_Exit()
@@ -902,6 +1014,33 @@ public class SnoozingCues : MonoBehaviour {
 	// Helpers
 
 	// .............
+	// Custom macro calls (defined in Editor/SnoozingCodeGenMacros.cs)
+	
+	void WaitForClick()
+	{
+		story.Pause();
+		uiStoryClick.onClick.AddListener(WaitForClickDone);
+	}
+
+	void WaitForClickDone()
+	{
+		uiStoryClick.onClick.RemoveListener(WaitForClickDone);
+		story.Resume();
+	}
+
+	void WaitForSeconds(float seconds)
+	{
+		story.Pause();
+		StartCoroutine(WaitForSecondsCoroutine(seconds));
+	}
+
+	IEnumerator WaitForSecondsCoroutine(float seconds)
+	{
+		yield return new WaitForSeconds(seconds);
+		story.Resume();
+	}
+
+	// .............
 	// Alarm
 
 	void SoundAlarm()
@@ -919,7 +1058,7 @@ public class SnoozingCues : MonoBehaviour {
 	{
 		// Wait for a click, play alarm and then advance
 		do { yield return null; }
-		while (!uiTextPlayer.WasClicked());
+		while (!Clicked);
 		
 		if (action != null)
 			action.Invoke();
@@ -928,6 +1067,9 @@ public class SnoozingCues : MonoBehaviour {
 		yield return new WaitForSeconds(alarmWakeUpDelay);
 		story.DoLink(continueLink);
 	}
+
+	// .............
+	// Cursor
 
 	void CursorSet(RectTransform prefab, float fadeIn = 0f)
 	{
