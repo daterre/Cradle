@@ -536,7 +536,7 @@ namespace Cradle
 
 		public static bool operator false(StoryVar val)
 		{
-			return ConvertTo<bool>(val);
+			return !ConvertTo<bool>(val);
 		}
 		// ------------------------
 		#endregion

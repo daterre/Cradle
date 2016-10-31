@@ -20,7 +20,7 @@ namespace Cradle.StoryFormats.Harlowe
 
 		protected override Func<IStoryThread> GetPassageThread(StoryPassage passage)
 		{
-			return () => GetPassageThreadWithHeaderAndFooter(passage.MainThread, this.StartPassage == passage.Name);
+			return () => GetPassageThreadWithHeaderAndFooter(passage.MainThread, this.PassageHistory.Count == 1);
 		}
 
 		IStoryThread GetPassageThreadWithHeaderAndFooter(Func<IStoryThread> mainThread, bool startup)

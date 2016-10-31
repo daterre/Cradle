@@ -329,19 +329,18 @@ namespace Cradle
 			// Return the appropriate result
 			if (aborted != null)
 			{
-				CuesInvoke(CuesFind("Aborted"));
-				
 				_lastThreadResult = ThreadResult.Aborted;
+				CuesInvoke(CuesFind("Aborted"));	
 			}
 			else
 			{
+				_lastThreadResult = ThreadResult.Done;
+
 				// Invoke the done cue - either for main or for a link
 				if (CurrentLinkInAction == null)
 					CuesInvoke(CuesFind("Done"));
 				else
 					CuesInvoke(CuesFind("Done", CurrentLinkInAction.Name));
-
-				_lastThreadResult = ThreadResult.Done;
 			}
 
 			CurrentLinkInAction = null;
