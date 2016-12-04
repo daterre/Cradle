@@ -61,15 +61,27 @@ namespace Cradle.Editor.StoryFormats.Sugar
 
 		public static SugarCodeGenMacro DisplayShorthand = (transcoder, macro, argument) =>
 		{
-			string passageExpr = transcoder.BuildExpression(macro);
 			string args = argument != null ? transcoder.BuildExpression(argument) : null;
 			if (!string.IsNullOrEmpty(args))
-				args = ", " + SugarTranscoder.ParamsWithCommas(args);
+				args = SugarTranscoder.ParamsWithCommas(args);
 
 			transcoder.Code.Indent();
-			transcoder.Code.Buffer
-				.AppendFormat("yield return passage(\"{0}\"{1});", passageExpr, args)
-				.AppendLine();
+
+			MacroDef macroDef;
+			if (transcoder.Importer.Macros.TryGetValue(macro, out macroDef))
+			{
+				transcoder.Code.Buffer
+					.AppendFormat("{0}.{1}({2});", macroDef.Lib.Name, macroDef.Name, args)
+					.AppendLine();
+			}
+			else
+			{
+				string passageExpr = transcoder.BuildExpression(macro);
+				
+				transcoder.Code.Buffer
+					.AppendFormat("yield return passage(\"{0}\"{1});", passageExpr, (!string.IsNullOrEmpty(args) ? ", " : string.Empty) + args)
+					.AppendLine();
+			}
 		};
 		// ......................
 		public static SugarCodeGenMacro Print = (transcoder, macro, argument) =>

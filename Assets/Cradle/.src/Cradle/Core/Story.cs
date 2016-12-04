@@ -24,6 +24,7 @@ namespace Cradle
 		public GameObject[] AdditionalCues;
 
 		public event Action<StoryPassage> OnPassageEnter;
+		public event Action<StoryPassage> OnPassageDone;
 		public event Action<StoryState> OnStateChanged;
 		public event Action<StoryOutput> OnOutput;
 		public event Action<StoryOutput> OnOutputRemoved;
@@ -37,6 +38,7 @@ namespace Cradle
 		public int NumberOfLinksDone { get; private set; }
         public List<string> PassageHistory {get; private set; }
 		public float PassageTime { get { return _timeAccumulated + (Time.time - _timeChangedToPlay); } }
+		public StorySaveData SaveData { get; private set; }
 
 		StoryState _state = StoryState.Idle;
 		IEnumerator<StoryOutput> _currentThread = null;
@@ -123,6 +125,34 @@ namespace Cradle
 			this.Init();
 		}
 
+		protected virtual StorySaveData Save()
+		{
+			var saveData = new StorySaveData()
+			{
+				PassageHistory = this.PassageHistory.ToList(),
+				PassageToResume = this.CurrentPassageName,
+				Variables = new Dictionary<string, StoryVar>()
+			};
+
+			foreach(var pair in this.Vars)
+				saveData.Variables[pair.Key] = pair.Value;
+
+			return saveData;
+		}
+
+		public virtual void Load(StorySaveData saveData)
+		{
+			if (this.State != StoryState.Idle)
+				throw new InvalidOperationException("Can only load a story that is Idle.");
+
+			this.Reset();
+			this.PassageHistory.AddRange(saveData.PassageHistory);
+			foreach (var pair in saveData.Variables)
+				this.Vars[pair.Key] = pair.Value;
+
+			this.GoTo(saveData.PassageToResume);
+		}
+
 		/// <summary>
 		/// Begins the story by calling GoTo(StartPassage).
 		/// </summary>
@@ -187,7 +217,7 @@ namespace Cradle
 				throw new InvalidOperationException(
 					// Paused
 					this.State == StoryState.Idle ?
-						"The story is currently idle. Call Begin, Advance or GoTo to play." :
+						"The story is currently idle. Call Begin, DoLink or GoTo to play." :
 					// Playing
 					this.State == StoryState.Playing || this.State == StoryState.Exiting?
 						"Resume() should be called only when the story is paused." :
@@ -217,7 +247,7 @@ namespace Cradle
 			}
 		}
 
-		StoryPassage GetPassage(string passageName)
+		public StoryPassage GetPassage(string passageName)
 		{
 			StoryPassage passage;
 			if (!Passages.TryGetValue(passageName, out passage))
@@ -225,7 +255,7 @@ namespace Cradle
 			return passage;
 		}
 
-		protected IEnumerable<string> GetPassagesWithTag(string tag)
+		public IEnumerable<string> GetPassagesWithTag(string tag)
 		{
 			return this.Passages
 				.Where(pair => pair.Value.Tags.Contains(tag, System.StringComparer.InvariantCultureIgnoreCase))
@@ -240,6 +270,8 @@ namespace Cradle
 
 		void Enter(string passageName)
 		{
+			this.SaveData = this.Save();
+
 			_passageWaitingToEnter = null;
 			_passageEnterCueInvoked = false;
 			_timeAccumulated = 0;
@@ -324,17 +356,28 @@ namespace Cradle
 			_currentThread.Dispose();
 			_currentThread = null;
 
-			this.State = StoryState.Idle;
-
 			// Return the appropriate result
 			if (aborted != null)
 			{
 				_lastThreadResult = ThreadResult.Aborted;
-				CuesInvoke(CuesFind("Aborted"));	
+				_passageWaitingToEnter = aborted.GoToPassage;
+
+				CuesInvoke(CuesFind("Aborted"));
+
+				if (aborted.GoToPassage != null && this.State != StoryState.Paused)
+					Enter(aborted.GoToPassage);
+				else
+					this.State = StoryState.Idle;
 			}
 			else
 			{
 				_lastThreadResult = ThreadResult.Done;
+
+				this.State = StoryState.Idle;
+
+				// Invoke the general passage enter event
+				if (this.OnPassageDone != null)
+					this.OnPassageDone(GetPassage(this.CurrentPassageName));
 
 				// Invoke the done cue - either for main or for a link
 				if (CurrentLinkInAction == null)
@@ -344,9 +387,6 @@ namespace Cradle
 			}
 
 			CurrentLinkInAction = null;
-
-			if (aborted != null && aborted.GoToPassage != null)
-				this.GoTo(aborted.GoToPassage);
 		}
 
 		/// <summary>
@@ -456,6 +496,11 @@ namespace Cradle
 		public IEnumerable<StoryText> GetCurrentText()
 		{
 			return this.Output.Where(o => o is StoryText).Cast<StoryText>();
+		}
+
+		public bool IsFirstVisitToPassage
+		{
+			get { return PassageHistory.Count(p => p == this.CurrentPassageName) == 1; }
 		}
 
 		// ---------------------------------
@@ -574,7 +619,7 @@ namespace Cradle
 				.FirstOrDefault();
 
 			if (link == null && throwException)
-				throw new StoryException(string.Format("There is no available link with the name '{0}'.", linkName));
+				throw new StoryException(string.Format("There is no available link with the name '{0}' in the passage '{1}'.", linkName, this.CurrentPassageName));
 
 			return link;
 		}
@@ -862,5 +907,13 @@ namespace Cradle
 		{
 			return new StoryStyle(expression);
 		}
+	}
+
+	[Serializable]
+	public class StorySaveData
+	{
+		public string PassageToResume;
+		public List<string> PassageHistory;
+		public Dictionary<string, StoryVar> Variables;
 	}
 }
