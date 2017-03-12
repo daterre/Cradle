@@ -17,6 +17,17 @@ namespace Cradle
 		Exiting = 3
 	}
 
+	public enum CueType
+	{
+		Enter,
+		Exit,
+		Update,
+		Output,
+		Aborted,
+		Done,
+		Link
+	}
+
     public abstract class Story: MonoBehaviour
     {
 		public bool AutoPlay = true;
@@ -188,7 +199,7 @@ namespace Cradle
 				this.State = StoryState.Exiting;
 
 				// invoke exit cues
-				CuesInvoke(CuesFind("Exit", reverse: true));
+				CuesInvoke(CuesFind(CueType.Exit, reverse: true));
 			}
 
 			if (this.State != StoryState.Paused)
@@ -237,7 +248,7 @@ namespace Cradle
 				// The passage enter cue hasn't been invoked yet, probably because of a Pause() call in an OnPassageEnter event.
 				if (!_passageEnterCueInvoked)
 				{
-					CuesInvoke(CuesGet(this.CurrentPassageName, "Enter"));
+					CuesInvoke(CuesGet(this.CurrentPassageName, CueType.Enter));
 					_passageEnterCueInvoked = true;
 				}
 
@@ -303,7 +314,7 @@ namespace Cradle
 				return;
 			else
 			{
-				CuesInvoke(CuesGet(passage.Name, "Enter"));
+				CuesInvoke(CuesGet(passage.Name, CueType.Enter));
 				_passageEnterCueInvoked = true;
 				ExecuteCurrentThread();
 			}
@@ -336,13 +347,13 @@ namespace Cradle
 					// Let the handlers and cues kick in
 					if (output is EmbedPassage)
 					{
-						CuesInvoke(CuesGet(output.Name, "Enter"));
+						CuesInvoke(CuesGet(output.Name, CueType.Enter));
 						UpdateCuesRefresh();
 					}
 
 					// Send output
 					OutputSend(output);
-					CuesInvoke(CuesFind("Output"), output);
+					CuesInvoke(CuesFind(CueType.Output), output);
 				}
 
 				// Story was paused, wait for it to resume
@@ -362,7 +373,7 @@ namespace Cradle
 				_lastThreadResult = ThreadResult.Aborted;
 				_passageWaitingToEnter = aborted.GoToPassage;
 
-				CuesInvoke(CuesFind("Aborted"));
+				CuesInvoke(CuesFind(CueType.Aborted));
 
 				if (aborted.GoToPassage != null && this.State != StoryState.Paused)
 					Enter(aborted.GoToPassage);
@@ -381,9 +392,9 @@ namespace Cradle
 
 				// Invoke the done cue - either for main or for a link
 				if (CurrentLinkInAction == null)
-					CuesInvoke(CuesFind("Done"));
+					CuesInvoke(CuesFind(CueType.Done));
 				else
-					CuesInvoke(CuesFind("Done", CurrentLinkInAction.Name));
+					CuesInvoke(CuesFind(CueType.Link, CurrentLinkInAction.Name));
 			}
 
 			CurrentLinkInAction = null;
@@ -656,7 +667,7 @@ namespace Cradle
 		void UpdateCuesRefresh()
 		{
 			// Get update cues for calling during update
-			_passageUpdateCues = CuesFind("Update", reverse: false, allowCoroutines: false).ToArray();
+			_passageUpdateCues = CuesFind(CueType.Update, reverse: false, allowCoroutines: false).ToArray();
 		}
 
 		void CuesInvoke(IEnumerable<Cue> cues, params object[] args)
@@ -678,10 +689,10 @@ namespace Cradle
 		}
 
 
-		IEnumerable<Cue> CuesFind(string cueName, string linkName = null, bool reverse = false, bool allowCoroutines = true)
+		IEnumerable<Cue> CuesFind(CueType cueType, string linkName = null, bool reverse = false, bool allowCoroutines = true)
 		{
 			// Get main passage's cues
-			List<Cue> mainCues = CuesGet(this.CurrentPassageName, cueName, linkName, allowCoroutines);
+			List<Cue> mainCues = CuesGet(this.CurrentPassageName, cueType, linkName, allowCoroutines);
 
 			// Return them here only if not reversing
 			if (!reverse && mainCues != null)
@@ -704,7 +715,7 @@ namespace Cradle
 				if (passageEmbed == null)
 					continue;
 
-				List<Cue> cues = CuesGet(passageEmbed.Name, cueName, linkName, allowCoroutines);
+				List<Cue> cues = CuesGet(passageEmbed.Name, cueType, linkName, allowCoroutines);
 				if (cues != null)
 				{
 					for (int h = 0; h < cues.Count; h++)
@@ -763,8 +774,10 @@ namespace Cradle
 			return _cueTargets;
 		}
 
-		List<Cue> CuesGet(string passageName, string cueName, string linkName = null, bool allowCoroutines = true)
+		List<Cue> CuesGet(string passageName, CueType cueType, string linkName = null, bool allowCoroutines = true)
 		{
+			string cueName = cueType.ToString();
+
 			string methodName = passageName + "_" + (linkName != null ? linkName + "_" : null) + cueName;
 
 			List<Cue> cues = null;
@@ -783,7 +796,7 @@ namespace Cradle
 					methodsFound.AddRange(targetType.GetMethods(_cueMethodFlags)
 						.Where(m => m.GetCustomAttributes(typeof(StoryCueAttribute), true)
 							.Cast<StoryCueAttribute>()
-							.Where(attr => attr.PassageName == passageName && attr.LinkName == linkName && attr.CueName == cueName)
+							.Where(attr => attr.PassageName == passageName && attr.LinkName == linkName && attr.Cue == cueType)
 							.Count() > 0
 						));
 
