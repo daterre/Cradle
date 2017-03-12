@@ -24,8 +24,7 @@ namespace Cradle
 		Update,
 		Output,
 		Aborted,
-		Done,
-		Link
+		Done
 	}
 
     public abstract class Story: MonoBehaviour
@@ -36,6 +35,7 @@ namespace Cradle
 
 		public event Action<StoryPassage> OnPassageEnter;
 		public event Action<StoryPassage> OnPassageDone;
+		public event Action<StoryPassage> OnPassageExit;
 		public event Action<StoryState> OnStateChanged;
 		public event Action<StoryOutput> OnOutput;
 		public event Action<StoryOutput> OnOutputRemoved;
@@ -198,6 +198,9 @@ namespace Cradle
 			{
 				this.State = StoryState.Exiting;
 
+				if (this.OnPassageExit != null)
+					this.OnPassageExit(GetPassage(this.CurrentPassageName));
+
 				// invoke exit cues
 				CuesInvoke(CuesFind(CueType.Exit, reverse: true));
 			}
@@ -331,7 +334,7 @@ namespace Cradle
 			while (_currentThread.MoveNext())
 			{
 				StoryOutput output = _currentThread.Current;
-				
+
 				// If output is not null, process it. Otherwise, just check if story was paused and continue
 				if (output != null)
 				{
@@ -366,7 +369,7 @@ namespace Cradle
 
 			_currentThread.Dispose();
 			_currentThread = null;
-
+			
 			// Return the appropriate result
 			if (aborted != null)
 			{
@@ -374,6 +377,7 @@ namespace Cradle
 				_passageWaitingToEnter = aborted.GoToPassage;
 
 				CuesInvoke(CuesFind(CueType.Aborted));
+				CurrentLinkInAction = null;
 
 				if (aborted.GoToPassage != null && this.State != StoryState.Paused)
 					Enter(aborted.GoToPassage);
@@ -392,12 +396,26 @@ namespace Cradle
 
 				// Invoke the done cue - either for main or for a link
 				if (CurrentLinkInAction == null)
+				{
 					CuesInvoke(CuesFind(CueType.Done));
+				}
 				else
-					CuesInvoke(CuesFind(CueType.Link, CurrentLinkInAction.Name));
+				{
+					CuesInvoke(CuesFind(CueType.Done, CurrentLinkInAction.Name));
+
+					string linkToPassage = CurrentLinkInAction.PassageName;
+					CurrentLinkInAction = null;
+
+					// Now that the link is done, go to its passage
+					if (linkToPassage != null)
+					{
+						NumberOfLinksDone++;
+						GoTo(linkToPassage);
+					}
+				}
 			}
 
-			CurrentLinkInAction = null;
+			
 		}
 
 		/// <summary>
@@ -580,31 +598,22 @@ namespace Cradle
 					);
 			}
 
-			// Process the link action before continuing
-			if (link.Action != null)
-			{
-				CurrentLinkInAction = link;
+			CurrentLinkInAction = link;
+			
+			// Action might invoke a fragment method, in which case we need to process it with cues etc.
+			IStoryThread linkActionThread = (link.Action ?? EmptyLinkAction).Invoke();
+			
+			// Prepare the fragment thread enumerator
+			_currentThread = CollapseThread(linkActionThread).GetEnumerator();
 
-				// Action might invoke a fragment method, in which case we need to process it with cues etc.
-				IStoryThread linkActionThread = link.Action.Invoke();
-				if (linkActionThread != null)
-				{
-					// Prepare the fragment thread enumerator
-					_currentThread = CollapseThread(linkActionThread).GetEnumerator();
+			// Resume story, this time with the actoin thread
+			this.State = StoryState.Playing;
 
-					// Resume story, this time with the actoin thread
-					this.State = StoryState.Playing;
+			// Invoke a link enter cue
+			CuesInvoke(CuesFind(CueType.Enter, CurrentLinkInAction.Name));
 
-					ExecuteCurrentThread();
-				}
-			}
-
-			// Continue to the link passage only if a fragment thread (opened by the action) isn't in progress
-			if (link.PassageName != null && _lastThreadResult == ThreadResult.Done)
-			{
-				NumberOfLinksDone++;
-				GoTo(link.PassageName);
-			}
+			if (this.State == StoryState.Playing)
+				ExecuteCurrentThread();
 		}
 
 		public void DoLink(int linkIndex)
@@ -651,6 +660,11 @@ namespace Cradle
 		public void Advance(string linkName)
 		{
 			DoLink(linkName);
+		}
+
+		IStoryThread EmptyLinkAction()
+		{
+			yield break;
 		}
 
 		// ---------------------------------
