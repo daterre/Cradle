@@ -75,7 +75,7 @@ namespace Cradle
 		{
 			InProgress = 0,
 			Done = 1,
-			Aborted = 2
+			//Aborted = 2
 		}
 
 		public Story()
@@ -203,6 +203,9 @@ namespace Cradle
 
 				// invoke exit cues
 				CuesInvoke(CuesFind(CueType.Exit, reverse: true));
+
+				// Add the passage only now that we're leaving it
+				PassageHistory.Add(CurrentPassageName);
 			}
 
 			if (this.State != StoryState.Paused)
@@ -300,8 +303,6 @@ namespace Cradle
 			this.Tags = (string[])passage.Tags.Clone();
 			this.CurrentPassageName = passage.Name;
 
-            PassageHistory.Add(passageName);
-
 			// Prepare the thread enumerator
 			_currentThread = CollapseThread(GetPassageThread(passage).Invoke()).GetEnumerator();
 			CurrentLinkInAction = null;
@@ -369,53 +370,36 @@ namespace Cradle
 
 			_currentThread.Dispose();
 			_currentThread = null;
+			_lastThreadResult = ThreadResult.Done;
+
 			
-			// Return the appropriate result
-			if (aborted != null)
+			this.State = StoryState.Idle;
+
+			// Next passage, if any, will either be a goto or a link
+			string goToPassage =
+				aborted != null ? aborted.GoToPassage :
+				CurrentLinkInAction != null ? CurrentLinkInAction.PassageName :
+				null;
+
+			// Invoke the general passage enter event
+			if (this.OnPassageDone != null)
+				this.OnPassageDone(GetPassage(this.CurrentPassageName));
+
+			// Invoke the done cue - either for main or for a link
+			if (CurrentLinkInAction == null)
 			{
-				_lastThreadResult = ThreadResult.Aborted;
-				_passageWaitingToEnter = aborted.GoToPassage;
-
-				CuesInvoke(CuesFind(CueType.Aborted));
-				CurrentLinkInAction = null;
-
-				if (aborted.GoToPassage != null && this.State != StoryState.Paused)
-					Enter(aborted.GoToPassage);
-				else
-					this.State = StoryState.Idle;
+				CuesInvoke(CuesFind(CueType.Done));
 			}
 			else
 			{
-				_lastThreadResult = ThreadResult.Done;
-
-				this.State = StoryState.Idle;
-
-				// Invoke the general passage enter event
-				if (this.OnPassageDone != null)
-					this.OnPassageDone(GetPassage(this.CurrentPassageName));
-
-				// Invoke the done cue - either for main or for a link
-				if (CurrentLinkInAction == null)
-				{
-					CuesInvoke(CuesFind(CueType.Done));
-				}
-				else
-				{
-					CuesInvoke(CuesFind(CueType.Done, CurrentLinkInAction.Name));
-
-					string linkToPassage = CurrentLinkInAction.PassageName;
-					CurrentLinkInAction = null;
-
-					// Now that the link is done, go to its passage
-					if (linkToPassage != null)
-					{
-						NumberOfLinksDone++;
-						GoTo(linkToPassage);
-					}
-				}
+				CuesInvoke(CuesFind(CueType.Done, CurrentLinkInAction.Name));
+				CurrentLinkInAction = null;
+				NumberOfLinksDone++;
 			}
 
-			
+			// Now that the link is done, go to its passage
+			if (goToPassage != null)
+				GoTo(goToPassage);
 		}
 
 		/// <summary>
@@ -529,7 +513,7 @@ namespace Cradle
 
 		public bool IsFirstVisitToPassage
 		{
-			get { return PassageHistory.Count(p => p == this.CurrentPassageName) == 1; }
+			get { return PassageHistory.Count(p => p == this.CurrentPassageName) == 0; }
 		}
 
 		// ---------------------------------

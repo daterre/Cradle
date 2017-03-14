@@ -10,7 +10,7 @@ namespace Cradle.StoryFormats.Sugar
 	{
 		protected override Func<IStoryThread> GetPassageThread(StoryPassage passage)
 		{
-			return () => GetPassageThreadWithHeaderAndFooter(passage.MainThread, this.PassageHistory.Count == 1);
+			return () => GetPassageThreadWithHeaderAndFooter(passage.MainThread, this.PassageHistory.Count == 0);
 		}
 
 		IStoryThread GetPassageThreadWithHeaderAndFooter(Func<IStoryThread> mainThread, bool startup)
@@ -59,7 +59,7 @@ namespace Cradle.StoryFormats.Sugar
 
 		protected string previous()
 		{
-			return this.PassageHistory.Count < 2 ? null : this.PassageHistory[this.PassageHistory.Count-2];
+			return this.PassageHistory.Count < 1 ? null : this.PassageHistory[this.PassageHistory.Count-1];
 		}
 
 		protected StoryVar visited(params string[] passageNames)
@@ -72,6 +72,8 @@ namespace Cradle.StoryFormats.Sugar
 			{
 				string passage = passageNames[i];
                 int count = PassageHistory.Where(p => p == passage).Count();
+				if (passage == this.CurrentPassageName)
+					count++;
 				if (count < min)
 					min = count;
 			}
@@ -92,6 +94,8 @@ namespace Cradle.StoryFormats.Sugar
 			{
 				string tag = tags[i];
                 int count = PassageHistory.Where(p => Passages[p].Tags.Contains(tag)).Count();
+				if (Passages[this.CurrentPassageName].Tags.Contains(tag))
+					count++;
 				if (count < min)
 					min = count;
 			}
