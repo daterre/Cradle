@@ -54,7 +54,7 @@ namespace Cradle.StoryFormats.Sugar
 
 		protected string passage()
 		{
-			return this.CurrentPassageName;
+			return this.CurrentPassage.Name;
 		}
 
 		protected string previous()
@@ -65,14 +65,14 @@ namespace Cradle.StoryFormats.Sugar
 		protected StoryVar visited(params string[] passageNames)
 		{
 			if (passageNames == null || passageNames.Length == 0)
-				passageNames = new string[] { this.CurrentPassageName };
+				passageNames = new string[] { this.CurrentPassage.Name };
 
 			int min = int.MaxValue;
 			for (int i = 0; i < passageNames.Length; i++)
 			{
 				string passage = passageNames[i];
                 int count = PassageHistory.Where(p => p == passage).Count();
-				if (passage == this.CurrentPassageName)
+				if (passage == this.CurrentPassage.Name)
 					count++;
 				if (count < min)
 					min = count;
@@ -94,7 +94,7 @@ namespace Cradle.StoryFormats.Sugar
 			{
 				string tag = tags[i];
                 int count = PassageHistory.Where(p => Passages[p].Tags.Contains(tag)).Count();
-				if (Passages[this.CurrentPassageName].Tags.Contains(tag))
+				if (CurrentPassage.Tags.Contains(tag))
 					count++;
 				if (count < min)
 					min = count;
@@ -113,7 +113,7 @@ namespace Cradle.StoryFormats.Sugar
 
 		protected string[] tags()
 		{
-			return this.Tags;
+			return this.CurrentPassage.Tags;
 		}
 
 		protected int time()

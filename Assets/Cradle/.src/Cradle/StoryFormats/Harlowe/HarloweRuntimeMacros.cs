@@ -189,7 +189,7 @@ namespace Cradle.StoryFormats.Harlowe
             return new HarloweArray(Story.PassageHistory.Select(passageName => new StoryVar(passageName)));
         }
 
-		 [RuntimeMacro]
+		[RuntimeMacro]
         public StoryVar passage(string passageName)
         {
             StoryPassage passage;
@@ -197,7 +197,7 @@ namespace Cradle.StoryFormats.Harlowe
                 return default(StoryVar);
             else
                 return new HarloweDatamap(
-                    "source", "UnityTwine can't show the source of the passage.",
+                    "source", "Cradle can't show the source of the passage.",
                     "name", passageName,
                     "tags", sorted(passage.Tags)
                 );

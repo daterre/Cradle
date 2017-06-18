@@ -42,14 +42,13 @@ namespace Cradle
 		
         public Dictionary<string, StoryPassage> Passages { get; private set; }
 		public List<StoryOutput> Output { get; private set; }
-		public string[] Tags { get; private set; }
 		public RuntimeVars Vars { get; protected set; }
-		public string CurrentPassageName { get; private set; }
+		public StoryPassage CurrentPassage { get; private set; }
 		public StoryLink CurrentLinkInAction { get; private set; }
 		public int NumberOfLinksDone { get; private set; }
         public List<string> PassageHistory {get; private set; }
 		public float PassageTime { get { return _timeAccumulated + (Time.time - _timeChangedToPlay); } }
-		public StorySaveData SaveData { get; private set; }
+		//public StorySaveData SaveData { get; private set; }
 
 		StoryState _state = StoryState.Idle;
 		IEnumerator<StoryOutput> _currentThread = null;
@@ -64,6 +63,12 @@ namespace Cradle
 		Stack<OutputGroup> _groupStack = new Stack<OutputGroup>();
 
 		protected Stack<int> InsertStack = new Stack<int>();
+
+		[Obsolete("Use Story.CurrentPassage.Name instead")]
+		public string CurrentPassageName { get { return CurrentPassage.Name; } }
+
+		[Obsolete("Use Story.CurrentPassage.Tags instead")]
+		public string[] Tags { get { return CurrentPassage.Tags; } }
 
 		private class Cue
 		{
@@ -94,13 +99,12 @@ namespace Cradle
 		{
 			_state = StoryState.Idle;
 			this.Output = new List<StoryOutput>();
-			this.Tags = new string[0];
 
 			NumberOfLinksDone = 0;
 			PassageHistory.Clear();
 			InsertStack.Clear();
 			
-			CurrentPassageName = null;
+			CurrentPassage = null;
 		}
 
 		void Start()
@@ -136,12 +140,14 @@ namespace Cradle
 			this.Init();
 		}
 
+		/*
+		// Requires further testing
 		protected virtual StorySaveData Save()
 		{
 			var saveData = new StorySaveData()
 			{
 				PassageHistory = this.PassageHistory.ToList(),
-				PassageToResume = this.CurrentPassageName,
+				PassageToResume = this.CurrentPassage.Name,
 				Variables = new Dictionary<string, StoryVar>()
 			};
 
@@ -163,6 +169,7 @@ namespace Cradle
 
 			this.GoTo(saveData.PassageToResume);
 		}
+		*/
 
 		/// <summary>
 		/// Begins the story by calling GoTo(StartPassage).
@@ -194,18 +201,18 @@ namespace Cradle
 			// Indicate specified passage as next
 			_passageWaitingToEnter = passageName;
 
-			if (CurrentPassageName != null)
+			if (CurrentPassage != null)
 			{
 				this.State = StoryState.Exiting;
 
 				if (this.OnPassageExit != null)
-					this.OnPassageExit(GetPassage(this.CurrentPassageName));
+					this.OnPassageExit(this.CurrentPassage);
 
 				// invoke exit cues
 				CuesInvoke(CuesFind(CueType.Exit, reverse: true));
 
 				// Add the passage only now that we're leaving it
-				PassageHistory.Add(CurrentPassageName);
+				PassageHistory.Add(CurrentPassage.Name);
 			}
 
 			if (this.State != StoryState.Paused)
@@ -254,7 +261,7 @@ namespace Cradle
 				// The passage enter cue hasn't been invoked yet, probably because of a Pause() call in an OnPassageEnter event.
 				if (!_passageEnterCueInvoked)
 				{
-					CuesInvoke(CuesGet(this.CurrentPassageName, CueType.Enter));
+					CuesInvoke(CuesGet(this.CurrentPassage.Name, CueType.Enter));
 					_passageEnterCueInvoked = true;
 				}
 
@@ -287,7 +294,7 @@ namespace Cradle
 
 		void Enter(string passageName)
 		{
-			this.SaveData = this.Save();
+			//this.SaveData = this.Save();
 
 			_passageWaitingToEnter = null;
 			_passageEnterCueInvoked = false;
@@ -300,8 +307,7 @@ namespace Cradle
 			_passageUpdateCues = null;
 
 			StoryPassage passage = GetPassage(passageName);
-			this.Tags = (string[])passage.Tags.Clone();
-			this.CurrentPassageName = passage.Name;
+			this.CurrentPassage = passage;
 
 			// Prepare the thread enumerator
 			_currentThread = CollapseThread(GetPassageThread(passage).Invoke()).GetEnumerator();
@@ -383,7 +389,7 @@ namespace Cradle
 
 			// Invoke the general passage enter event
 			if (this.OnPassageDone != null)
-				this.OnPassageDone(GetPassage(this.CurrentPassageName));
+				this.OnPassageDone(this.CurrentPassage);
 
 			// Invoke the done cue - either for main or for a link
 			if (CurrentLinkInAction == null)
@@ -513,7 +519,7 @@ namespace Cradle
 
 		public bool IsFirstVisitToPassage
 		{
-			get { return PassageHistory.Count(p => p == this.CurrentPassageName) == 0; }
+			get { return PassageHistory.Count(p => p == this.CurrentPassage.Name) == 0; }
 		}
 
 		// ---------------------------------
@@ -623,7 +629,7 @@ namespace Cradle
 				.FirstOrDefault();
 
 			if (link == null && throwException)
-				throw new StoryException(string.Format("There is no available link with the name '{0}' in the passage '{1}'.", linkName, this.CurrentPassageName));
+				throw new StoryException(string.Format("There is no available link with the name '{0}' in the passage '{1}'.", linkName, this.CurrentPassage.Name));
 
 			return link;
 		}
@@ -690,7 +696,7 @@ namespace Cradle
 		IEnumerable<Cue> CuesFind(CueType cueType, string linkName = null, bool reverse = false, bool allowCoroutines = true)
 		{
 			// Get main passage's cues
-			List<Cue> mainCues = CuesGet(this.CurrentPassageName, cueType, linkName, allowCoroutines);
+			List<Cue> mainCues = CuesGet(this.CurrentPassage.Name, cueType, linkName, allowCoroutines);
 
 			// Return them here only if not reversing
 			if (!reverse && mainCues != null)
@@ -920,11 +926,11 @@ namespace Cradle
 		}
 	}
 
-	[Serializable]
-	public class StorySaveData
-	{
-		public string PassageToResume;
-		public List<string> PassageHistory;
-		public Dictionary<string, StoryVar> Variables;
-	}
+	//[Serializable]
+	//public class StorySaveData
+	//{
+	//	public string PassageToResume;
+	//	public List<string> PassageHistory;
+	//	public Dictionary<string, StoryVar> Variables;
+	//}
 }
