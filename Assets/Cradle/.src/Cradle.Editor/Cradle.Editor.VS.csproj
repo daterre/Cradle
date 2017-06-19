@@ -110,7 +110,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cradle\Cradle.VS.csproj">
       <Project>{37c652fc-470e-412b-a63d-452a216e0066}</Project>
-      <Name>Cradle</Name>
+      <Name>Cradle.VS</Name>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>

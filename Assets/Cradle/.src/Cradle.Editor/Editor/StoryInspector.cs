@@ -19,7 +19,7 @@ public class StoryInspector : Editor
 		EditorGUILayout.Separator();
 
 		EditorGUILayout.LabelField("Story State", story.State.ToString());
-		EditorGUILayout.LabelField("Current Passage", story.CurrentPassageName);
+		EditorGUILayout.LabelField("Current Passage", story.CurrentPassage == null ? "(none)" : story.CurrentPassage.Name);
 
 		EditorGUILayout.Separator();
 
