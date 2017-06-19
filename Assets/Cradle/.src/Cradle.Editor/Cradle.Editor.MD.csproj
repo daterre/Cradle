@@ -106,6 +106,7 @@
     <Compile Include="Editor\PassageData.cs" />
     <Compile Include="Editor\StoryInspector.cs" />
     <Compile Include="Editor\Utils\CodeGenUtils.cs" />
+    <Compile Include="Editor\Utils\EditorFileUtil.cs" />
     <Compile Include="Editor\Utils\PhantomJS.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

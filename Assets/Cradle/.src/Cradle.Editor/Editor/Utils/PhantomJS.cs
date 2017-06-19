@@ -22,14 +22,14 @@ namespace Cradle.Editor.Utils
 			if (phantomExecutable == null)
 				throw new NotSupportedException("Editor platform not supported.");
 
-			string binPath = FindFile(phantomExecutable);
+			string binPath = EditorFileUtil.FindFile(phantomExecutable);
 
 			// Get the location of the phantom script
 			const string phantomJs = "phantom.js_";
-			string jsPath = FindFile(phantomJs, true);
+			string jsPath = EditorFileUtil.FindFile(phantomJs, true);
 
 			// Get the location of the bridge script
-			string bridgePath = bridgeScriptFileName != null ? FindFile(bridgeScriptFileName) : null;
+			string bridgePath = bridgeScriptFileName != null ? EditorFileUtil.FindFile(bridgeScriptFileName) : null;
 
 			// Run the HTML in PhantomJS
 			var phantomJS = new System.Diagnostics.Process();
@@ -67,19 +67,6 @@ namespace Cradle.Editor.Utils
 				throw new StoryImportException("HTML errors detected");
 
 			return output;
-		}
-
-		public static string FindFile(string fileName, bool directoryOnly = false)
-		{
-			string[] paths = Directory.GetFiles(Application.dataPath, fileName, SearchOption.AllDirectories);
-			if (paths.Length < 1)
-				throw new StoryImportException(string.Format("Could not find the file '{0}'. Did you install Cradle correctly?", fileName));
-			
-			if (paths.Length > 1)
-				throw new StoryImportException(string.Format("Found more than one file called '{0}'. Did you install Cradle correctly?", fileName));
-
-			string file = paths[0];
-			return directoryOnly ? Path.GetDirectoryName(file) : file;
 		}
 	}
 

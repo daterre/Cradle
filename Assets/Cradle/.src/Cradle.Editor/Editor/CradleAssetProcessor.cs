@@ -1,4 +1,5 @@
-﻿using Microsoft.CSharp;
+﻿using Cradle.Editor.Utils;
+using Microsoft.CSharp;
 using Nustache.Core;
 using System;
 using System.CodeDom.Compiler;
@@ -107,7 +108,7 @@ namespace Cradle.Editor
 
 				// Get template file from this editor script's directory
 				string output = Nustache.Core.Render.FileToString(
-					Path.Combine(Application.dataPath, "Cradle/Editor/Templates/Story.template"),
+					EditorFileUtil.FindFile("Story.template"),
 					new Dictionary<string, object>()
 					{
 						{"version", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()},
