@@ -112,7 +112,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			{
 				output = PhantomJS.Run<HarloweStoryData>(
 					new System.Uri(Application.dataPath + "/../" + Importer.AssetPath).AbsoluteUri,
-					Application.dataPath + "/Cradle/Editor/js/StoryFormats/Harlowe/harlowe.bridge.js_"
+					"harlowe.bridge.js_"
 				);
 			}
 			catch(StoryImportException)
@@ -161,9 +161,13 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 					switch (token.type)
 					{
 						case "text":
-						case "tag":
 							Code.Indent();
 							GenerateText(token.text, true);
+							break;
+
+						case "tag":
+							Code.Indent();
+							GenerateHtmlTag(token.text, true);
 							break;
 
 						case "verbatim":
@@ -255,6 +259,21 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 		public void GenerateText(string text, bool isString)
 		{
 			Code.Buffer.Append("yield return text(");
+			if (isString)
+			{
+				Code.Buffer.Append("\"");
+				Code.Buffer.Append(text.Replace("\"", "\\\""));
+				Code.Buffer.Append("\"");
+			}
+			else
+				Code.Buffer.Append(text);
+
+			Code.Buffer.AppendLine(");");
+		}
+
+		public void GenerateHtmlTag(string text, bool isString)
+		{
+			Code.Buffer.Append("yield return htmlTag(");
 			if (isString)
 			{
 				Code.Buffer.Append("\"");

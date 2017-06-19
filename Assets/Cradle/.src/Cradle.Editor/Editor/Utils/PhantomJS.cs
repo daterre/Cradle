@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,27 +11,37 @@ namespace Cradle.Editor.Utils
 {
 	public static class PhantomJS
 	{
-		public static PhantomOutput<ResultT> Run<ResultT>(string url, string bridgeScriptPath = null, bool throwExOnError = true)
+		public static PhantomOutput<ResultT> Run<ResultT>(string url, string bridgeScriptFileName = null, bool throwExOnError = true)
 		{
-			string binPath =
-				Application.platform == RuntimePlatform.OSXEditor ? "/Cradle/Editor/ThirdParty/PhantomJS/bin/osx/phantomjs" :
-				Application.platform == RuntimePlatform.WindowsEditor ? "/Cradle/Editor/ThirdParty/PhantomJS/bin/win/phantomjs.exe" :
+			// Get the location of the phantom exe
+			string phantomExecutable =
+				Application.platform == RuntimePlatform.OSXEditor ? "phantomjs" :
+				Application.platform == RuntimePlatform.WindowsEditor ? "phantomjs.exe" :
 				null;
 
-			if (binPath == null)
-				throw new NotSupportedException ("Editor platform not supported.");
+			if (phantomExecutable == null)
+				throw new NotSupportedException("Editor platform not supported.");
+
+			string binPath = FindFile(phantomExecutable);
+
+			// Get the location of the phantom script
+			const string phantomJs = "phantom.js_";
+			string jsPath = FindFile(phantomJs, true);
+
+			// Get the location of the bridge script
+			string bridgePath = bridgeScriptFileName != null ? FindFile(bridgeScriptFileName) : null;
 
 			// Run the HTML in PhantomJS
 			var phantomJS = new System.Diagnostics.Process();
 			phantomJS.StartInfo.UseShellExecute = false;
 			phantomJS.StartInfo.CreateNoWindow = true;
 			phantomJS.StartInfo.RedirectStandardOutput = true;
-			phantomJS.StartInfo.WorkingDirectory = Application.dataPath + "/Cradle/Editor/js";
-			phantomJS.StartInfo.FileName = Application.dataPath + binPath;
+			phantomJS.StartInfo.WorkingDirectory = jsPath;
+			phantomJS.StartInfo.FileName = binPath;
 			phantomJS.StartInfo.Arguments = string.Format ("\"{0}\" \"{1}\"{2}",
-				"phantom.js_",
+				phantomJs,
 				url,
-				bridgeScriptPath == null ? null : string.Format(" \"{0}\"",bridgeScriptPath)
+				bridgePath == null ? null : string.Format(" \"{0}\"", bridgePath)
             );
            
             // On Mac, the phantomjs binary requires execute permissions (755), this should be set by Install.cs in the Phantom directory
@@ -56,6 +67,19 @@ namespace Cradle.Editor.Utils
 				throw new StoryImportException("HTML errors detected");
 
 			return output;
+		}
+
+		public static string FindFile(string fileName, bool directoryOnly = false)
+		{
+			string[] paths = Directory.GetFiles(Application.dataPath, fileName, SearchOption.AllDirectories);
+			if (paths.Length < 1)
+				throw new StoryImportException(string.Format("Could not find the file '{0}'. Did you install Cradle correctly?", fileName));
+			
+			if (paths.Length > 1)
+				throw new StoryImportException(string.Format("Found more than one file called '{0}'. Did you install Cradle correctly?", fileName));
+
+			string file = paths[0];
+			return directoryOnly ? Path.GetDirectoryName(file) : file;
 		}
 	}
 

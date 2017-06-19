@@ -890,6 +890,11 @@ namespace Cradle
 			return new StoryText(StoryVar.ConvertTo<string>(text.Value, strict: false));
 		}
 
+		protected HtmlTag htmlTag(StoryVar text)
+		{
+			return new HtmlTag(StoryVar.ConvertTo<string>(text.Value, strict: false));
+		}
+
 		protected LineBreak lineBreak()
 		{
 			return new LineBreak();

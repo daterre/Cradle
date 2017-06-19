@@ -338,9 +338,9 @@ public partial class @HarloweTests: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage6_Main()
 	{
-		yield return text("<mark style='color: red'>");
+		yield return htmlTag("<mark style='color: red'>");
 		yield return text("raw HTML");
-		yield return text("</mark>");
+		yield return htmlTag("</mark>");
 		yield return lineBreak();
 		macros2.pass();
 		yield break;

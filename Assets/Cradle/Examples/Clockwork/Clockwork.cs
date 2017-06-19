@@ -263,9 +263,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage2_Main()
 	{
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
+		yield return htmlTag("</div>");
 		yield return text("You finish harvesting a single-lens reflex camera into your head before standing up to look around.");
 		yield return lineBreak();
 		yield return lineBreak();
@@ -996,9 +996,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage21_Main()
 	{
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
+		yield return htmlTag("</div>");
 		yield return text("The drillworm's blood runs over your hand and instantly bonds with strands of your True self. ");
 		yield return passage("Absorb Drillworm");
 		yield return lineBreak();
@@ -1027,9 +1027,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("\"Phew\", says Mowgli. \"Let's get out of here, they rarely hunt alone.\"");
 		yield return lineBreak();
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
+		yield return htmlTag("</div>");
 		yield return lineBreak();
 		yield return link("Move on", "Move on", null);
 		yield return text(" ");
@@ -1089,9 +1089,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	IStoryThread passage24_Fragment_0()
 	{
 		yield return text("- you can see again. Mowgli looks distressed.");
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
+		yield return htmlTag("</div>");
 		yield return lineBreak();
 		Vars.zoom  = true;
 		yield return lineBreak();
@@ -1104,9 +1104,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	{
 		if(Vars.eyes == 1) {
 			yield return lineBreak();
-			yield return text("<div style=\"display: none;\">");
-			yield return text("<img src=\"!@#$\" onerror=\"$('html').addClass('blind')\" />");
-			yield return text("</div>");
+			yield return htmlTag("<div style=\"display: none;\">");
+			yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').addClass('blind')\" />");
+			yield return htmlTag("</div>");
 			yield return lineBreak();
 			yield return text("You are blind. You grab the worm protruding from your face and ");
 			if(Vars.strong) {
@@ -2244,9 +2244,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("As you walk further into the building your drillworm senses pick up a humming sensation. Machinery perhaps?");
 		yield return lineBreak();
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"YouTubeTunes.play('mgHxmAsINDk');\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"YouTubeTunes.play('mgHxmAsINDk');\" />");
+		yield return htmlTag("</div>");
 		yield return lineBreak();
 		yield return link("Your host turns around.", "Your host turns around.", null);
 		yield break;
@@ -2678,8 +2678,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return lineBreak();
 		}
 		yield return lineBreak();
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
 		yield break;
 	}
 
@@ -2937,9 +2937,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	{
 		yield return text("\"Let's go\", you say. And you both exit the building.");
 		yield return lineBreak();
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"YouTubeTunes.stop();\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"YouTubeTunes.stop();\" />");
+		yield return htmlTag("</div>");
 		yield return lineBreak();
 		yield return text("As you step outside Mowgli turns to you; \"well, this has been fun but I've really got to get back to my home. I've had enough exitement for one run.\"");
 		yield return lineBreak();
@@ -3034,9 +3034,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text(" ");
 		yield return text("pounds you to pieces with cyborg and rabid strength.");
 		yield return lineBreak();
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"$('html').addClass('blind')\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').addClass('blind')\" />");
+		yield return htmlTag("</div>");
 		yield return lineBreak();
 		yield return text("As your True self leaks across the floor you lose consciousness.");
 		yield return lineBreak();
@@ -3357,9 +3357,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("The Empire Strikes Back (film)");
 		}
 		yield return lineBreak();
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
+		yield return htmlTag("</div>");
 		yield break;
 	}
 
@@ -3396,9 +3396,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	{
 		yield return text("You see the valley in the distance.");
 		yield return lineBreak();
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"YouTubeTunes.stop();\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"YouTubeTunes.stop();\" />");
+		yield return htmlTag("</div>");
 		yield return lineBreak();
 		yield return text("\"Home\", you say. You pause - was that you? Did absorbing the human's mind as well as ");
 		yield return text(Vars.her);
@@ -3431,9 +3431,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text(Vars.her);
 		yield return text(" ");
 		yield return text("hand buried into the same hole left by your control of it. Quite a gambit for the human to attempt, and yet it paid off. You give chase but the ripples driving its body forwards throw so much debris at you.");
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"YouTubeTunes.stop();\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"YouTubeTunes.stop();\" />");
+		yield return htmlTag("</div>");
 		yield break;
 	}
 
@@ -3451,9 +3451,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		if(macros1.history() .Contains("harvest the human")) {
 			yield return text("You look upon the valley to the south.");
 			yield return lineBreak();
-			yield return text("<div style=\"display: none;\">");
-			yield return text("<img src=\"!@#$\" onerror=\"YouTubeTunes.stop();\" />");
-			yield return text("</div>");
+			yield return htmlTag("<div style=\"display: none;\">");
+			yield return htmlTag("<img src=\"!@#$\" onerror=\"YouTubeTunes.stop();\" />");
+			yield return htmlTag("</div>");
 			yield return lineBreak();
 			yield return text("\"Home\", you say.");
 			yield return lineBreak();
@@ -3663,9 +3663,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return link("Begin.", "Lights out", null);
 		yield return lineBreak();
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
+		yield return htmlTag("</div>");
 		yield break;
 	}
 
@@ -3680,9 +3680,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage81_Main()
 	{
-		yield return text("<div style=\"display: none;\">");
-		yield return text("<img src=\"!@#$\" onerror=\"YouTubeTunes.stop();$('html').addClass('blind')\" />");
-		yield return text("</div>");
+		yield return htmlTag("<div style=\"display: none;\">");
+		yield return htmlTag("<img src=\"!@#$\" onerror=\"YouTubeTunes.stop();$('html').addClass('blind')\" />");
+		yield return htmlTag("</div>");
 		yield return new HarloweLive(1000/1000f, passage81_Fragment_0);
 		yield break;
 	}
