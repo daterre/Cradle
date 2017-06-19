@@ -110,7 +110,6 @@ namespace Cradle.Editor
 					Path.Combine(Application.dataPath, "Cradle/Editor/Templates/Story.template"),
 					new Dictionary<string, object>()
 					{
-						{"timestamp", DateTime.Now.ToString("G")},
 						{"version", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()},
 						{"originalFile", Path.GetFileName(assetPath)},
 						{"storyFormatName", storyFormatMetadata.StoryFormatName},

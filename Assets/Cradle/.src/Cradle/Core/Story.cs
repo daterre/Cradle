@@ -31,7 +31,7 @@ namespace Cradle
     {
 		public bool AutoPlay = true;
         public string StartPassage = "Start";
-		public GameObject[] AdditionalCues;
+		public List<GameObject> AdditionalCues;
 
 		public event Action<StoryPassage> OnPassageEnter;
 		public event Action<StoryPassage> OnPassageDone;
@@ -760,7 +760,7 @@ namespace Cradle
 				GameObject[] cueTargets;
 				if (this.AdditionalCues != null)
 				{
-					cueTargets = new GameObject[this.AdditionalCues.Length + 1];
+					cueTargets = new GameObject[this.AdditionalCues.Count + 1];
 					cueTargets[0] = this.gameObject;
 					this.AdditionalCues.CopyTo(cueTargets, 1);
 				}

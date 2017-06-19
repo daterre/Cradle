@@ -161,6 +161,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 					switch (token.type)
 					{
 						case "text":
+						case "tag":
 							Code.Indent();
 							GenerateText(token.text, true);
 							break;

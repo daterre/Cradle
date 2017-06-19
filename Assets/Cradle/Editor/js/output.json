@@ -7174,8 +7174,16 @@
                 "Tags": "NoException",
                 "Tokens": [
                     {
+                        "text": "<mark style='color: red'>",
+                        "type": "tag"
+                    },
+                    {
                         "text": "raw HTML",
                         "type": "text"
+                    },
+                    {
+                        "text": "</mark>",
+                        "type": "tag"
                     },
                     {
                         "text": "\n",

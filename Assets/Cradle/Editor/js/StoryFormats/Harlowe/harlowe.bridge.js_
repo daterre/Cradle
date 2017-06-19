@@ -52,8 +52,6 @@
 							).children[0];
 							break;
 						}
-						case "tag":
-							continue;
 					}
 
 					simple.type = complex.type;
