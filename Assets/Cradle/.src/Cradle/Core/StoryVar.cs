@@ -230,11 +230,26 @@ namespace Cradle
 			object a = GetInnerValue(left);
 			object b = GetInnerValue(right);
 
-			IVarTypeService service;
+			if (a != null || b != null)
+			{
+				IVarTypeService service;
+				if (a == null && b != null)
+				{
+					// Handle uninitialized left operand - use the right operand's type to convert (fix for issue #39)
+					object aConverted;
+					if (
+						_typeServices.TryGetValue(b.GetType(), out service) &&
+						service.ConvertFrom(a, out aConverted, StoryVar.StrictMode) &&
+						service.Combine(op, aConverted, b, out result)
+					)
+						return true;
+				}
+				// Handle other combinations
+				else if (a != null && _typeServices.TryGetValue(a.GetType(), out service) && service.Combine(op, a, b, out result))
+					return true;
+			}
 
-			if (a != null && _typeServices.TryGetValue(a.GetType(), out service) && service.Combine(op, a, b, out result))
-				return true;
-
+			// No type service managed to covert so try the var type method directly, if available
 			if (a is IVarType)
 			{
 				if ((a as IVarType).Combine(op, b, out result))

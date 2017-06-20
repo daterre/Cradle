@@ -320,8 +320,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("Looking over the ridge you see a human form wearing a back pack with bits of junk sticking out and a rifle hooked under its right arm. It is wearing a jumpsuit with numerous pockets and a circular logo on the shoulder. Occasionally it will pick items out of the trash to stow in the pockets.");
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("hook", "h00369"))
-			yield return link("You sneak up behind it.", null, () => enchantHook("h00369", HarloweEnchantCommand.Replace, passage4_Fragment_0));
+		using (Group("hook", "h00001"))
+			yield return link("You sneak up behind it.", null, () => enchantHook("h00001", HarloweEnchantCommand.Replace, passage4_Fragment_0));
 		yield break;
 	}
 
@@ -846,8 +846,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("The drillworm rears up, it is coiling to leap towards you.");
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("hook", "h00513"))
-			yield return link("You shoot.", null, () => enchantHook("h00513", HarloweEnchantCommand.Replace, passage17_Fragment_0));
+		using (Group("hook", "h00002"))
+			yield return link("You shoot.", null, () => enchantHook("h00002", HarloweEnchantCommand.Replace, passage17_Fragment_0));
 		yield break;
 	}
 
@@ -1707,8 +1707,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text(".");
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("hook", "h01272"))
-			yield return link("You could also...", null, () => enchantHook("h01272", HarloweEnchantCommand.Replace, passage36_Fragment_0));
+		using (Group("hook", "h00003"))
+			yield return link("You could also...", null, () => enchantHook("h00003", HarloweEnchantCommand.Replace, passage36_Fragment_0));
 		yield break;
 	}
 
@@ -2210,8 +2210,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	IStoryThread passage50_Main()
 	{
 		yield return text("As you enter the building you hear the music that was being broadcast earlier.  You look around at what appears to be a museum of struct natural history. Here and there must also be artifacts of human civilisation. On one table you see a drillworm exploded in autopsy, on another are trinkets of a human: clothes, a rifle, a backpack spilling ");
-		using (Group("hook", "h00367"))
-			yield return link("finds", null, () => enchantHook("h00367", HarloweEnchantCommand.Replace, passage50_Fragment_0));
+		using (Group("hook", "h00004"))
+			yield return link("finds", null, () => enchantHook("h00004", HarloweEnchantCommand.Replace, passage50_Fragment_0));
 		yield return text(" ");
 		yield return text("on to the surface. You see another table with parts of a struct you haven't seen yet - four propellors sit atop a frame, a shattered camera assembly next to it.");
 		if(Vars.rifle == "mine") {
@@ -3018,8 +3018,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text(Vars.She);
 		yield return text(" ");
 		yield return text("turns around to you with bloodshot eyes and foaming spittle before grabbing your head and ");
-		using (Group("hook", "h01703"))
-			yield return link("wrenching it off.", null, () => enchantHook("h01703", HarloweEnchantCommand.Replace, passage64_Fragment_0));
+		using (Group("hook", "h00005"))
+			yield return link("wrenching it off.", null, () => enchantHook("h00005", HarloweEnchantCommand.Replace, passage64_Fragment_0));
 		yield break;
 	}
 

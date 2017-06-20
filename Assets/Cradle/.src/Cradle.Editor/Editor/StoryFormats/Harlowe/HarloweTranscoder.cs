@@ -22,6 +22,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 		PassageCode _output;
 		string _lastVariable;
 		internal int StyleCounter;
+		internal int AnonymousHookCounter = 0;
 
 		static HarloweTranscoder()
 		{

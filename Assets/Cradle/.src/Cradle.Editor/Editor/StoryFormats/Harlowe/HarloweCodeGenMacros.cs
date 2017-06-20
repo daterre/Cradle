@@ -137,9 +137,8 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				if (usage != MacroUsage.LineAndHook)
 					throw new StoryFormatTranscodeException(string.Format("'{0}' macro must be followed by a Harlowe-hook", linkToken.name));
 
-				// Hook name is based on line number to avoid the same story creating a different .cs file on re-import
-				// (a pain in team collaboration)
-				hookName = "h" + transcoder.Code.Buffer.Length.ToString("00000");
+				// Name hooks in sequential order to preserve names across imports
+				hookName = "h" + (++transcoder.AnonymousHookCounter).ToString("00000");
 
 				if (linkType != LinkType.LinkRepeat)
 				{

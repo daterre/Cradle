@@ -25,6 +25,7 @@ public partial class @HarloweTests: Cradle.StoryFormats.Harlowe.HarloweStory
 		public VarDefs()
 		{
 			VarDef("str", () => this.@str, val => this.@str = val);
+			VarDef("unknown", () => this.@unknown, val => this.@unknown = val);
 			VarDef("b", () => this.@b, val => this.@b = val);
 			VarDef("b2", () => this.@b2, val => this.@b2 = val);
 			VarDef("int", () => this.@int, val => this.@int = val);
@@ -37,6 +38,7 @@ public partial class @HarloweTests: Cradle.StoryFormats.Harlowe.HarloweStory
 		}
 
 		public StoryVar @str;
+		public StoryVar @unknown;
 		public StoryVar @b;
 		public StoryVar @b2;
 		public StoryVar @int;
@@ -148,6 +150,8 @@ public partial class @HarloweTests: Cradle.StoryFormats.Harlowe.HarloweStory
 		macros2.assert(v("1st").AsMemberOf[("YO")] == "Y", "reverse position fwd");
 		macros2.assert(v("last").AsMemberOf[("YO")] == "O", "reverse position bkwd");
 		macros2.assert( v(2) .AsMemberOf[("PS")] == "S", "numeric index");
+		Vars.unknown  = Vars.unknown + "init";
+		macros2.assert(Vars.unknown == "init", "uninitialized var manipulation");
 		macros2.assert(macros1.substring("cheese", 2, 4) == "hee", "macro substring");
 		macros2.assert(macros1.text(4*80) == "320", "text macro");
 		macros2.pass();
@@ -230,6 +234,8 @@ public partial class @HarloweTests: Cradle.StoryFormats.Harlowe.HarloweStory
 		macros2.assert(Vars.dec < 3, "decimal less than (left)");
 		macros2.assert(2 <= Vars.dec, "decimal less than or equal (right)");
 		macros2.assert(Vars.dec <= 3, "decimal less than or equal (left)");
+		Vars.unknown  = Vars.unknown + 1;
+		macros2.assert(Vars.unknown == 1, "uninitialized var manipulation");
 		macros2.assert(macros1.ceil(3.1) == 4, "macro: ceil");
 		macros2.assert(macros1.floor(-3.1) == -4, "macro: floor");
 		macros2.assert(macros1.num("2"+"5") == 25, "macro: num");
@@ -603,8 +609,8 @@ public partial class @HarloweTests: Cradle.StoryFormats.Harlowe.HarloweStory
 		macros2.assertLink("Link left", "Result");
 		yield return link("Link-goto macro", "Result", null);
 		macros2.assertLink("Link-goto macro", "Result");
-		using (Group("hook", "h00500"))
-			yield return link("Link macro", null, () => enchantHook("h00500", HarloweEnchantCommand.Replace, passage16_Fragment_0));
+		using (Group("hook", "h00001"))
+			yield return link("Link macro", null, () => enchantHook("h00001", HarloweEnchantCommand.Replace, passage16_Fragment_0));
 		macros2.assertLink("Link macro", StoryVar.Empty);
 		macros2.pass();
 		yield break;
@@ -628,21 +634,21 @@ public partial class @HarloweTests: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return link("Result", "Result", null);
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("hook", "h00100"))
-			yield return link("Click and it's gone", null, () => enchantHook("h00100", HarloweEnchantCommand.Replace, passage17_Fragment_0));
+		using (Group("hook", "h00002"))
+			yield return link("Click and it's gone", null, () => enchantHook("h00002", HarloweEnchantCommand.Replace, passage17_Fragment_0));
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("hook", "h00319"))
-			yield return link("Click and it's gone", null, () => enchantHook("h00319", HarloweEnchantCommand.Replace, passage17_Fragment_1));
+		using (Group("hook", "h00003"))
+			yield return link("Click and it's gone", null, () => enchantHook("h00003", HarloweEnchantCommand.Replace, passage17_Fragment_1));
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("hook", "h00538"))
-			yield return link("What comes next?", null, () => enchantHook("h00538", HarloweEnchantCommand.Replace, passage17_Fragment_2, linkTextPrefix: true));
+		using (Group("hook", "h00004"))
+			yield return link("What comes next?", null, () => enchantHook("h00004", HarloweEnchantCommand.Replace, passage17_Fragment_2, linkTextPrefix: true));
 		
 		yield return lineBreak();
 		yield return lineBreak();
-		yield return link("How long are you here?", null, () => enchantHook("h00778", HarloweEnchantCommand.Replace, passage17_Fragment_3));
-		using (Group("hook", "h00778")) {}
+		yield return link("How long are you here?", null, () => enchantHook("h00005", HarloweEnchantCommand.Replace, passage17_Fragment_3));
+		using (Group("hook", "h00005")) {}
 		yield break;
 	}
 
