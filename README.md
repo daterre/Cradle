@@ -14,7 +14,7 @@ programmers and artists can develop the interaction and presentation without wor
 4. Use [cues](#cues) to script story interaction, or use the included [TwineTextPlayer](#twinetextplayer).
 
 #### Examples
-[Snoozing](http://daterre.com/projects/snoozing/) is a short interactive story created with Cradle. The entire source code is [available here](Assets/Cradle/Examples) and in the Unity asset store package.
+[Snoozing](http://daterre.com/projects/snoozing/) is a short interactive story created with Cradle. The entire source code is [available here](http://github.com/daterre/Snoozing).
 
 #### Contribute
 Cradle is in active development. It is currently being used for the development of the puzzle-adventure game [Clastic Morning](http://daterre.com/works/clastic/), as well as other smaller projects. Hopefully it will be useful to anyone looking to create narrative-based games in Unity.
@@ -444,7 +444,9 @@ window.sfxStop = function() {};
 (TODO)
 
 ### Source code
-The plugin source code is available in the Assets/Cradle/.src directory on GitHub (the period prefix hides this folder from Unity). There are separate solutions for Visual Studio and MonoDevelop. To build, open the appropriate solution for your IDE and run "Build Solution" (Visual Studio) or "Build All" (MonoDevelop). The DLLs created will replace the previous DLLs in the the Cradle plugin directory.
+The plugin source code is available in the .src directory on GitHub (the period prefix hides this folder from Unity). There are separate solutions for Visual Studio and MonoDevelop. To build, open the appropriate solution for your IDE and run "Build Solution" (Visual Studio) or "Build All" (MonoDevelop). The DLLs created will replace the previous DLLs in the the Cradle plugin directory.
+
+If you make modifications to the source code, you might want to run the [Cradle test suite](http://github.com/daterre/Cradle-Testing).
 
 ### Change log
 
