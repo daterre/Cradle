@@ -1,4 +1,4 @@
-<img src='https://raw.github.com/daterre/Cradle/master/Assets/Cradle/Documentation/cradle-logo.png' width='250' alt="Cradle">
+<img src='/Documentation/cradle-logo.png?raw=true' width='250' alt="Cradle">
 
 *Twine and Twine-like stories in Unity.*
 
@@ -79,7 +79,10 @@ Twine can be an excellent interactive dialog editor, but it can do many other th
 
 ### Installation
 
-Download the latest release from the [Unity Asset Store]() or from [GitHub](https://github.com/daterre/Cradle/releases) and open the package.
+There are 2 ways to install Cradle into a Unity project:
+
+* Download the latest release from the [Unity Asset Store]() or from [GitHub](https://github.com/daterre/Cradle/releases) and open the package.
+* Using Git, clone this repository into the Assets/Cradle folder of your project (or add it to that folder as a Git submodule if your project is a Git repo itself).
 
 ### Importing a story
 The Cradle asset importer listens for any new .html or .twee files dropped into the project directory, and proceeds to import them.
