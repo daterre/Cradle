@@ -450,7 +450,7 @@ If you make modifications to the source code, you might want to run the [Cradle 
 
 ### Change log
 
-##### Version 2.0 beta 1 (unreleased)
+##### Version 2.0.1
 * Renamed the project to Cradle
 * Support for published HTML files, including Twine 2
 * Story formats: added Harlowe, improved Sugarcane/Sugarcube
@@ -460,7 +460,6 @@ If you make modifications to the source code, you might want to run the [Cradle 
 * Complete rewrite of the variable system to allow support for many different types (arrays, datasets, etc.)
 * Added support for passage fragments to allow deferred code execution and output generation (Harlowe makes extensive use of this feature)
 * Source code now compiles to standlone assemblies
-* Added unit tests, integration tests and examples to project source on GitHub
 
 ##### Version 1.1
 * First full release (though not published on Asset Store)
