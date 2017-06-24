@@ -16,6 +16,8 @@ programmers and artists can develop the interaction and presentation without wor
 #### Examples
 [Snoozing](http://daterre.com/projects/snoozing/) is a short interactive story created with Cradle. The entire source code is [available here](http://github.com/daterre/Snoozing).
 
+[Clockwork](http://robotacid.com/twine/clockwork/) by [Aaron Steed](https://twitter.com/st33d), included in the Examples folder of the plugin, is provided courtesy of the author.
+
 #### Contribute
 Cradle is in active development. It is currently being used for the development of the puzzle-adventure game [Clastic Morning](http://daterre.com/works/clastic/), as well as other smaller projects. Hopefully it will be useful to anyone looking to create narrative-based games in Unity.
 
