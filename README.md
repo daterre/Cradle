@@ -83,7 +83,7 @@ Twine can be an excellent interactive dialog editor, but it can do many other th
 
 There are 2 ways to install Cradle into a Unity project:
 
-* Download the latest release from the [Unity Asset Store]() or from [GitHub](https://github.com/daterre/Cradle/releases) and open the package.
+* Download the latest release from the [Unity Asset Store](https://www.assetstore.unity3d.com/en/#!/content/93606) or from [GitHub](https://github.com/daterre/Cradle/releases) and open the package.
 * Using Git, clone this repository into the Assets/Cradle folder of your project (or add it to that folder as a Git submodule if your project is a Git repo itself).
 
 ### Importing a story
