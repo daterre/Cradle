@@ -44,6 +44,7 @@
     <Compile Include="Core\OutputTypes\LineBreak.cs" />
     <Compile Include="Core\OutputTypes\StoryLink.cs" />
     <Compile Include="Core\OutputTypes\StoryPassage.cs" />
+    <Compile Include="Core\OutputTypes\HtmlTag.cs" />
     <Compile Include="Core\OutputTypes\StoryText.cs" />
     <Compile Include="Core\GroupScope.cs" />
     <Compile Include="Core\StoryOutput.cs" />
