@@ -29,6 +29,8 @@ namespace Cradle
 
     public abstract class Story: MonoBehaviour
     {
+		public static event Action<Story, string, StoryVar, StoryVar> OnVariableChanged;
+
 		public bool AutoPlay = true;
         public string StartPassage = "Start";
 		public List<GameObject> AdditionalCues;
@@ -39,7 +41,6 @@ namespace Cradle
 		public event Action<StoryState> OnStateChanged;
 		public event Action<StoryOutput> OnOutput;
 		public event Action<StoryOutput> OnOutputRemoved;
-		public event Action<string, StoryVar, StoryVar> OnVariableChanged;
 		
         public Dictionary<string, StoryPassage> Passages { get; private set; }
 		public List<StoryOutput> Output { get; private set; }

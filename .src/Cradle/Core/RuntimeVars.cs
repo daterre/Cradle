@@ -8,7 +8,7 @@ namespace Cradle
 {
 	public abstract class RuntimeVars: IDictionary<string, StoryVar>
 	{
-		public Story Story;
+		public Story ThisStory;
 		public bool StrictMode;
 
 		protected class Accessor
@@ -96,7 +96,7 @@ namespace Cradle
 			StoryVar newVar = new StoryVar(v);
 			accessors[varName].Set(newVar);
 
-			Story.OnVariableChanged.Invoke(varName, prevValue, newVar);
+			Story.OnVariableChanged.Invoke(ThisStory, varName, prevValue, newVar);
 		}
 
 		public int Count
