@@ -39,6 +39,7 @@ namespace Cradle
 		public event Action<StoryState> OnStateChanged;
 		public event Action<StoryOutput> OnOutput;
 		public event Action<StoryOutput> OnOutputRemoved;
+		public event Action<string, StoryVar, StoryVar> OnVariableChanged;
 		
         public Dictionary<string, StoryPassage> Passages { get; private set; }
 		public List<StoryOutput> Output { get; private set; }

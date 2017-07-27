@@ -93,7 +93,10 @@ namespace Cradle
 			}
 
 			// Run the setter
-			accessors[varName].Set(new StoryVar(v));
+			StoryVar newVar = new StoryVar(v);
+			accessors[varName].Set(newVar);
+
+			Story.OnVariableChanged.Invoke(varName, prevValue, newVar);
 		}
 
 		public int Count
