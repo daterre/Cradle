@@ -551,8 +551,10 @@ namespace Cradle
 		void GroupScopeClose(GroupScope scope)
 		{
 			scope.OnDisposed -= GroupScopeClose;
-			if (_groupStack.Pop() != scope.Group)
+			if (_groupStack.Peek() != scope.Group)
 				throw new System.Exception("Unexpected group was closed.");
+
+			_groupStack.Pop();
 		}
 
 		public OutputGroup CurrentGroup
