@@ -5,73 +5,73 @@ using System.Text;
 
 namespace Cradle
 {
-	public class StoryStyle: VarType, IDictionary<string, object>
+	public class Style: VarType, IDictionary<string, object>
 	{
 		public const string EvaluatedValContextOption = "evaluated-expression";
 
-		Dictionary<string, object> _settings = new Dictionary<string, object>();
+		Dictionary<string, object> _entries = new Dictionary<string, object>();
 
-		public StoryStyle()
+		public Style()
 		{
 		}
 
-		public StoryStyle(string name, object value)
+		public Style(string name, object value)
 		{
 			this[name] = value;
 		}
 
-		public StoryStyle(StoryVar booleanExpression)
+		public Style(StoryVar booleanExpression)
 		{
 			// When giving a single value
 			if (booleanExpression.ConvertValueTo<bool>())
 				this[EvaluatedValContextOption] = booleanExpression;
 		}
 
-		public static implicit operator StoryStyle(StoryVar styleVar)
+		public static implicit operator Style(StoryVar styleVar)
 		{
-			return styleVar.ConvertValueTo<StoryStyle>();
+			return styleVar.ConvertValueTo<Style>();
 		}
 
-		public static bool operator true(StoryStyle style)
+		public static bool operator true(Style style)
 		{
-			return style != null && style._settings.Count > 0;
+			return style != null && style._entries.Count > 0;
 		}
 
-		public static bool operator false(StoryStyle style)
+		public static bool operator false(Style style)
 		{
-			return style == null || style._settings.Count == 0;
+			return style == null || style._entries.Count == 0;
 		}
 
-		public static StoryStyle operator+(StoryStyle a, StoryStyle b)
+		public static Style operator+(Style a, Style b)
 		{
-			return StoryVar.Combine(Operator.Add, a, b).ConvertValueTo<StoryStyle>();
+			return StoryVar.Combine(Operator.Add, a, b).ConvertValueTo<Style>();
 		}
 
-		public object this[string setting]
+		public object this[string key]
 		{
 			get
 			{
 				object val = null;
-				_settings.TryGetValue(setting, out val);
+				_entries.TryGetValue(key, out val);
 				return val;
 			}
-			set { _settings[setting] = value; }
+			set { _entries[key] = value; }
 		}
 
-		public T Get<T>(string setting)
+		public T Get<T>(string key)
 		{
 			object val = null;
-			if (_settings.TryGetValue(setting, out val))
+			if (_entries.TryGetValue(key, out val))
 				return (T)val;
 			else
 				return default(T);
 		}
 
-		public StoryStyle GetCopy()
+		public Style GetCopy()
 		{
-			var copy = new StoryStyle()
+			var copy = new Style()
 			{
-				_settings = new Dictionary<string, object>(this._settings)
+				_entries = new Dictionary<string, object>(this._entries)
 			};
 
 			return copy;
@@ -89,7 +89,7 @@ namespace Cradle
 
 		public override void RemoveMember(StoryVar member)
 		{
-			_settings.Remove(member);
+			_entries.Remove(member);
 		}
 
 		public override bool Compare(Operator op, object b, out bool result)
@@ -101,12 +101,12 @@ namespace Cradle
 		public override bool Combine(Operator op, object b, out StoryVar result)
 		{
 			result = default(StoryVar);
-			if (!(b is StoryStyle) || op != Operator.Add)
+			if (!(b is Style) || op != Operator.Add)
 				return false;
-			var bStyle = (StoryStyle)b;
+			var bStyle = (Style)b;
 
 			var combined = this.GetCopy();
-			foreach (var entry in bStyle._settings)
+			foreach (var entry in bStyle._entries)
 				combined[entry.Key] = entry.Value;
 
 			result = combined;
@@ -132,77 +132,77 @@ namespace Cradle
 
 		public void Add(string key, object value)
 		{
-			_settings.Add(key, value);
+			_entries.Add(key, value);
 		}
 
 		public bool ContainsKey(string key)
 		{
-			return _settings.ContainsKey(key);
+			return _entries.ContainsKey(key);
 		}
 
 		public ICollection<string> Keys
 		{
-			get { return _settings.Keys; }
+			get { return _entries.Keys; }
 		}
 
 		public bool Remove(string key)
 		{
-			return _settings.Remove(key);
+			return _entries.Remove(key);
 		}
 
 		bool IDictionary<string, object>.TryGetValue(string key, out object value)
 		{
-			return _settings.TryGetValue(key, out value);
+			return _entries.TryGetValue(key, out value);
 		}
 
 		public ICollection<object> Values
 		{
-			get { return _settings.Values; }
+			get { return _entries.Values; }
 		}
 
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
-			return ((System.Collections.IEnumerable)_settings).GetEnumerator();
+			return ((System.Collections.IEnumerable)_entries).GetEnumerator();
 		}
 
 		void ICollection<KeyValuePair<string, object>>.Add(KeyValuePair<string, object> item)
 		{
-			((ICollection<KeyValuePair<string, object>>)_settings).Add(item);
+			((ICollection<KeyValuePair<string, object>>)_entries).Add(item);
 		}
 
 		public void Clear()
 		{
-			_settings.Clear();
+			_entries.Clear();
 		}
 
 		bool ICollection<KeyValuePair<string, object>>.Contains(KeyValuePair<string, object> item)
 		{
-			return ((ICollection<KeyValuePair<string, object>>)_settings).Contains(item);
+			return ((ICollection<KeyValuePair<string, object>>)_entries).Contains(item);
 		}
 
 		void ICollection<KeyValuePair<string, object>>.CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
 		{
-			((ICollection<KeyValuePair<string, object>>)_settings).CopyTo(array, arrayIndex);
+			((ICollection<KeyValuePair<string, object>>)_entries).CopyTo(array, arrayIndex);
 		}
 
 		public int Count
 		{
-			get { return _settings.Count; }
+			get { return _entries.Count; }
 		}
 
 		bool ICollection<KeyValuePair<string, object>>.IsReadOnly
 		{
-			get { return ((ICollection<KeyValuePair<string, object>>)_settings).IsReadOnly; }
+			get { return ((ICollection<KeyValuePair<string, object>>)_entries).IsReadOnly; }
 		}
 
 		bool ICollection<KeyValuePair<string, object>>.Remove(KeyValuePair<string, object> item)
 		{
-			return ((ICollection<KeyValuePair<string, object>>)_settings).Remove(item);
+			return ((ICollection<KeyValuePair<string, object>>)_entries).Remove(item);
 		}
 
 		IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
 		{
-			return ((IEnumerable<KeyValuePair<string, object>>)_settings).GetEnumerator();
+			return ((IEnumerable<KeyValuePair<string, object>>)_entries).GetEnumerator();
 		}
 	}
 }

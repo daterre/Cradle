@@ -8,34 +8,35 @@ namespace Cradle
 		public string Text;
 		public int Index;
 
-		public OutputGroup Group;
+		public StyleGroup StyleGroup;
 		public Embed EmbedInfo;
 
-		public bool BelongsToGroup(OutputGroup group)
+		
+		public bool BelongsToStyleGroup(StyleGroup group)
 		{
 			if (group == null)
 				throw new ArgumentNullException("group");
 
-			OutputGroup parentGroup = this.Group;
+			StyleGroup parentGroup = this.StyleGroup;
 			if (parentGroup == group)
 				return true;
 			else if (parentGroup != null)
-				return parentGroup.BelongsToGroup(group);
+				return parentGroup.BelongsToStyleGroup(group);
 			else
 				return false;
 		}
 
-		public StoryStyle GetAppliedStyle()
+		public Style GetAppliedStyle()
 		{
-			StoryStyle style = new StoryStyle();
-			OutputGroup group = this.Group;
+			Style style = new Style();
+			StyleGroup group = this.StyleGroup;
 			while (group != null)
 			{
 				foreach (var entry in group.Style)
 					if (!style.ContainsKey(entry.Key))
 						style.Add(entry.Key, entry.Value);
 
-				group = group.Group;
+				group = group.StyleGroup;
 			}
 
 			return style;

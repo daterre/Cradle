@@ -39,8 +39,8 @@ namespace Cradle
 		public event Action<StoryState> OnStateChanged;
 		public event Action<StoryOutput> OnOutput;
 		public event Action<StoryOutput> OnOutputRemoved;
-		
-        public Dictionary<string, StoryPassage> Passages { get; private set; }
+
+		public Dictionary<string, StoryPassage> Passages { get; private set; }
 		public List<StoryOutput> Output { get; private set; }
 		public RuntimeVars Vars { get; protected set; }
 		public StoryPassage CurrentPassage { get; private set; }
@@ -52,7 +52,6 @@ namespace Cradle
 
 		StoryState _state = StoryState.Idle;
 		IEnumerator<StoryOutput> _currentThread = null;
-		ThreadResult _lastThreadResult = ThreadResult.Done;
 		Cue[] _passageUpdateCues = null;
 		string _passageWaitingToEnter = null;
 		bool _passageEnterCueInvoked = false;
@@ -60,7 +59,7 @@ namespace Cradle
 		MonoBehaviour[] _cueTargets = null;
 		float _timeChangedToPlay = 0f;
 		float _timeAccumulated;
-		Stack<OutputGroup> _groupStack = new Stack<OutputGroup>();
+		Stack<StyleGroup> _styleGroupStack = new Stack<StyleGroup>();
 
 		protected Stack<int> InsertStack = new Stack<int>();
 
@@ -303,7 +302,7 @@ namespace Cradle
 
 			this.InsertStack.Clear();
 			this.Output.Clear();
-			_groupStack.Clear();
+			_styleGroupStack.Clear();
 			_passageUpdateCues = null;
 
 			StoryPassage passage = GetPassage(passageName);
@@ -369,14 +368,12 @@ namespace Cradle
 				// Story was paused, wait for it to resume
 				if (this.State == StoryState.Paused)
 				{
-					_lastThreadResult = ThreadResult.InProgress;
 					return;
 				}
 			}
 
 			_currentThread.Dispose();
 			_currentThread = null;
-			_lastThreadResult = ThreadResult.Done;
 
 			
 			this.State = StoryState.Idle;
@@ -480,8 +477,8 @@ namespace Cradle
 
 		void OutputSend(StoryOutput output, bool add = false)
 		{
-			if (_groupStack.Count > 0)
-				output.Group = _groupStack.Peek();
+			if (_styleGroupStack.Count > 0)
+				output.StyleGroup = _styleGroupStack.Peek();
 
 			if (add)
 				OutputAdd(output);
@@ -525,50 +522,50 @@ namespace Cradle
 		// ---------------------------------
 		// Grouping and style
 
-		protected GroupScope Group(string setting, object value)
+		protected StyleScope styleScope(string key, object value)
 		{
-			return Group(new StoryStyle(setting, value));
+			return styleScope(new Style(key, value));
 		}
 
-		protected GroupScope Group(StoryStyle style)
+		protected StyleScope styleScope(Style style)
 		{
-			var group = new OutputGroup(style);
+			var group = new StyleGroup(style);
 			OutputSend(group, add: true);
 
-			return Group(group);
+			return styleScope(group);
 		}
 
-		protected GroupScope Group(OutputGroup group)
+		protected StyleScope styleScope(StyleGroup styleGroup)
 		{
-			var scope = new GroupScope(group);
-			scope.OnDisposed += GroupScopeClose;
+			var scope = new StyleScope(styleGroup);
+			scope.OnDisposed += StyleScopeClose;
 
-			_groupStack.Push(scope.Group);
+			_styleGroupStack.Push(scope.Group);
 
 			return scope;
 		}
 
-		void GroupScopeClose(GroupScope scope)
+		void StyleScopeClose(StyleScope scope)
 		{
-			scope.OnDisposed -= GroupScopeClose;
-			if (_groupStack.Peek() != scope.Group)
-				throw new System.Exception("Unexpected group was closed.");
+			scope.OnDisposed -= StyleScopeClose;
+			if (_styleGroupStack.Peek() != scope.Group)
+				throw new System.Exception("Unexpected style group attempting to close.");
 
-			_groupStack.Pop();
+			_styleGroupStack.Pop();
 		}
 
-		public OutputGroup CurrentGroup
+		public StyleGroup CurrentStyleGroup
 		{
-			get { return _groupStack.Peek(); }
+			get { return _styleGroupStack.Peek(); }
 		}
 
-		public StoryStyle GetCurrentStyle()
+		public Style GetCurrentStyle()
 		{
-			OutputGroup group = _groupStack.Count > 0 ? _groupStack.Peek() : null;
+			StyleGroup group = _styleGroupStack.Count > 0 ? _styleGroupStack.Peek() : null;
 			if (group != null)
 				return group.GetAppliedStyle() + group.Style; // Combine styles
 			else
-				return new StoryStyle();
+				return new Style();
 		}
 		
 		// ---------------------------------
@@ -922,14 +919,14 @@ namespace Cradle
 			return new EmbedPassage(passageName, parameters);
 		}
 
-		protected StoryStyle style(string setting, object value)
+		protected Style style(string key, object value)
 		{
-			return new StoryStyle(setting, value);
+			return new Style(key, value);
 		}
 
-		protected StoryStyle style(StoryVar expression)
+		protected Style style(StoryVar expression)
 		{
-			return new StoryStyle(expression);
+			return new Style(expression);
 		}
 	}
 

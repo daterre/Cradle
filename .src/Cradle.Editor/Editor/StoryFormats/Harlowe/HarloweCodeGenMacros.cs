@@ -142,7 +142,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 
 				if (linkType != LinkType.LinkRepeat)
 				{
-					transcoder.Code.Buffer.AppendFormat("using (Group(\"hook\", \"{0}\"))", hookName).AppendLine();
+					transcoder.Code.Buffer.AppendFormat("using (styleScope(\"hook\", \"{0}\"))", hookName).AppendLine();
 					transcoder.Code.Indentation++;
 					transcoder.Code.Indent();
 					indented = true;
@@ -193,7 +193,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				{
 					transcoder.Code.Buffer.Append("));").AppendLine();
 					transcoder.Code.Indent();
-					transcoder.Code.Buffer.AppendFormat("using (Group(\"hook\", \"{0}\")) {{}}", hookName);
+					transcoder.Code.Buffer.AppendFormat("using (styleScope(\"hook\", \"{0}\")) {{}}", hookName);
 				}
 				else if (linkType == LinkType.LinkReveal)
 				{
@@ -341,7 +341,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			}
 			else if (usage == MacroUsage.LineAndHook)
 			{
-				transcoder.Code.Buffer.AppendFormat("using (Group({0}, ", option);
+				transcoder.Code.Buffer.AppendFormat("using (styleScope({0}, ", option);
 				transcoder.GenerateExpression(macroToken.tokens, start: 1);
 				transcoder.Code.Buffer.Append(")) {");
 				transcoder.Code.Buffer.AppendLine();

@@ -296,9 +296,9 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 		{
 			Code.Indent();
 			if (conditional)
-				Code.Buffer.AppendFormat("var styl{0} = style({1}); if (styl{0}) using (Group(styl{0})) {{", ++StyleCounter, styleParams);
+				Code.Buffer.AppendFormat("var styl{0} = style({1}); if (styl{0}) using (styleScope(styl{0})) {{", ++StyleCounter, styleParams);
 			else
-				Code.Buffer.AppendFormat("using (Group({0})) {{", styleParams);
+				Code.Buffer.AppendFormat("using (styleScope({0})) {{", styleParams);
 
 			Code.Buffer.AppendLine();
 			Code.Indentation++;

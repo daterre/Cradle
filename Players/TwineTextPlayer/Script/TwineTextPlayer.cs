@@ -169,7 +169,7 @@ public class TwineTextPlayer : MonoBehaviour {
 			br.gameObject.name = "(br)";
 			AddToUI(br, output, uiInsertIndex);
 		}
-		else if (output is OutputGroup)
+		else if (output is StyleGroup)
 		{
 			// Add an empty indicator to later positioning
 			var groupMarker = new GameObject();

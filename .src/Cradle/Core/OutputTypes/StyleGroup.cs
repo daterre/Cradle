@@ -3,11 +3,11 @@ using System.Text;
 
 namespace Cradle
 {
-	public class OutputGroup: StoryOutput
+	public class StyleGroup: StoryOutput
 	{
-		public StoryStyle Style;
+		public Style Style;
 
-		public OutputGroup(StoryStyle style)
+		public StyleGroup(Style style)
 		{
 			this.Style = style;
 		}
@@ -15,7 +15,7 @@ namespace Cradle
 		public override string ToString()
 		{
 			// This is just for debugging purposes
-			StringBuilder buffer = new StringBuilder("(group: ");
+			StringBuilder buffer = new StringBuilder("(style-group: ");
 			foreach (var entry in this.Style)
 			{
 				buffer.AppendFormat(" {0}='{1}'", entry.Key, entry.Value);

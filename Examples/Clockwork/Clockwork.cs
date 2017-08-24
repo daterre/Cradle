@@ -199,14 +199,14 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		Vars.body  = 0;
 		yield return lineBreak();
-		using (Group("hook", "c1")) {
+		using (styleScope("hook", "c1")) {
 			yield return text("Will you be ");
-			using (Group("hook", "s")) {
+			using (styleScope("hook", "s")) {
 				yield return text("strong");
 			}
 			yield return text(" ");
 			yield return text("or ");
-			using (Group("hook", "q")) {
+			using (styleScope("hook", "q")) {
 				yield return text("quick");
 			}
 			yield return text("?");
@@ -320,7 +320,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("Looking over the ridge you see a human form wearing a back pack with bits of junk sticking out and a rifle hooked under its right arm. It is wearing a jumpsuit with numerous pockets and a circular logo on the shoulder. Occasionally it will pick items out of the trash to stow in the pockets.");
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("hook", "h00001"))
+		using (styleScope("hook", "h00001"))
 			yield return link("You sneak up behind it.", null, () => enchantHook("h00001", HarloweEnchantCommand.Replace, passage4_Fragment_0));
 		yield break;
 	}
@@ -330,7 +330,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("The thing hears your approach, it turns around hugging its rifle before letting out a strangled cry and shooting at you.");
 		yield return lineBreak();
 		yield return lineBreak();
-		var styl1 = style(Vars.shield); if (styl1) using (Group(styl1)) {
+		var styl1 = style(Vars.shield); if (styl1) using (styleScope(styl1)) {
 			yield return link("You duck behind your shield.", "Shielded", null);
 		}
 		else {
@@ -530,7 +530,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			Vars.eyes  = 2;
 			yield return lineBreak();
 			yield return text("\"Hey!\" it stands, indignant. \"That was ");
-				using (Group("em", true)) {
+				using (styleScope("em", true)) {
 				yield return text("my");
 			}
 			yield return text(" ");
@@ -568,7 +568,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("\"Well\", she says putting the camera back in the bag, \"since you ");
-				using (Group("em", true)) {
+				using (styleScope("em", true)) {
 				yield return text("asked");
 			}
 			yield return text(" ");
@@ -809,13 +809,13 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("You train your rifle on to the drillworm.");
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("hook", "c")) {
-			using (Group("hook", "a")) {
+		using (styleScope("hook", "c")) {
+			using (styleScope("hook", "a")) {
 				yield return text("Do you shoot it in the head");
 			}
 			yield return text(" ");
 			yield return text("or ");
-			using (Group("hook", "b")) {
+			using (styleScope("hook", "b")) {
 				yield return text("shoot its body?");
 			}
 		}
@@ -846,7 +846,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("The drillworm rears up, it is coiling to leap towards you.");
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("hook", "h00002"))
+		using (styleScope("hook", "h00002"))
 			yield return link("You shoot.", null, () => enchantHook("h00002", HarloweEnchantCommand.Replace, passage17_Fragment_0));
 		yield break;
 	}
@@ -1078,7 +1078,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	IStoryThread passage24_Main()
 	{
 		yield return text("You and the human make it five paces before the ground erupts beneath you. You hear Mowgli cry out and hit the floor before something hits you in the chest, tearing through and out your back before doubling back to ");
-		using (Group("hook", "a")) {
+		using (styleScope("hook", "a")) {
 			yield return text("hit you in the head");
 		}
 		yield return lineBreak();
@@ -1129,7 +1129,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("Rummaging noises, then something is pressed into your hand. The zoom camera. ");
-			using (Group("hook", "b")) {
+			using (styleScope("hook", "b")) {
 				yield return text("You bond it to your head");
 			}
 			yield return text(" ");
@@ -1642,7 +1642,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return lineBreak();
 		yield return text("\"You sound like Bagheera. He said he was, 'an obssessive', and he felt like he always had to do things in twos. He got really worked up if he didn't have two rifles or two water bottles. He ");
-		using (Group("em", true)) {
+		using (styleScope("em", true)) {
 			yield return text("had");
 		}
 		yield return text(" ");
@@ -1707,7 +1707,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text(".");
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("hook", "h00003"))
+		using (styleScope("hook", "h00003"))
 			yield return link("You could also...", null, () => enchantHook("h00003", HarloweEnchantCommand.Replace, passage36_Fragment_0));
 		yield break;
 	}
@@ -2126,18 +2126,18 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		Vars.bond  = Vars.bond + 1;
 		yield return lineBreak();
 		yield return text("\"");
-		using (Group("em", true)) {
+		using (styleScope("em", true)) {
 			yield return text("She");
 		}
 		yield return text(" ");
 		yield return text("is not a dog\", she says, \"and ");
-		using (Group("em", true)) {
+		using (styleScope("em", true)) {
 			yield return text("this");
 		}
 		yield return text("\", ");
 		if(Vars.rifle == "mine") {
 			yield return text("grabbing your gun arm and giving it a shake, \"is ");
-				using (Group("em", true)) {
+				using (styleScope("em", true)) {
 				yield return text("HER");
 			}
 			yield return text(" ");
@@ -2149,7 +2149,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		}
 		else {
 			yield return text("raising the rifle she holds, \"is ");
-				using (Group("em", true)) {
+				using (styleScope("em", true)) {
 				yield return text("her");
 			}
 			yield return text(" ");
@@ -2210,7 +2210,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	IStoryThread passage50_Main()
 	{
 		yield return text("As you enter the building you hear the music that was being broadcast earlier.  You look around at what appears to be a museum of struct natural history. Here and there must also be artifacts of human civilisation. On one table you see a drillworm exploded in autopsy, on another are trinkets of a human: clothes, a rifle, a backpack spilling ");
-		using (Group("hook", "h00004"))
+		using (styleScope("hook", "h00004"))
 			yield return link("finds", null, () => enchantHook("h00004", HarloweEnchantCommand.Replace, passage50_Fragment_0));
 		yield return text(" ");
 		yield return text("on to the surface. You see another table with parts of a struct you haven't seen yet - four propellors sit atop a frame, a shattered camera assembly next to it.");
@@ -3018,7 +3018,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text(Vars.She);
 		yield return text(" ");
 		yield return text("turns around to you with bloodshot eyes and foaming spittle before grabbing your head and ");
-		using (Group("hook", "h00005"))
+		using (styleScope("hook", "h00005"))
 			yield return link("wrenching it off.", null, () => enchantHook("h00005", HarloweEnchantCommand.Replace, passage64_Fragment_0));
 		yield break;
 	}
@@ -3117,7 +3117,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage67_Main()
 	{
-		using (Group("em", true)) {
+		using (styleScope("em", true)) {
 			yield return text("You left Mearcdenu, the valley that leads to Junkyard, three hours ago. Dad usually returned after a day or two of junkrunning - there were 'runners that would be out for at least a week, but that required carrying more food and water. It was safer to hunt for finds closer to home, especially if you had a family to support.");
 			yield return lineBreak();
 			yield return lineBreak();
@@ -3226,7 +3226,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("Its blood sprays over you as you close in on it. As the black liquid seeps into the gaps of your form and touches your True self you gain flashes of insight, images, sounds. You thrust a hand into the corpse of the struct to know more.");
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("em", true)) {
+		using (styleScope("em", true)) {
 			yield return text("Its name is Mouth.");
 			yield return lineBreak();
 			yield return lineBreak();
@@ -3324,16 +3324,16 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage72_Main()
 	{
-		using (Group("heading", 3)) {
+		using (styleScope("heading", 3)) {
 			yield return text("Clockwork");
 		}
 		yield return lineBreak();
-		using (Group("em", true)) {
+		using (styleScope("em", true)) {
 			yield return text("By Aaron Steed");
 		}
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("em", true)) {
+		using (styleScope("em", true)) {
 			yield return text("Thanks for playing");
 			yield return lineBreak();
 			yield return lineBreak();
@@ -3520,13 +3520,13 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text(".");
 			yield return lineBreak();
 			yield return lineBreak();
-				using (Group("em", true)) {
+				using (styleScope("em", true)) {
 				yield return text("Seeing.");
 			}
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("The building is false. Your birth place was destroyed centuries ago but here it is above the debris - a facsimilie from your mind. Although aranged from brick and steel and cement you see between the lines. ");
-				using (Group("em", true)) {
+				using (styleScope("em", true)) {
 				yield return text("Struct blood");
 			}
 			yield return text(".");
@@ -3584,7 +3584,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("\"The other struct was right. All of this debris is one being that forgot what it was. Me.");
 		yield return lineBreak();
 		yield return lineBreak();
-		using (Group("em", true)) {
+		using (styleScope("em", true)) {
 			yield return text("\"I am Junkyard.\"");
 		}
 		yield return lineBreak();
@@ -3652,11 +3652,11 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage80_Main()
 	{
-		using (Group("heading", 2)) {
+		using (styleScope("heading", 2)) {
 			yield return text("Clockwork");
 		}
 		yield return lineBreak();
-		using (Group("em", true)) {
+		using (styleScope("em", true)) {
 			yield return text("By Aaron Steed");
 		}
 		yield return lineBreak();
@@ -3704,7 +3704,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	IStoryThread passage82_Main()
 	{
 		yield return lineBreak();
-		using (Group("strong", true)) {
+		using (styleScope("strong", true)) {
 			yield return text("DEBUG");
 		}
 		yield return lineBreak();

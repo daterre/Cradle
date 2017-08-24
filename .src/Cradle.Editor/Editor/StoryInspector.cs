@@ -33,11 +33,11 @@ public class StoryInspector : Editor
 				continue;
 
 			int groupCount = 0;
-			OutputGroup group = output.Group;
+			StyleGroup group = output.StyleGroup;
 			while (group != null)
 			{
 				groupCount++;
-				group = group.Group;
+				group = group.StyleGroup;
 			}
 			EditorGUI.indentLevel = defaultIndent + groupCount;
 			EditorGUILayout.LabelField(output.ToString());

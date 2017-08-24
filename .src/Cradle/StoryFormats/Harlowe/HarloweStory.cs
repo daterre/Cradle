@@ -79,10 +79,10 @@ namespace Cradle.StoryFormats.Harlowe
                 if (isHookRef)
                 {
 					// Check if matching hook found in the current group, otherwise skip
-					if (!(output is OutputGroup))
+					if (!(output is StyleGroup))
 						continue;
 
-					var group = output as OutputGroup;
+					var group = output as StyleGroup;
 					if (group.Style.Get<string>(HarloweStyleSettings.Hook) != str)
 						continue;
 
@@ -100,7 +100,7 @@ namespace Cradle.StoryFormats.Harlowe
 
 					// Add all outputs associated with this group
 					i++;
-					while (i < this.Output.Count && this.Output[i].BelongsToGroup(group))
+					while (i < this.Output.Count && this.Output[i].BelongsToStyleGroup(group))
 					{
 						lastHookEnchantment.Affected.Add(this.Output[i]);
 						i++;
@@ -125,7 +125,7 @@ namespace Cradle.StoryFormats.Harlowe
 
 		protected IStoryThread wrapFragmentWithHook(string hookName, Func<IStoryThread> fragment)
 		{
-			using (Group("hook", hookName))
+			using (styleScope("hook", hookName))
 				yield return this.fragment(fragment);
 		}
 
@@ -176,7 +176,7 @@ namespace Cradle.StoryFormats.Harlowe
 				this.InsertStack.Push(index);
 				_activeEnchantments.Push(enchantment);
 
-				GroupScope scope = isHookRef ? scope = Group(enchantment.HookGroup) : null;
+				StyleScope scope = isHookRef ? scope = styleScope(enchantment.HookGroup) : null;
 				using (scope)
 				{
 					// Execute the enchantment thread
@@ -249,7 +249,7 @@ namespace Cradle.StoryFormats.Harlowe
 		public HarloweEnchantReferenceType ReferenceType;
 		public HarloweEnchantCommand Command;
 		public List<StoryOutput> Affected;
-		public OutputGroup HookGroup;
+		public StyleGroup HookGroup;
 		public string Text;
 		public Regex Occurences;
 

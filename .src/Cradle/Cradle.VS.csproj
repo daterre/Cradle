@@ -37,7 +37,7 @@
     <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\Attributes.cs" />
     <Compile Include="Core\Exceptions.cs" />
-    <Compile Include="Core\OutputTypes\OutputGroup.cs" />
+    <Compile Include="Core\OutputTypes\StyleGroup.cs" />
     <Compile Include="Core\OutputTypes\Abort.cs" />
     <Compile Include="Core\OutputTypes\Embed.cs" />
     <Compile Include="Core\OutputTypes\LineBreak.cs" />
@@ -45,7 +45,7 @@
     <Compile Include="Core\OutputTypes\StoryPassage.cs" />
     <Compile Include="Core\OutputTypes\HtmlTag.cs" />
     <Compile Include="Core\OutputTypes\StoryText.cs" />
-    <Compile Include="Core\GroupScope.cs" />
+    <Compile Include="Core\StyleScope.cs" />
     <Compile Include="Core\StoryOutput.cs" />
     <Compile Include="Core\RuntimeMacros.cs" />
     <Compile Include="Core\RuntimeVars.cs" />
@@ -56,7 +56,7 @@
     <Compile Include="Core\VarTypes\DoubleService.cs" />
     <Compile Include="Core\VarTypes\IntService.cs" />
     <Compile Include="Core\VarTypes\StringService.cs" />
-    <Compile Include="Core\VarTypes\StoryStyle.cs" />
+    <Compile Include="Core\VarTypes\Style.cs" />
     <Compile Include="StoryFormats\Harlowe\HarloweRuntimeMacros.cs" />
     <Compile Include="StoryFormats\Harlowe\HarloweStory.cs" />
     <Compile Include="StoryFormats\Harlowe\HarloweUtils.cs" />

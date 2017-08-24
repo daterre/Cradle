@@ -2,12 +2,12 @@
 
 namespace Cradle
 {
-	public class GroupScope : IDisposable
+	public class StyleScope : IDisposable
 	{
-		internal OutputGroup Group;
-		internal event Action<GroupScope> OnDisposed;
+		internal StyleGroup Group;
+		internal event Action<StyleScope> OnDisposed;
 
-		public GroupScope(OutputGroup group)
+		public StyleScope(StyleGroup group)
 		{
 			this.Group = group;
 		}

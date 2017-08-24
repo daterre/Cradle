@@ -23,7 +23,7 @@ public class TwineTextPlayerElementEditor : Editor {
 
 		EditorGUILayout.LabelField("Style");
 		EditorGUI.indentLevel++;
-		StoryStyle style = output.GetAppliedStyle();
+		Style style = output.GetAppliedStyle();
 		foreach(var pair in style)
 			EditorGUILayout.LabelField(pair.Key, pair.Value != null ? pair.Value.ToString() : null);
 		EditorGUI.indentLevel--;
