@@ -457,7 +457,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 					if (asString)
 						return WrapInVarIfNecessary(EscapeString(token.text), tokens, tokenIndex);
 					else
-						return token.text == "null" ? "StoryVar.Empty" : EscapeString(token.text);
+						return token.text == "null" ? "StoryVar.Empty" : token.text;
 				case "grouping":
 					if(IsWrapInVarRequired(tokens, tokenIndex))
 						Code.Buffer.Append(" v");
