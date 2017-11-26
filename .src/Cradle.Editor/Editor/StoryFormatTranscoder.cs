@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.IO;
+using System.CodeDom;
 
 namespace Cradle.Editor
 {
@@ -22,6 +24,15 @@ namespace Cradle.Editor
 			if (_cSharpReservedWords.IsMatch(name))
 				name = "@" + name;
 			return name;
+		}
+
+		public string EscapeString(string input)
+		{
+			using (var writer = new StringWriter())
+			{
+				this.Importer.CodeDomProvider.GenerateCodeFromExpression(new CodePrimitiveExpression(input), writer, null);
+				return writer.ToString();
+			}
 		}
 	}
 

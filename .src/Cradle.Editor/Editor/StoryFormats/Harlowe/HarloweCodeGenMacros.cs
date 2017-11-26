@@ -150,7 +150,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 
 				if (linkType != LinkType.LinkRepeat)
 				{
-					transcoder.Code.Buffer.AppendFormat("using (styleScope(\"hook\", \"{0}\"))", hookName).AppendLine();
+					transcoder.Code.Buffer.AppendFormat("using (styleScope(\"hook\", {0}))", transcoder.EscapeString(hookName)).AppendLine();
 					transcoder.Code.Indentation++;
 					transcoder.Code.Indent();
 					indented = true;
@@ -162,8 +162,8 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			if (isClassicLink)
 			{
 				// Classic link uses all the tokens for its text, and has a dededicated passage field
-				transcoder.GenerateExpression(linkToken.tokens, forceConcatenate: true);
-				transcoder.Code.Buffer.AppendFormat(", \"{0}\"", linkToken.passage);
+				transcoder.GenerateExpression(linkToken.tokens, asString: true);
+				transcoder.Code.Buffer.AppendFormat(", {0}", transcoder.EscapeString(linkToken.passage));
 			}
 			else
 			{
@@ -203,8 +203,8 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				tokenIndex++; // advance
 				LexerToken hookToken = tokens[tokenIndex];
 
-				transcoder.Code.Buffer.AppendFormat("() => enchantHook(\"{0}\", HarloweEnchantCommand.Replace, ",
-					hookName
+				transcoder.Code.Buffer.AppendFormat("() => enchantHook({0}, HarloweEnchantCommand.Replace, ",
+					transcoder.EscapeString(hookName)
 				);
 				transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
 
@@ -212,7 +212,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				{
 					transcoder.Code.Buffer.Append("));").AppendLine();
 					transcoder.Code.Indent();
-					transcoder.Code.Buffer.AppendFormat("using (styleScope(\"hook\", \"{0}\")) {{}}", hookName);
+					transcoder.Code.Buffer.AppendFormat("using (styleScope(\"hook\", {0})) {{}}", transcoder.EscapeString(hookName));
 				}
 				else if (linkType == LinkType.LinkReveal)
 				{

@@ -184,7 +184,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 						case "numbered":
 						case "heading":
 							Code.Indent();
-							GenerateStyleScope(string.Format("\"{0}\", {1}", token.type, token.depth), token.tokens);
+							GenerateStyleScope(string.Format("{0}, {1}", EscapeString(token.type), token.depth), token.tokens);
 							break;
 						case "italic":
 						case "bold":
@@ -193,7 +193,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 						case "strong":
 						case "sup":
 							Code.Indent();
-							GenerateStyleScope(string.Format("\"{0}\", true", token.type), token.tokens);
+							GenerateStyleScope(string.Format("{0}, true", EscapeString(token.type)), token.tokens);
 							break;
 
 						case "collapsed":
@@ -246,7 +246,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 
 						case "hook":
 							// This is only for unhandled hooks
-							GenerateStyleScope(string.Format("\"hook\", \"{0}\"", token.name), tokens[t].tokens);
+							GenerateStyleScope(string.Format("\"hook\", {0}", EscapeString(token.name)), tokens[t].tokens);
 							break;
 
 						default:
@@ -267,9 +267,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			Code.Buffer.Append("yield return text(");
 			if (isString)
 			{
-				Code.Buffer.Append("\"");
-				Code.Buffer.Append(text.Replace("\"", "\\\""));
-				Code.Buffer.Append("\"");
+				Code.Buffer.Append(EscapeString(text));
 			}
 			else
 				Code.Buffer.Append(text);
@@ -395,7 +393,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			throw new StoryFormatTranscodeException(string.Format("{0} macro was not formatted correctly", moveAssignment ? "Move" : "Put"));
 		}
 
-		public void GenerateExpression(LexerToken[] tokens, int start = 0, int end = -1, bool forceConcatenate = false)
+		public void GenerateExpression(LexerToken[] tokens, int start = 0, int end = -1, bool asString = false)
 		{
 			// Skip whitespace at beginning of expression
 			while (start < tokens.Length && tokens[start].type == "whitespace")
@@ -404,12 +402,12 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			for (int t = start; t < (end > 0 ? end + 1 : tokens.Length); t++)
 			{
 				LexerToken token = tokens[t];
-				string expr = BuildExpressionSegment(tokens, ref t, forceConcatenate);
+				string expr = BuildExpressionSegment(tokens, ref t, asString);
 				if (expr == null)
 					continue;
 
 				// This is used when texts need to be evaluated as strings
-				if (forceConcatenate && t > start)
+				if (asString && t > start)
 					Code.Buffer.Append(" + ");
 
 				Code.Buffer.Append(expr);
@@ -423,7 +421,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			return _lastVariable;
 		}
 
-		string BuildExpressionSegment(LexerToken[] tokens, ref int tokenIndex, bool forceConcatenate = false)
+		string BuildExpressionSegment(LexerToken[] tokens, ref int tokenIndex, bool asString = false)
 		{
 			LexerToken token = tokens[tokenIndex];
 			switch (token.type)
@@ -440,21 +438,26 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 					GenerateMacro(tokens, tokenIndex, MacroUsage.Inline);
 					return null;
 				case "hookRef":
-					return string.Format("hookRef(\"{0}\")", token.name);
+					return string.Format("hookRef({0})", EscapeString(token.name));
 				case "string":
-					return WrapInVarIfNecessary(string.Format("\"{0}\"", token.innerText), tokens, tokenIndex);
+					return WrapInVarIfNecessary(EscapeString(token.innerText), tokens, tokenIndex);
 				case "number":
 					return WrapInVarIfNecessary(token.text, tokens, tokenIndex);
 				case "cssTime":
 					return WrapInVarIfNecessary(string.Format("{0}/1000f", token.value), tokens, tokenIndex);
 				case "colour":
-					return WrapInVarIfNecessary(string.Format("\"{0}\"", token.text), tokens, tokenIndex);
+					return WrapInVarIfNecessary(EscapeString(token.text), tokens, tokenIndex);
+				case "whitespace":
+					if (asString)
+						return WrapInVarIfNecessary(EscapeString(token.text), tokens, tokenIndex);
+					else
+						return null;
 				case "text":
 					// Treat as string when concatenating
-					if (forceConcatenate)
-						return WrapInVarIfNecessary(string.Format("\"{0}\"", token.text), tokens, tokenIndex);
+					if (asString)
+						return WrapInVarIfNecessary(EscapeString(token.text), tokens, tokenIndex);
 					else
-						return token.text == "null" ? "StoryVar.Empty" : token.text;
+						return token.text == "null" ? "StoryVar.Empty" : EscapeString(token.text);
 				case "grouping":
 					if(IsWrapInVarRequired(tokens, tokenIndex))
 						Code.Buffer.Append(" v");
@@ -465,14 +468,14 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				case "itsProperty":
 					if (_lastVariable == null)
 						throw new StoryFormatTranscodeException("'it' or 'its' used without first mentioning a variable");
-					return string.Format("{0}[\"{1}\"]", _lastVariable, token.name);
+					return string.Format("{0}[{1}]", _lastVariable, EscapeString(token.name));
 				case "property":
 					string prop = string.Format("[\"{0}\"]", token.name);
 					if (_lastVariable != null)
 						_lastVariable += prop;
 					return prop;
 				case "belongingProperty":
-					Code.Buffer.AppendFormat("v(\"{0}\").AsMemberOf[", token.name);
+					Code.Buffer.AppendFormat("v({0}).AsMemberOf[", EscapeString(token.name));
 					AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
 					GenerateExpressionSegment(tokens, ref tokenIndex);
 					Code.Buffer.Append("]");

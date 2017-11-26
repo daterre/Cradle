@@ -197,7 +197,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	{
 		yield return text("You awaken blind. You reach out feeling for metals, materials, tech - there is a dearth of tech here. You will only be able to construct a toy of your former self. If you could only remember what that was.");
 		yield return lineBreak();
-		Vars.body  = 0;
+		Vars.body = 0;
 		yield return lineBreak();
 		using (styleScope("hook", "c1")) {
 			yield return text("Will you be ");
@@ -212,8 +212,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("?");
 		}
 		yield return lineBreak();
-		Vars.quick  = false;
-		Vars.strong  = false;
+		Vars.quick = false;
+		Vars.strong = false;
 		yield return lineBreak();
 		yield return enchantIntoLink(hookRef("s"), passage1_Fragment_1);
 		yield return lineBreak();
@@ -224,7 +224,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	IStoryThread passage1_Fragment_0()
 	{
 		yield return text("Strength will serve you better than speed. You pull in bulkier items and fashion large pistons within yourself.");
-		Vars.strong  = true;
+		Vars.strong = true;
 		yield return lineBreak();
 		yield return lineBreak();
 		yield return passage("Choice Made");
@@ -240,7 +240,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	IStoryThread passage1_Fragment_2()
 	{
 		yield return text("Speed would be wiser. You select the lightest of materials. You coil springs and fashion a sleek exterior.");
-		Vars.quick  = true;
+		Vars.quick = true;
 		yield return lineBreak();
 		yield return lineBreak();
 		yield return passage("Choice Made");
@@ -274,7 +274,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("You have stretched out your True self as much as you can through the junk to make a humanoid form. You hear movement ahead over the north ridge of the bowl you are in. You could be aggressive, investigate now and take advantage of the situation. Or you could be defensive and make preparations.");
 		yield return lineBreak();
-		Vars.shield  = false;
+		Vars.shield = false;
 		yield return lineBreak();
 		yield return text("Be ");
 		yield return link("defensive", "Do you wait,", null);
@@ -302,7 +302,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("to spy on the noise.");
 		yield return lineBreak();
 		yield return lineBreak();
-		Vars.shield  = true;
+		Vars.shield = true;
 		yield break;
 	}
 
@@ -331,14 +331,14 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return lineBreak();
 		var styl1 = style(Vars.shield); if (styl1) using (styleScope(styl1)) {
-			yield return link("You duck behind your shield.", "Shielded", null);
+		yield return link("You duck behind your shield.", "Shielded", null);
 		}
 		else {
-			yield return link("You try to snatch the rifle from it.", "Take rifle", null);
+		yield return link("You try to snatch the rifle from it.", "Take rifle", null);
 		}
 		yield return lineBreak();
-		Vars.rifle  = "hers";
-		Vars.bond  = 0;
+		Vars.rifle = "hers";
+		Vars.bond = 0;
 		yield break;
 	}
 
@@ -377,7 +377,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("You dodge two shots before closing a hand on the barrel and lifting it up out of the human's grasp. You poke the stock into its chest, sending it falling on to its butt.");
 		}
 		yield return lineBreak();
-		Vars.rifle  = "mine";
+		Vars.rifle = "mine";
 		yield return lineBreak();
 		yield return link("Do you harvest the rifle", "Do you harvest the rifle,", null);
 		yield return text(" ");
@@ -405,7 +405,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return lineBreak();
 		yield return text("\"The monsters in the Junkyard\", it says. ");
-		if(Vars.rifle == "hers") {
+		if(Vars.rifle=="hers") {
 			yield return text("It hugs the rifle closer to its chest as it says this.");
 		}
 		else {
@@ -438,8 +438,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("You could use another camera.");
 		yield return lineBreak();
-		Vars.eyes  = 1;
-		Vars.zoom  = false;
+		Vars.eyes = 1;
+		Vars.zoom = false;
 		yield return lineBreak();
 		yield return link("Snatch the camera", "Snatch the camera", null);
 		yield return text(" ");
@@ -473,7 +473,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("It reaches for your arm and you raise it out of reach. You see it stand unbalanced and give it a gentle nudge, sending it falling back into a seated position. Silence passes between you.");
 		}
 		yield return lineBreak();
-		Vars.bond  = Vars.bond - 1;
+		Vars.bond = Vars.bond-1;
 		yield return lineBreak();
 		yield return passage("Read Label");
 		yield break;
@@ -495,8 +495,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("\"Thanks\", it says, before sitting down, looking at you quizically.");
 		yield return lineBreak();
-		Vars.bond  = Vars.bond + 1;
-		Vars.rifle  = "hers";
+		Vars.bond = Vars.bond+1;
+		Vars.rifle = "hers";
 		yield return lineBreak();
 		yield return passage("Read Label");
 		yield break;
@@ -513,8 +513,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage10_Main()
 	{
-		Vars.bond  = Vars.bond - 1;
-		if(Vars.rifle == "mine" && Vars.strong) {
+		Vars.bond = Vars.bond-1;
+		if(Vars.rifle=="mine"&&Vars.strong) {
 			yield return text("You reach for the camera but it reacts too quickly, getting to its feet and pulling it behind its back.");
 			yield return lineBreak();
 			yield return lineBreak();
@@ -527,7 +527,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			}
 			yield return text("and bond it to your head. Better. You can judge distances very well now.");
 			yield return lineBreak();
-			Vars.eyes  = 2;
+			Vars.eyes = 2;
 			yield return lineBreak();
 			yield return text("\"Hey!\" it stands, indignant. \"That was ");
 				using (styleScope("em", true)) {
@@ -561,9 +561,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	{
 		yield return text("\"May I have that? I can't judge distances very well right now.\"");
 		yield return lineBreak();
-		Vars.bond  = Vars.bond + 1;
+		Vars.bond = Vars.bond+1;
 		yield return lineBreak();
-		if(Vars.rifle == "mine") {
+		if(Vars.rifle=="mine") {
 			yield return text("She eyes you suspiciously.");
 			yield return lineBreak();
 			yield return lineBreak();
@@ -583,8 +583,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("You bond it to your head. When the process is finished, only a small portion of the lens barrel extrudes, but over half of your head is composed of camera now.");
 		yield return lineBreak();
-		Vars.eyes  = 2;
-		Vars.zoom  = true;
+		Vars.eyes = 2;
+		Vars.zoom = true;
 		yield return lineBreak();
 		yield return text("\"Better?\" it asks?");
 		yield return lineBreak();
@@ -639,11 +639,11 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	IStoryThread passage13_Main()
 	{
 		yield return text("\"Okay,\" it says. \"I'm Mowgli by the way.\"");
-		Vars.shake  = false;
-		if(Vars.bond >= 0) {
+		Vars.shake = false;
+		if(Vars.bond>=0) {
 			yield return text(" ");
 			yield return text("It offers you its hand. As you gingerly take it in your own it grips it and shakes it twice before letting go. A type of greeting?");
-			Vars.shake  = true;
+			Vars.shake = true;
 		}
 		else {
 			yield return text(" ");
@@ -732,7 +732,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		}
 		yield return text(" ");
 		yield return text("Mowgli ");
-		if(Vars.rifle == "hers") {
+		if(Vars.rifle=="hers") {
 			yield return text("loads its rifle");
 		}
 		else {
@@ -742,7 +742,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("as it runs.");
 		yield return lineBreak();
 		yield return lineBreak();
-		if(Vars.rifle == "hers") {
+		if(Vars.rifle=="hers") {
 			yield return text("\"I'll have to shoot it\", says Mowgli. Stopping and turning to take aim on the surfaced drillworm.");
 		}
 		else {
@@ -755,7 +755,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("You zoom in to scan the scenery around it and spy two more burrowing into the floor.");
 		}
 		else {
-			if(Vars.eyes == 2) {
+			if(Vars.eyes==2) {
 				yield return text("Behind it you seem some sort of motion in the floor but you can't be sure what it is.");
 			}
 			else {
@@ -763,31 +763,31 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			}
 		}
 		yield return lineBreak();
-		if(Vars.rifle == "mine") {
+		if(Vars.rifle=="mine") {
 			yield return lineBreak();
-			yield return link("Shoot at the drillworm", "Shoot at the drillworm", null);
+		yield return link("Shoot at the drillworm", "Shoot at the drillworm", null);
 			yield return text(" ");
 			yield return text("or ");
-			yield return link("try to grab it", "try to grab it.", null);
+		yield return link("try to grab it", "try to grab it.", null);
 			yield return text("?");
 			yield return lineBreak();
 		}
 		else {
 			if(Vars.shield) {
 				yield return lineBreak();
-				yield return link("Raise your shield", "Raise your shield", null);
+		yield return link("Raise your shield", "Raise your shield", null);
 				yield return text(" ");
 				yield return text("or ");
-				yield return link("try to grab the drillworm", "try to grab it.", null);
+		yield return link("try to grab the drillworm", "try to grab it.", null);
 				yield return text("?");
 				yield return lineBreak();
 			}
 			else {
 				yield return lineBreak();
-				yield return link("Wait for Mowgli to shoot", "Wait for Mowgli to shoot", null);
+		yield return link("Wait for Mowgli to shoot", "Wait for Mowgli to shoot", null);
 				yield return text(" ");
 				yield return text("or ");
-				yield return link("try to grab the drillworm", "try to grab it.", null);
+		yield return link("try to grab the drillworm", "try to grab it.", null);
 				yield return text("?");
 				yield return lineBreak();
 			}
@@ -838,7 +838,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	{
 		yield return text("You fire several shots into its head. Each ricochets off, hitting the floor, into the sky - one is sent back towards you, narrowly missing Mowgli.");
 		yield return lineBreak();
-		Vars.bond  = Vars.bond - 1;
+		Vars.bond = Vars.bond-1;
 		yield return lineBreak();
 		yield return text("\"No!\" the human cries, \"aim for the neck!\"");
 		yield return lineBreak();
@@ -879,9 +879,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage18_Main()
 	{
-		Vars.bond  = Vars.bond + 1;
+		Vars.bond = Vars.bond+1;
 		if(Vars.strong) {
-			if(Vars.rifle == "hers") {
+			if(Vars.rifle=="hers") {
 				yield return text("You raise a hand to belay Mowgli taking the shot. ");
 			}
 			yield return text("Your hand closes on the drillworm's neck as it lunges for you. It tries to squirm away but you dig your fingers in, crushing its neck. Its movement becomes unfocused, spasmodic.");
@@ -890,10 +890,10 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("\"Wow\", says the human.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("You examine the drillworm.", "Pick up the drillworm", null);
+		yield return link("You examine the drillworm.", "Pick up the drillworm", null);
 		}
 		else if(Vars.quick) {
-			if(Vars.rifle == "hers") {
+			if(Vars.rifle=="hers") {
 				yield return text("Before Mowgli can act you dart towards the drillworm.");
 			}
 			else {
@@ -903,7 +903,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("It rears up defensively and you take advantage of the situation to grab its neck. The drillworm's body wriggles violently, you barely manage to hold on.");
 			yield return lineBreak();
 			yield return lineBreak();
-			if(Vars.rifle == "hers") {
+			if(Vars.rifle=="hers") {
 				yield return text("\"Hold it up\", calls Mowgli.");
 				yield return lineBreak();
 				yield return lineBreak();
@@ -913,7 +913,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 				yield return text("\"Nice teamwork tin man\", says the human.");
 				yield return lineBreak();
 				yield return lineBreak();
-				yield return link("You examine the thing in your hands", "Pick up the drillworm", null);
+		yield return link("You examine the thing in your hands", "Pick up the drillworm", null);
 			}
 			else {
 				yield return text("\"The neck!\" Calls Mowgli. \"Shoot it in the neck.\"");
@@ -925,7 +925,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 				yield return text("\"Nice work\", says the human.");
 				yield return lineBreak();
 				yield return lineBreak();
-				yield return link("You examine the thing in your hands", "Pick up the drillworm", null);
+		yield return link("You examine the thing in your hands", "Pick up the drillworm", null);
 			}
 		}
 		yield break;
@@ -1093,7 +1093,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').removeClass('blind')\" />");
 		yield return htmlTag("</div>");
 		yield return lineBreak();
-		Vars.zoom  = true;
+		Vars.zoom = true;
 		yield return lineBreak();
 		yield return link("You pick up the drillworm at your feet.", "Pick up Drillworms", null);
 		yield return lineBreak();
@@ -1102,7 +1102,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage24_Fragment_1()
 	{
-		if(Vars.eyes == 1) {
+		if(Vars.eyes==1) {
 			yield return lineBreak();
 			yield return htmlTag("<div style=\"display: none;\">");
 			yield return htmlTag("<img src=\"!@#$\" onerror=\"$('html').addClass('blind')\" />");
@@ -1148,10 +1148,10 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text(" ");
 			yield return text("This one is smaller than the one you faced before.");
 			yield return lineBreak();
-			Vars.eyes  = 1;
+			Vars.eyes = 1;
 			yield return lineBreak();
 			yield return text("Mowgli's screams snap your attention away from yourself. ");
-			if(Vars.rifle == "hers") {
+			if(Vars.rifle=="hers") {
 				yield return text("It shoots several times into the floor, then pauses.");
 			}
 			else {
@@ -1159,7 +1159,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			}
 			yield return text(" ");
 			yield return text("The human stoops down, picks up ");
-			if(Vars.rifle == "hers") {
+			if(Vars.rifle=="hers") {
 				yield return text("another");
 			}
 			else {
@@ -1169,7 +1169,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("dead drillworm and throws it towards your feet.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("You pick up the drillworm.", "Pick up Drillworms", null);
+		yield return link("You pick up the drillworm.", "Pick up Drillworms", null);
 			yield return lineBreak();
 		}
 		yield return lineBreak();
@@ -1208,12 +1208,12 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("\"Got it,\" says the human holding up its trophy before throwing it and your shield at your feet. You collect your shield.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("Then you pick up the other drillworm.", "Pick up Drillworms", null);
+		yield return link("Then you pick up the other drillworm.", "Pick up Drillworms", null);
 		}
 		else {
 			yield return lineBreak();
 			yield return text("The ground below stirs. ");
-			if(Vars.rifle == "hers") {
+			if(Vars.rifle=="hers") {
 				yield return text("Mowgli readies its rifle and points it towards the floor.");
 			}
 			else {
@@ -1229,7 +1229,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("Mowgli screams as the worm below it bursts out of the junk. ");
-			if(Vars.rifle == "hers") {
+			if(Vars.rifle=="hers") {
 				yield return text("It fires several shots at the drillworm, one taking its head clean off.");
 			}
 			else {
@@ -1243,7 +1243,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("The human slowly stoops to inspect the corpse before standing satisfied and throwing the dead at your feet.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("You pick up the other drillworm.", "Pick up Drillworms", null);
+		yield return link("You pick up the other drillworm.", "Pick up Drillworms", null);
 		}
 		yield break;
 	}
@@ -1272,14 +1272,14 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return lineBreak();
 		yield return text("You pull the drillworm into yourself. Disassembling it. You attach its head on to your ");
-		if(Vars.rifle == "mine") {
+		if(Vars.rifle=="mine") {
 			yield return text("arm without the rifle");
 		}
 		else {
 			yield return text("arm");
 		}
 		yield return text(". You give it an experimental spin. Mowgli edges away from you. ");
-		Vars.body  = Vars.body + 1;
+		Vars.body = Vars.body+1;
 		yield break;
 	}
 
@@ -1294,7 +1294,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage27_Main()
 	{
-		if(Vars.body == 0) {
+		if(Vars.body==0) {
 			yield return text("Blood from one of the drillworms instantly bonds with strands of your True self. ");
 			yield return passage("Absorb Drillworm");
 			yield return lineBreak();
@@ -1303,25 +1303,25 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		}
 		else {
 			yield return text("You harvest the other drillworms. Their blood gives you strength.");
-			Vars.body  = Vars.body + 1;
+			Vars.body = Vars.body+1;
 		}
 		yield return lineBreak();
 		yield return lineBreak();
-		if(Vars.rifle != "hers") {
+		if(Vars.rifle!="hers") {
 			yield return text("The human is hugging itself again, leaving that rifle shaped hole. With your new strength you could easily unbond the rifle and give it back.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("Give the rifle back", "Give the rifle back", null);
+		yield return link("Give the rifle back", "Give the rifle back", null);
 			yield return text(" ");
 			yield return text("or ");
-			yield return link("suggest you move on", "suggest you move on", null);
+		yield return link("suggest you move on", "suggest you move on", null);
 			yield return text("?");
 		}
 		else {
 			yield return text("The human hugs its rifle to its chest, breathing a sigh of relief.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("You suggest you move on.", "suggest you move on", null);
+		yield return link("You suggest you move on.", "suggest you move on", null);
 		}
 		yield break;
 	}
@@ -1366,8 +1366,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("\"I'm sorry I ate your rifle\", you reply.");
 		yield return lineBreak();
-		Vars.rifle  = "hers+";
-		Vars.bond  = Vars.bond + 2;
+		Vars.rifle = "hers+";
+		Vars.bond = Vars.bond+2;
 		yield return lineBreak();
 		yield return link("You suggest you move on.", "suggest you move on", null);
 		yield break;
@@ -1425,7 +1425,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return lineBreak();
 		yield return text("\"That's a comfort");
-		if(Vars.rifle != "hers") {
+		if(Vars.rifle!="hers") {
 			yield return text(".\"");
 		}
 		else {
@@ -1453,8 +1453,8 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("\"You what!? No way, I've had enough of drillworms, I'm not going near that thing.\"");
 		yield return lineBreak();
-		Vars.carny  = 0;
-		Vars.notadog  = 0;
+		Vars.carny = 0;
+		Vars.notadog = 0;
 		yield return lineBreak();
 		yield return link("Insist", "Insist", null);
 		yield return text(" ");
@@ -1477,11 +1477,11 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	{
 		yield return text("You grab Mowgli's hand and make your way down towards the giant drillworm.");
 		yield return lineBreak();
-		Vars.bond  = Vars.bond - 1;
-		Vars.notadog  = Vars.notadog + 1;
+		Vars.bond = Vars.bond-1;
+		Vars.notadog = Vars.notadog+1;
 		yield return lineBreak();
 		yield return text("\"Heeey!\" ");
-		if(Vars.bond <= 0) {
+		if(Vars.bond<=0) {
 			yield return text("The human resists your pull, ");
 			if(Vars.strong) {
 				yield return text("but you are too strong for it. Its feet carve trenches as you pull it along.");
@@ -1524,7 +1524,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("It's too far away to be seen but it moves too quickly to be another human. The entity is not a drillworm, this is perhaps something far worse.");
 		}
 		yield return lineBreak();
-		Vars.carny  = Vars.carny + 1;
+		Vars.carny = Vars.carny+1;
 		yield return lineBreak();
 		yield return text("\"It's not safe here. There is another struct approaching.\"");
 		yield return lineBreak();
@@ -1657,7 +1657,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("\"Exactly.\"");
 		yield return lineBreak();
-		Vars.bond  = Vars.bond + 1;
+		Vars.bond = Vars.bond+1;
 		yield return lineBreak();
 		yield return text("Mowgli's words resonate with you. It's not your nature to make choices. But since you have woken you have been presented with slightly different futures to choose from. You feel there was something wholly scripted about your previous incarnation.");
 		yield return lineBreak();
@@ -1678,10 +1678,10 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage36_Main()
 	{
-		Vars.carny  = Vars.carny + 1;
-		Vars.limp  = false;
-		Vars.heart  = false;
-		if(Vars.carny > 1) {
+		Vars.carny = Vars.carny+1;
+		Vars.limp = false;
+		Vars.heart = false;
+		if(Vars.carny>1) {
 			yield return text("The red struct you saw before has mounted the tail of the greatworm.");
 		}
 		else {
@@ -1746,7 +1746,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage38_Main()
 	{
-		Vars.bond  = Vars.bond + 1;
+		Vars.bond = Vars.bond+1;
 		yield return text("\"I'm going to wake up the drillworms\", you say.");
 		yield return lineBreak();
 		yield return lineBreak();
@@ -1785,7 +1785,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage39_Main()
 	{
-		if(Vars.rifle .Contains("hers")) {
+		if(Vars.rifle.Contains("hers")) {
 			yield return text("\"You'll have to shoot it\", you tell Mowgli.");
 			yield return lineBreak();
 			yield return lineBreak();
@@ -1799,7 +1799,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("The first shot goes wide, the second hits it in the chest - gore explodes out from the impact. The struct stops only for a beat before continuing its sprint towards you.");
 		yield return lineBreak();
 		yield return lineBreak();
-		if(Vars.rifle .Contains("hers")) {
+		if(Vars.rifle.Contains("hers")) {
 			yield return text("Mowgli keeps shooting.");
 		}
 		else {
@@ -1830,7 +1830,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("\"Spider-mine!\" shouts Mowgli.");
 		yield return lineBreak();
 		yield return lineBreak();
-		if(Vars.bond > 0) {
+		if(Vars.bond>0) {
 			yield return text("The human grabs your arm and makes for a dive to safety");
 		}
 		else {
@@ -1839,18 +1839,18 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text(".");
 		yield return lineBreak();
 		yield return lineBreak();
-		if(macros1.history() .Contains("disembark")) {
-			yield return link("Follow Mowgli", "Dive Floor", null);
+		if(macros1.history().Contains("disembark")) {
+		yield return link("Follow Mowgli", "Dive Floor", null);
 			yield return text(" ");
 			yield return text("or ");
-			yield return link("wait", "Wait Floor", null);
+		yield return link("wait", "Wait Floor", null);
 			yield return text("?");
 		}
 		else {
-			yield return link("Follow Mowgli", "Dive Worm", null);
+		yield return link("Follow Mowgli", "Dive Worm", null);
 			yield return text(" ");
 			yield return text("or ");
-			yield return link("wait", "Wait Worm", null);
+		yield return link("wait", "Wait Worm", null);
 			yield return text("?");
 		}
 		yield break;
@@ -1897,7 +1897,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage42_Main()
 	{
-		if(Vars.bond > 0) {
+		if(Vars.bond>0) {
 			yield return text("You and Mowgli sail over a mound, going into a roll. You hold on to each other, rolling, then a shockwave passes over the mound.");
 		}
 		else {
@@ -1926,7 +1926,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	IStoryThread passage43_Main()
 	{
 		yield return text("You stand your ground, leaving Mowgli to dive over a mound.");
-		if(Vars.bond > 0) {
+		if(Vars.bond>0) {
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("\"Tryr!\" the human screams.");
@@ -1945,7 +1945,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text(" ");
 			yield return text("You manage to turn your head away from the blast in time but you still take significant damage. Your body is thrown into the air, you land near Mowgli.");
 			yield return lineBreak();
-			Vars.body  = Vars.body - 1;
+			Vars.body = Vars.body-1;
 			yield return lineBreak();
 			yield return text("You pull in some junk to patch the holes but you have lost some of your true self in the blast.");
 		}
@@ -1969,7 +1969,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage44_Main()
 	{
-		if(Vars.bond > 0) {
+		if(Vars.bond>0) {
 			yield return text("Arm in arm, you and Mowgli dive from the greatworm. You tumble in the air.");
 		}
 		else {
@@ -1978,7 +1978,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text(" ");
 		yield return text("As you both hit the floor the human cries out. It clutches it left leg in apparent pain.");
 		yield return lineBreak();
-		Vars.limp  = true;
+		Vars.limp = true;
 		yield return lineBreak();
 		yield return text("From back on top of the worm you see an explosion. The red struct is thrown into the air before landing heavily with a wet impact nearby. The greatworm is dormant after the breaking of the link - your absence has left a hole where its will was.");
 		yield return lineBreak();
@@ -2016,7 +2016,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text(" ");
 			yield return text("You manage to turn your head away from the blast in time but you still take significant damage. Your body is thrown into the air. You hit the floor, clear of the worm. You see the charred wreck of the red struct land nearby.");
 			yield return lineBreak();
-			Vars.body  = Vars.body - 1;
+			Vars.body = Vars.body-1;
 			yield return lineBreak();
 			yield return text("You pull in some junk to patch the holes but you have lost some of your true self in the blast. You see Mowgli nearby. It is clutching its left leg in pain. The greatworm is still after break from your link - your absence has left a hole where its will was.");
 		}
@@ -2045,7 +2045,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("It buries a hand in the carnage. Digs deep. Then pulls out a device.");
 		yield return lineBreak();
-		Vars.heart  = true;
+		Vars.heart = true;
 		yield return lineBreak();
 		yield return text("\"Excellent\", it says, \"I have it. Come\", it beckons, \"I brought you here for a reason.\"");
 		yield return lineBreak();
@@ -2068,14 +2068,14 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage47_Main()
 	{
-		Vars.she  = "she";
-		Vars.her  = "her";
-		Vars.herSingle  = "her";
-		Vars.hers  = "hers";
-		Vars.She  = "She";
-		Vars.Her  = "Her";
-		Vars.HerSingle  = "Her";
-		Vars.Hers  = "Hers";
+		Vars.she = "she";
+		Vars.her = "her";
+		Vars.herSingle = "her";
+		Vars.hers = "hers";
+		Vars.She = "She";
+		Vars.Her = "Her";
+		Vars.HerSingle = "Her";
+		Vars.Hers = "Hers";
 		yield return text("The building appears to be of municipal origin but has been repaired, refitted and adapted in a manner that befits a struct. The entrance you see is perhaps not the original one, that one must have been lost beneath the ether of Junkyard. Above it a sign has been attached depicting a logo of a crumbling tower.");
 		yield return lineBreak();
 		yield return lineBreak();
@@ -2091,7 +2091,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("\"Come, bring your dog as well\", it says.");
 		yield return lineBreak();
 		yield return lineBreak();
-		if(Vars.notadog > 0) {
+		if(Vars.notadog>0) {
 			yield return text("\"I AM NOT A DOG!\"");
 		}
 		else {
@@ -2123,7 +2123,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	{
 		yield return text("Mowgli turns its rage on you.");
 		yield return lineBreak();
-		Vars.bond  = Vars.bond + 1;
+		Vars.bond = Vars.bond+1;
 		yield return lineBreak();
 		yield return text("\"");
 		using (styleScope("em", true)) {
@@ -2135,7 +2135,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("this");
 		}
 		yield return text("\", ");
-		if(Vars.rifle == "mine") {
+		if(Vars.rifle=="mine") {
 			yield return text("grabbing your gun arm and giving it a shake, \"is ");
 				using (styleScope("em", true)) {
 				yield return text("HER");
@@ -2145,7 +2145,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("Mowgli stalks off inside of the building. ");
-			yield return link("You follow.", "Inside the Building", null);
+		yield return link("You follow.", "Inside the Building", null);
 		}
 		else {
 			yield return text("raising the rifle she holds, \"is ");
@@ -2157,14 +2157,14 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("You nod in understanding.");
-			if(Vars.rifle == "hers+") {
+			if(Vars.rifle=="hers+") {
 				yield return lineBreak();
 				yield return lineBreak();
 				yield return text("She cups a hand behind your neck, pulling down and causing you to stoop. Then she presses her lips to the side of your head, making a smacking noise against the metal.");
 			}
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("You both enter the building.", "Inside the Building", null);
+		yield return link("You both enter the building.", "Inside the Building", null);
 		}
 		yield break;
 	}
@@ -2180,14 +2180,14 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage49_Main()
 	{
-		Vars.she  = "it";
-		Vars.her  = "its";
-		Vars.herSingle  = "it";
-		Vars.hers  = "its";
-		Vars.She  = "It";
-		Vars.Her  = "Its";
-		Vars.HerSingle  = "It";
-		Vars.Hers  = "Its";
+		Vars.she = "it";
+		Vars.her = "its";
+		Vars.herSingle = "it";
+		Vars.hers = "its";
+		Vars.She = "It";
+		Vars.Her = "Its";
+		Vars.HerSingle = "It";
+		Vars.Hers = "Its";
 		yield return text("As you reach the building you turn around to see where Mowgli has gotten to. It is standing there still, looking offended with its hands on its hips. It opens its mouth to speak, but then sighs.");
 		yield return lineBreak();
 		yield return lineBreak();
@@ -2214,7 +2214,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return link("finds", null, () => enchantHook("h00004", HarloweEnchantCommand.Replace, passage50_Fragment_0));
 		yield return text(" ");
 		yield return text("on to the surface. You see another table with parts of a struct you haven't seen yet - four propellors sit atop a frame, a shattered camera assembly next to it.");
-		if(Vars.rifle == "mine") {
+		if(Vars.rifle=="mine") {
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("You turn to see Mowgli, ");
@@ -2231,14 +2231,14 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text(" ");
 			yield return text("says.");
 		}
-		else if(Vars.bond > 0) {
+		else if(Vars.bond>0) {
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("\"Hey.\" Mowgli tugs on your arm. You turn to see it offering you the rifle from the table. ");
 			yield return text(Vars.She);
 			yield return text(" ");
 			yield return text("nods for you to take it. You harvest the rifle, pulling it apart and housing it in the arm without the drillworm.");
-			Vars.rifle  = "hersandmine";
+			Vars.rifle = "hersandmine";
 		}
 		yield return lineBreak();
 		yield return lineBreak();
@@ -2290,9 +2290,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return lineBreak();
 		yield return text("You look at it more closely. It seems unstable. ");
-		if(Vars.eyes == 1) {
+		if(Vars.eyes==1) {
 			yield return text("With only one eye to observe it you move it around in your hand to know its shape better. To dispell any illusion - yes, that's it. You attempt to harvest it and it collapses into struct blood that you absorb.");
-			Vars.body  = Vars.body + 1;
+			Vars.body = Vars.body+1;
 		}
 		else {
 			yield return text("You observe nothing else unusual about it and pass it to Mowgli absent mindedly. As it leaves your hand it disolves into struct blood, spilling on to the floor as the human steps back and issues a cry of disgust.");
@@ -2320,7 +2320,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage52_Main()
 	{
-		Vars.eatpeople  = false;
+		Vars.eatpeople = false;
 		if(Vars.heart) {
 			yield return text("It hands you the device it salvaged earlier.");
 			yield return lineBreak();
@@ -2331,10 +2331,10 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("The device is a box of flesh and metal. It radiates warmth.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("Do you harvest it", "Harvest Heart", null);
+		yield return link("Do you harvest it", "Harvest Heart", null);
 			yield return text(" ");
 			yield return text("or ");
-			yield return link("discard it", "Discard Heart", null);
+		yield return link("discard it", "Discard Heart", null);
 			yield return text("?");
 		}
 		else {
@@ -2348,12 +2348,12 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("Mowgli's reply is the cocking of a rifle. ");
-			if(Vars.rifle == "mine") {
+			if(Vars.rifle=="mine") {
 				yield return text("You see ");
 				yield return text(Vars.herSingle);
 				yield return text(" ");
 				yield return text("holding the one that was on the table earlier. ");
-				Vars.rifle  = "hersandmine";
+				Vars.rifle = "hersandmine";
 			}
 			yield return text(Vars.She);
 			yield return text(" ");
@@ -2361,10 +2361,10 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("Do you ");
-			yield return link("defend your host", "defend your host", null);
+		yield return link("defend your host", "defend your host", null);
 			yield return text(" ");
 			yield return text("or ");
-			yield return link("not interfere", "not interfere", null);
+		yield return link("not interfere", "not interfere", null);
 			yield return text("?");
 		}
 		yield break;
@@ -2389,7 +2389,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return text("This breed you realise must be unique, mutated for generations but sucumbing to Darwinism. This is a corollary to your original purpose. You are not just the Destroyer now, you are the Devourer.");
 		yield return lineBreak();
-		Vars.eatpeople  = true;
+		Vars.eatpeople = true;
 		yield return lineBreak();
 		yield return text("You feel Mowgli's heat, ");
 		yield return text(Vars.her);
@@ -2522,7 +2522,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("tries to escape.");
 		}
 		yield return lineBreak();
-		if(Vars.limp || Vars.quick) {
+		if(Vars.limp||Vars.quick) {
 			yield return lineBreak();
 			if(Vars.limp) {
 				yield return text("Limping, the human slowly makes ");
@@ -2542,18 +2542,18 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text(" ");
 			yield return text("screams, turning around to try to shoot at you again.");
 			yield return lineBreak();
-			if(Vars.bond > 0) {
+			if(Vars.bond>0) {
 				yield return lineBreak();
-				yield return link("Let $herSingle go", "Let it go", null);
+		yield return link("Let " + Vars.herSingle + " " + "go", "Let it go", null);
 				yield return text(" ");
 				yield return text("or ");
-				yield return link("kill $herSingle", "Kill it", null);
+		yield return link("kill " + Vars.herSingle, "Kill it", null);
 				yield return text("?");
 				yield return lineBreak();
 			}
 			else {
 				yield return lineBreak();
-				yield return link("Your hand closes around $her neck.", "Kill it", null);
+		yield return link("Your hand closes around " + Vars.her + " " + "neck.", "Kill it", null);
 				yield return lineBreak();
 			}
 			yield return lineBreak();
@@ -2569,7 +2569,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("\"Stop that thing!\" cries your host.");
 			yield return lineBreak();
 			yield return lineBreak();
-			if(Vars.rifle .Contains("mine")) {
+			if(Vars.rifle.Contains("mine")) {
 				yield return text("You fire several shots but the human ducks below the level of the tables. You see ");
 				yield return text(Vars.herSingle);
 				yield return text(" ");
@@ -2596,10 +2596,10 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("It must have another struct for you to consume that will help you catch the human. You pause to consider its words.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("Harvest your host", "Betray host", null);
+		yield return link("Harvest your host", "Betray host", null);
 			yield return text(" ");
 			yield return text("or ");
-			yield return link("follow it", "Follow host", null);
+		yield return link("follow it", "Follow host", null);
 			yield return lineBreak();
 		}
 		yield break;
@@ -2640,7 +2640,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return text("Mowgli fires several shots into the host's torso. The impacts drive it into the wall. Struct blood sprays out from the wounds, pressurised, unlike the drillworms that merely leaked. It stumbles and falls to a crawl but it is not done for.");
 		yield return lineBreak();
 		yield return lineBreak();
-		if(Vars.rifle .Contains("mine")) {
+		if(Vars.rifle.Contains("mine")) {
 			yield return text("You take aim at its head and fire your gun arm. The wall is spattered with struct blood and shrapnel. It slumps to the ground only a meter from accessing the door.");
 			yield return lineBreak();
 			yield return lineBreak();
@@ -2660,10 +2660,10 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return lineBreak();
 			yield return lineBreak();
 			yield return text("Do ");
-			yield return link("you harvest your host", "you harvest your host", null);
+		yield return link("you harvest your host", "you harvest your host", null);
 			yield return text(" ");
 			yield return text("or ");
-			yield return link("leave now", "leave now", null);
+		yield return link("leave now", "leave now", null);
 			yield return text("?");
 			yield return lineBreak();
 		}
@@ -2674,7 +2674,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("\"No I didn't make the structs I disected here\", it retorts, \"but I found one that I could refine. And I prepared something for fools like you.\" The door slowly swings open on its own.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("The room is filled with a buzzing noise.", "Bees", null);
+		yield return link("The room is filled with a buzzing noise.", "Bees", null);
 			yield return lineBreak();
 		}
 		yield return lineBreak();
@@ -2695,7 +2695,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 	IStoryThread passage58_Main()
 	{
 		yield return text("You reach out, ");
-		if(Vars.limp || Vars.quick) {
+		if(Vars.limp||Vars.quick) {
 			yield return text("grabbing Mowgli's neck. ");
 			yield return text(Vars.She);
 			yield return text(" ");
@@ -2712,7 +2712,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text(Vars.her);
 			yield return text(" ");
 			yield return text("head you find a flesh computer. Your conquest of this part is delicate, and slowly ");
-			yield return link("you uncover knowledge.", "Mowgli's story", null);
+		yield return link("you uncover knowledge.", "Mowgli's story", null);
 		}
 		else {
 			yield return text("but the human is too fast. ");
@@ -2735,10 +2735,10 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("It must mean to give you another struct to consume. You pause to consider this.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("Harvest your host", "Betray host", null);
+		yield return link("Harvest your host", "Betray host", null);
 			yield return text(" ");
 			yield return text("or ");
-			yield return link("follow it", "Follow host", null);
+		yield return link("follow it", "Follow host", null);
 		}
 		yield break;
 	}
@@ -2767,9 +2767,9 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return lineBreak();
 		yield return text("\"Damn straight.\" ");
-		if(Vars.rifle == "mine") {
+		if(Vars.rifle=="mine") {
 			yield return text("The gun you saw on the table earlier is in Mowgli's hands. ");
-			Vars.rifle  = "hersandmine";
+			Vars.rifle = "hersandmine";
 		}
 		yield return text("The human raises ");
 		yield return text(Vars.her);
@@ -3090,7 +3090,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return lineBreak();
 		yield return text("\"Go\", it cups a hand around your shoulder and pulls, \"go inside and feed.");
-		if(macros1.history() .Contains("harvest the human")) {
+		if(macros1.history().Contains("harvest the human")) {
 			yield return text("\"");
 		}
 		else {
@@ -3143,7 +3143,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage68_Main()
 	{
-		if(Vars.body < 2) {
+		if(Vars.body<2) {
 			yield return text("You struggle to maintain control but the mass of your True self is not enough. You / Mowgli begin to scream and turn your / ");
 			yield return text(Vars.her);
 			yield return text(" ");
@@ -3174,7 +3174,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("Humanity has thwarted you again.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("The End.", "The End.", null);
+		yield return link("The End.", "The End.", null);
 		}
 		else {
 			yield return text("You are overwhelmed with emotions but you fight them down. You have harvested enough blood to subdue Mowgli's mind. It takes some minutes for your new form to come to a rest. You have cased most of the flesh in armour and retain a weaponised form, but you gaze upon the world with Mowgli's face.");
@@ -3204,10 +3204,10 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("Yes, you think. I believe you do.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("Harvest your host", "Solo betrayal", null);
+		yield return link("Harvest your host", "Solo betrayal", null);
 			yield return text(" ");
 			yield return text("or ");
-			yield return link("follow it", "Follow host", null);
+		yield return link("follow it", "Follow host", null);
 		}
 		yield break;
 	}
@@ -3448,7 +3448,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	IStoryThread passage76_Main()
 	{
-		if(macros1.history() .Contains("harvest the human")) {
+		if(macros1.history().Contains("harvest the human")) {
 			yield return text("You look upon the valley to the south.");
 			yield return lineBreak();
 			yield return htmlTag("<div style=\"display: none;\">");
@@ -3473,7 +3473,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("You reluctantly follow your guide.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("The End.", "The End.", null);
+		yield return link("The End.", "The End.", null);
 		}
 		else {
 			yield return passage("Mowgli steals the worm");
@@ -3493,7 +3493,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text("Its delivers that last sentence hollowly. Unsure it believes the words it is saying.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("The End.", "The End.", null);
+		yield return link("The End.", "The End.", null);
 		}
 		yield break;
 	}
@@ -3516,7 +3516,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 		yield return lineBreak();
 		yield return lineBreak();
 		yield return text("\"No, I-\", you stop. Seeing. You remember the apple sculpture from earlier");
-		if(Vars.eyes == 1) {
+		if(Vars.eyes==1) {
 			yield return text(".");
 			yield return lineBreak();
 			yield return lineBreak();
@@ -3532,14 +3532,14 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 			yield return text(".");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("You harvest the building.", "You harvest the building.", null);
+		yield return link("You harvest the building.", "You harvest the building.", null);
 		}
 		else {
 			yield return text(" ");
 			yield return text("but you still cannot fathom why you could not see it for what it was. Perhaps you aren't ready.");
 			yield return lineBreak();
 			yield return lineBreak();
-			yield return link("You turn to address Mowgli", "leave now", null);
+		yield return link("You turn to address Mowgli", "leave now", null);
 		}
 		yield break;
 	}

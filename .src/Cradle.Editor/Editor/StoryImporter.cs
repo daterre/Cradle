@@ -6,12 +6,14 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System;
 using System.Reflection;
+using System.CodeDom.Compiler;
 
 namespace Cradle.Editor
 {
 	public abstract class StoryImporter
 	{
 		public string AssetPath { get; internal set; }
+		public CodeDomProvider CodeDomProvider { get; internal set; }
 		public StoryFormatTranscoder Transcoder {get; protected set;}
 		public PassageData CurrentPassage { get; private set; }
 
