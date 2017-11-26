@@ -59,7 +59,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
             CodeGenMacros["mouseover"] =
             CodeGenMacros["mouseoverreplace"] =
             CodeGenMacros["mouseoverappend"] =
-            CodeGenMacros["mouseoverprepend"] =
+            //CodeGenMacros["mouseoverprepend"] =
             CodeGenMacros["mouseout"] =
             CodeGenMacros["mouseoutreplace"] =
             CodeGenMacros["mouseoutappend"] =
@@ -166,6 +166,10 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 							GenerateText(token.text, true);
 							break;
 
+						case "twineLink":
+							t = GenerateLink(tokens, t);
+							break;
+
 						case "tag":
 							Code.Indent();
 							GenerateHtmlTag(token.text, true);
@@ -244,6 +248,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 							// This is only for unhandled hooks
 							GenerateStyleScope(string.Format("\"hook\", \"{0}\"", token.name), tokens[t].tokens);
 							break;
+
 						default:
 							break;
 					}
@@ -319,6 +324,11 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			return string.Format("passage{0}_Fragment_{1}", _input.Pid, _output.Fragments.Count - 1);
 		}
 
+		public int GenerateLink(LexerToken[] tokens, int linkTokenIndex)
+		{
+			return BuiltInCodeGenMacros.Link(this, tokens, linkTokenIndex, MacroUsage.Line);
+		}
+
 		public int GenerateMacro(LexerToken[] tokens, int macroTokenIndex, MacroUsage usage)
 		{
 			LexerToken macroToken = tokens[macroTokenIndex];
@@ -385,7 +395,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			throw new StoryFormatTranscodeException(string.Format("{0} macro was not formatted correctly", moveAssignment ? "Move" : "Put"));
 		}
 
-		public void GenerateExpression(LexerToken[] tokens, int start = 0, int end = -1)
+		public void GenerateExpression(LexerToken[] tokens, int start = 0, int end = -1, bool forceConcatenate = false)
 		{
 			// Skip whitespace at beginning of expression
 			while (start < tokens.Length && tokens[start].type == "whitespace")
@@ -394,9 +404,15 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			for (int t = start; t < (end > 0 ? end + 1 : tokens.Length); t++)
 			{
 				LexerToken token = tokens[t];
-				string expr = BuildExpressionSegment(tokens, ref t);
-				if (expr != null)
-					Code.Buffer.Append(expr);
+				string expr = BuildExpressionSegment(tokens, ref t, forceConcatenate);
+				if (expr == null)
+					continue;
+
+				// This is used when texts need to be evaluated as strings
+				if (forceConcatenate && t > start)
+					Code.Buffer.Append(" + ");
+
+				Code.Buffer.Append(expr);
 			}
 		}
 
@@ -407,7 +423,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			return _lastVariable;
 		}
 
-		string BuildExpressionSegment(LexerToken[] tokens, ref int tokenIndex)
+		string BuildExpressionSegment(LexerToken[] tokens, ref int tokenIndex, bool forceConcatenate = false)
 		{
 			LexerToken token = tokens[tokenIndex];
 			switch (token.type)
@@ -434,7 +450,11 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				case "colour":
 					return WrapInVarIfNecessary(string.Format("\"{0}\"", token.text), tokens, tokenIndex);
 				case "text":
-					return token.text == "null" ? "StoryVar.Empty" : token.text;
+					// Treat as string when concatenating
+					if (forceConcatenate)
+						return WrapInVarIfNecessary(string.Format("\"{0}\"", token.text), tokens, tokenIndex);
+					else
+						return token.text == "null" ? "StoryVar.Empty" : token.text;
 				case "grouping":
 					if(IsWrapInVarRequired(tokens, tokenIndex))
 						Code.Buffer.Append(" v");

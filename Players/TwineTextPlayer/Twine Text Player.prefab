@@ -31,7 +31,7 @@ GameObject:
   - component: {fileID: 11453712}
   - component: {fileID: 11453716}
   m_Layer: 5
-  m_Name: UGUI Cradle Player
+  m_Name: Twine Text Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

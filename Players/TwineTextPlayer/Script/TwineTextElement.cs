@@ -2,11 +2,10 @@
 using System.Collections;
 using Cradle;
 
-namespace Cradle.Players.UGUI
+namespace Cradle.Players
 {
-	public class UGUICradleElement : MonoBehaviour
+	public class TwineTextElement : MonoBehaviour
 	{
-
 		public StoryOutput SourceOutput;
 	}
 }

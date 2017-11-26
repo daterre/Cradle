@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7881c35a110f25948b8e06e1875bce65, type: 3}
+  m_Name: Twine TMPro Style Sheet
+  m_EditorClassIdentifier: 
+  Text: '{0}'
+  Link: <color=blue><u><link="{0}">{1}</link></u></color>
+  LineBreak: \n
+  HtmlTag: 
+  Styles:
+  - {fileID: 11400000, guid: e756faca7a10b464381bd7e51f3fa5ee, type: 2}
+  - {fileID: 11400000, guid: 1d35d7811061fa241903d9df67dc6ced, type: 2}
+  - {fileID: 11400000, guid: 2edb1d91b69454f48905504b3cf6c1e4, type: 2}
+  - {fileID: 11400000, guid: 0e875f734d34eba4a91d001f375b86b8, type: 2}
+  - {fileID: 11400000, guid: dfd52052bc547924db508f8b1d136021, type: 2}
+  - {fileID: 11400000, guid: 95a121ac0d5cd4346bc8bfc996f70912, type: 2}
+  - {fileID: 11400000, guid: ff167d6ed8c20e24bbee955392c27265, type: 2}
+  - {fileID: 11400000, guid: 9bad56cf47266b946b6d7d71d6573156, type: 2}
+  - {fileID: 11400000, guid: 488b5d8e25a6815468c19230f90d4fa6, type: 2}

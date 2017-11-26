@@ -7,10 +7,10 @@ using UnityEngine.UI;
 using Cradle;
 using Cradle.StoryFormats.Harlowe;
 
-namespace Cradle.Players.UGUI
+namespace Cradle.Players
 {
 	[ExecuteInEditMode]
-	public class UGUICradlePlayer : MonoBehaviour
+	public class TwineTextPlayer : MonoBehaviour
 	{
 
 		public Story Story;
@@ -110,7 +110,7 @@ namespace Cradle.Players.UGUI
 		void Story_OnOutputRemoved(StoryOutput outputThatWasRemoved)
 		{
 			// Remove all elements related to this output
-			foreach (var elem in Container.GetComponentsInChildren<UGUICradleElement>()
+			foreach (var elem in Container.GetComponentsInChildren<TwineTextElement>()
 				.Where(e => e.SourceOutput == outputThatWasRemoved))
 			{
 				elem.transform.SetParent(null);
@@ -121,7 +121,7 @@ namespace Cradle.Players.UGUI
 		public void DisplayOutput(StoryOutput output)
 		{
 			// Deternine where to place this output in the hierarchy - right after the last UI element associated with the previous output, if exists
-			UGUICradleElement last = Container.GetComponentsInChildren<UGUICradleElement>()
+			TwineTextElement last = Container.GetComponentsInChildren<TwineTextElement>()
 				.Where(elem => elem.SourceOutput.Index < output.Index)
 				.OrderBy(elem => elem.SourceOutput.Index)
 				.LastOrDefault();
@@ -188,7 +188,7 @@ namespace Cradle.Players.UGUI
 			if (index >= 0)
 				rect.SetSiblingIndex(index);
 
-			var elem = rect.gameObject.AddComponent<UGUICradleElement>();
+			var elem = rect.gameObject.AddComponent<TwineTextElement>();
 			elem.SourceOutput = output;
 		}
 	}

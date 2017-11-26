@@ -4,10 +4,10 @@ using UnityEngine.EventSystems;
 using System;
 using TMPro;
 
-namespace Cradle.Players.TextMeshPro
+namespace Cradle.Players
 {
 	[RequireComponent(typeof(TextMeshProUGUI))]
-    public class TMProLinkHandler : MonoBehaviour, IPointerClickHandler
+    public class TwineTMProLinkHandler : MonoBehaviour, IPointerClickHandler
     {
         [Serializable]
         public class LinkClickEvent : UnityEvent<string> { }
@@ -22,7 +22,6 @@ namespace Cradle.Players.TextMeshPro
         private LinkClickEvent _linkClick = new LinkClickEvent();
 
 		TextMeshProUGUI _textUI;
-
         Camera _camera;
         Canvas _canvas;
 
@@ -42,21 +41,21 @@ namespace Cradle.Players.TextMeshPro
 
 		void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
 		{
-			if (TMP_TextUtilities.IsIntersectingRectTransform(_textUI.rectTransform, eventData.position, _camera))
+			if (!TMP_TextUtilities.IsIntersectingRectTransform(_textUI.rectTransform, eventData.position, _camera))
+				return;
+			
+			// Check if mouse intersects with any links.
+			int linkIndex = TMP_TextUtilities.FindIntersectingLink(_textUI, eventData.position, _camera);
+
+			// Handle new Link selection.
+			if (linkIndex != -1)
 			{
-				// Check if mouse intersects with any links.
-				int linkIndex = TMP_TextUtilities.FindIntersectingLink(_textUI, eventData.position, _camera);
+				// Get information about the link.
+				TMP_LinkInfo linkInfo = _textUI.textInfo.linkInfo[linkIndex];
 
-				// Handle new Link selection.
-				if (linkIndex != -1)
-				{
-					// Get information about the link.
-					TMP_LinkInfo linkInfo = _textUI.textInfo.linkInfo[linkIndex];
-
-					// Send the event to any listeners. 
-					if (OnLinkClick != null)
-						OnLinkClick.Invoke(Unescape(linkInfo.GetLinkID()));
-				}
+				// Send the event to any listeners. 
+				if (OnLinkClick != null)
+					OnLinkClick.Invoke(Unescape(linkInfo.GetLinkID()));
 			}
 		}
 

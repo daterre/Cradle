@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 
 namespace Cradle.Players.UGUI
 {
-	[CustomEditor(typeof(UGUICradleElement))]
+	[CustomEditor(typeof(TwineTextElement))]
 	public class TwineTextPlayerElementEditor : UnityEditor.Editor
 	{
 
@@ -15,7 +15,7 @@ namespace Cradle.Players.UGUI
 
 		public override void OnInspectorGUI()
 		{
-			StoryOutput output = ((UGUICradleElement)target).SourceOutput;
+			StoryOutput output = ((TwineTextElement)target).SourceOutput;
 
 			bool unused;
 

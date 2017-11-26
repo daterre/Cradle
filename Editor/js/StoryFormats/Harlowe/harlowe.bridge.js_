@@ -42,17 +42,17 @@
 					var complex = tokens[i];
 					var simple = {};
 
-					// special cases
-					switch(complex.type) {
-						case "twineLink": {
-							// Desugar links
-							complex = TwineMarkup.lex("(link-goto:"
-								+ utils.toJSLiteral(complex.innerText) + ","
-								+ utils.toJSLiteral(complex.passage) + ")"
-							).children[0];
-							break;
-						}
-					}
+					// // special cases
+					// switch(complex.type) {
+					// 	case "twineLink": {
+					// 		// Desugar links
+					// 		complex = TwineMarkup.lex("(link-goto:"
+					// 			+ utils.toJSLiteral(complex.innerText) + ","
+					// 			+ utils.toJSLiteral(complex.passage) + ")"
+					// 		).children[0];
+					// 		break;
+					// 	}
+					// }
 
 					simple.type = complex.type;
 

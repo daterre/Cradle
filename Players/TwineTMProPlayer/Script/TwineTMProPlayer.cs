@@ -9,14 +9,15 @@ using Cradle.StoryFormats.Harlowe;
 using System.Text;
 using TMPro;
 
-namespace Cradle.Players.TextMeshPro
+namespace Cradle.Players
 {
 	[ExecuteInEditMode]
-	public class TMProCradlePlayer : MonoBehaviour
+	public class TwineTMProPlayer : MonoBehaviour
 	{
 		public Story Story;
 		public TextMeshProUGUI TextUI;
-		public TMProFormatSettings FormatSettings;
+
+		public TwineTMProStyleSheet StyleSheet;
 		public bool StartStory = true;
 		public bool ShowNamedLinks = true;
 		public bool CollapseLineBreaks = true;
@@ -44,13 +45,6 @@ namespace Cradle.Players.TextMeshPro
 				return;
 			}
 
-			if (this.FormatSettings == null)
-			{
-				Debug.LogError("Text player is missing a reference to a format settings asset. Create one using the Asset Create menu.");
-				this.enabled = false;
-				return;
-			}
-
 			this.Story.OnStateChanged += Story_OnStateChanged;
 
 			if (StartStory)
@@ -72,7 +66,7 @@ namespace Cradle.Players.TextMeshPro
 		// Clicks
 
 #if UNITY_EDITOR
-		void Update()
+		void OnValidate()
 		{
 			if (Application.isPlaying)
 				return;
@@ -110,42 +104,52 @@ namespace Cradle.Players.TextMeshPro
 			{
 				StoryOutput output = Story.Output[i];
 
+				if (this.StyleSheet != null)
+				{
+					while (_styleGroups.Count > 0 && !output.BelongsToStyleGroup(_styleGroups.Peek()))
+					{
+						FormatStyle(_styleGroups.Pop().Style, StyleFormatType.Suffix, builder);
+					}
+				}
+
 				if (output is StoryText)
 				{
-					builder.AppendFormat(Unescape(this.FormatSettings.Text), output.Text);
+					if (this.StyleSheet != null)
+						builder.AppendFormat(Unescape(this.StyleSheet.Text), output.Text);
+					else
+						builder.Append(output.Text);
 				}
 				else if (output is StoryLink)
 				{
 					var link = (StoryLink)output;
 					if (this.ShowNamedLinks || !link.IsNamed)
-						builder.AppendFormat(Unescape(this.FormatSettings.Link), TMProLinkHandler.Escape(link.Name), link.Text);
+					{
+						builder.AppendFormat(
+							this.StyleSheet != null ? Unescape(this.StyleSheet.Link) : TwineTMProStyleSheet.DefaultLink,
+							TwineTMProLinkHandler.Escape(link.Name),
+							link.Text);
+					}
 				}
 
 				if (output is LineBreak)
 				{
 					if (!CollapseLineBreaks || lineBreaks < 2)
 					{
-						builder.Append(Unescape(this.FormatSettings.LineBreak));
+						builder.Append(this.StyleSheet != null ? Unescape(this.StyleSheet.LineBreak) : TwineTMProStyleSheet.DefaultLineBreak);
 						lineBreaks++;
 					}
 				}
 				else
 					lineBreaks = 0;
 
-				if (output is StyleGroup)
+				if (this.StyleSheet != null && output is StyleGroup)
 				{
 					var styleGroup = (StyleGroup)output;
 					FormatStyle(styleGroup.Style, StyleFormatType.Prefix, builder);
 
 					_styleGroups.Push(styleGroup);
-				}
-				else
-				{
-					while (_styleGroups.Count > 0 && output.StyleGroup != _styleGroups.Peek())
-					{
-						FormatStyle(_styleGroups.Pop().Style, StyleFormatType.Suffix, builder);
-					}
-				}
+				}		
+				
 			}
 
 			TextUI.SetText(builder);
@@ -153,15 +157,17 @@ namespace Cradle.Players.TextMeshPro
 
 		void FormatStyle(Style style, StyleFormatType formatType, StringBuilder builder)
 		{
+			if (this.StyleSheet == null)
+				return;
+
 			foreach(var entry in style)
 			{
-				StyleFormat styleFormat = FormatSettings.Styles
-					.Where(f =>
-						f.MatchingKeys.Contains(entry.Key) &&
+				TwineTMProStyle styleFormat = StyleSheet.Styles
+					.Where((System.Func<TwineTMProStyle, bool>)(f => (bool)(f.MatchingKeys.Contains(entry.Key) &&
 						(
 							string.IsNullOrEmpty(f.MatchingValuesRegex) ||
-							Regex.IsMatch(System.Convert.ToString(entry.Value), f.MatchingValuesRegex)
-						)
+							CheckRegex(f, entry.Value)
+						)))
 					)
 					.FirstOrDefault();
 
@@ -177,6 +183,11 @@ namespace Cradle.Players.TextMeshPro
 
 				builder.AppendFormat(Unescape(format), entry.Value);
 			}
+		}
+
+		private static bool CheckRegex(TwineTMProStyle f, object value)
+		{
+			return Regex.IsMatch(System.Convert.ToString(value), f.MatchingValuesRegex);
 		}
 
 		enum StyleFormatType

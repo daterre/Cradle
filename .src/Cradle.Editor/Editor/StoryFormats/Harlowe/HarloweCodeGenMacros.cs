@@ -120,9 +120,17 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 		public static HarloweCodeGenMacro Link = (transcoder, tokens, tokenIndex, usage) =>
 		{
 			LexerToken linkToken = tokens[tokenIndex];
+			bool isClassicLink = linkToken.type == "twineLink";
 			LinkType linkType;
-			if (linkToken.name == "link")
+
+			if (isClassicLink)
+			{
+				linkType = LinkType.LinkGoto;
+			}
+			else if (linkToken.name == "link")
+			{
 				linkType = LinkType.LinkReplace;
+			}
 			else
 			{
 				try { linkType = (LinkType)Enum.Parse(typeof(LinkType), linkToken.name, true); }
@@ -149,29 +157,40 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				}
 			}
 
-			// Text
+			// Text and passage
 			transcoder.Code.Buffer.AppendFormat("yield return link(");
-			int start = 1;
-			int end = start;
-			for (; end < linkToken.tokens.Length; end++)
-				if (linkToken.tokens[end].type == "comma")
-					break;
-			int linkTextStartToken = start, linkTextEndToken = end-1;
-			transcoder.GenerateExpression(linkToken.tokens, start: linkTextStartToken, end: linkTextEndToken);
-
-			// Passage
-			transcoder.Code.Buffer.Append(", ");
-			start = ++end;
-			for (; end < linkToken.tokens.Length; end++)
-				if (linkToken.tokens[end].type == "comma")
-					break;
-			if (start < end)
-				transcoder.GenerateExpression(linkToken.tokens, start: start, end: end - 1);
-			else if (linkType == LinkType.LinkGoto)
-				// If no passage name specified for link goto, use the same
-				transcoder.GenerateExpression(linkToken.tokens, start: linkTextStartToken, end: linkTextEndToken);
+			if (isClassicLink)
+			{
+				// Classic link uses all the tokens for its text, and has a dededicated passage field
+				transcoder.GenerateExpression(linkToken.tokens, forceConcatenate: true);
+				transcoder.Code.Buffer.AppendFormat(", \"{0}\"", linkToken.passage);
+			}
 			else
-				transcoder.Code.Buffer.Append("null");
+			{
+				// Macro link uses all the tokens before the comma for its text
+				int start = 1;
+				int end = start;
+				for (; end < linkToken.tokens.Length; end++)
+					if (linkToken.tokens[end].type == "comma")
+						break;
+				int linkTextStartToken = start, linkTextEndToken = end - 1;
+				transcoder.GenerateExpression(linkToken.tokens, start: linkTextStartToken, end: linkTextEndToken);
+			
+				transcoder.Code.Buffer.Append(", ");
+
+				// Passage
+				start = ++end;
+				for (; end < linkToken.tokens.Length; end++)
+					if (linkToken.tokens[end].type == "comma")
+						break;
+				if (start < end)
+					transcoder.GenerateExpression(linkToken.tokens, start: start, end: end - 1);
+				else if (linkType == LinkType.LinkGoto)
+					// If no passage name specified for link goto, use the same
+					transcoder.GenerateExpression(linkToken.tokens, start: linkTextStartToken, end: linkTextEndToken);
+				else
+					transcoder.Code.Buffer.Append("null");
+			}
 
 			// Action
 			transcoder.Code.Buffer.Append(", ");

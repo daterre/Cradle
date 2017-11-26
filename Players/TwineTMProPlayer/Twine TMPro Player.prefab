@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 114110489030156408}
   - component: {fileID: 114071350316992524}
   m_Layer: 5
-  m_Name: TMPro Cradle Player
+  m_Name: Twine TMPro Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -118,7 +118,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Story: {fileID: 0}
   TextUI: {fileID: 114895678260955928}
-  FormatSettings: {fileID: 11400000, guid: b0962a16c37c3314896c50621dc73f52, type: 2}
+  StyleSheet: {fileID: 11400000, guid: b0962a16c37c3314896c50621dc73f52, type: 2}
   StartStory: 1
   ShowNamedLinks: 1
   CollapseLineBreaks: 1
@@ -207,7 +207,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_TypeName: Cradle.Players.TextMeshPro.TMProLinkHandler+LinkClickEvent, Assembly-CSharp,
+    m_TypeName: Cradle.Players.TwineTMProLinkHandler+LinkClickEvent, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &114390525314375994
 MonoBehaviour:
@@ -469,7 +469,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1329901025570744}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -50, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 224774341815020316}
