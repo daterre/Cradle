@@ -109,7 +109,7 @@ Cradle supports the following Twine story formats:
 * **[Sugarcane](https://twinery.org/wiki/twine_reference)**, the default format of Twine 1
 * **[SugarCube](http://www.motoslave.net/sugarcube/)**, a richer version of Sugarcane that works in both Twine 1 and 2
 
-Most features of these story formats are available in Cradle, but there are some limitations. Please see their individual readme's in the [Documention](Assets/Cradle/Documentation) folder for information on supported macros, syntax, and more.
+Most features of these story formats are available in Cradle, but there are some limitations. Please see their individual readme's in the [Documentation](Documentation) folder for information on supported macros, syntax, and more.
 
 Cradle can be extended to support additional story formats (Twine or other), see [Extending](#extending).
 
