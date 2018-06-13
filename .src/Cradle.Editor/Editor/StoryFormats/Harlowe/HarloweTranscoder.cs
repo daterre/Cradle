@@ -245,8 +245,9 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 						}
 
 						case "hook":
-							// This is only for unhandled hooks
-							GenerateStyleScope(string.Format("\"hook\", {0}", EscapeString(token.name)), tokens[t].tokens);
+							// This is only for named hooks
+							if (!string.IsNullOrEmpty(token.name))
+								GenerateStyleScope(string.Format("\"hook\", {0}", EscapeString(token.name)), tokens[t].tokens);
 							break;
 
 						default:

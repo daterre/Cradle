@@ -37,6 +37,8 @@ namespace Cradle
 		public event Action<StoryPassage> OnPassageDone;
 		public event Action<StoryPassage> OnPassageExit;
 		public event Action<StoryState> OnStateChanged;
+		public event Action<StoryPassage, StoryLink> OnLinkEnter;
+		public event Action<StoryPassage, StoryLink> OnLinkDone;
 		public event Action<StoryOutput> OnOutput;
 		public event Action<StoryOutput> OnOutputRemoved;
 
@@ -50,11 +52,11 @@ namespace Cradle
 		public float PassageTime { get { return _timeAccumulated + (Time.time - _timeChangedToPlay); } }
 		//public StorySaveData SaveData { get; private set; }
 
+		bool _allowStateChanging = false;
 		StoryState _state = StoryState.Idle;
+		readonly CallbackList _callbacks;
 		IEnumerator<StoryOutput> _currentThread = null;
 		Cue[] _passageUpdateCues = null;
-		string _passageWaitingToEnter = null;
-		bool _passageEnterCueInvoked = false;
 		Dictionary<string, List<Cue>> _cueCache = new Dictionary<string, List<Cue>>();
 		MonoBehaviour[] _cueTargets = null;
 		float _timeChangedToPlay = 0f;
@@ -69,7 +71,7 @@ namespace Cradle
 		[Obsolete("Use Story.CurrentPassage.Tags instead")]
 		public string[] Tags { get { return CurrentPassage.Tags; } }
 
-		private class Cue
+		internal class Cue
 		{
 			public MonoBehaviour target;
 			public MethodInfo method;
@@ -92,6 +94,8 @@ namespace Cradle
 			this.Passages = new Dictionary<string, StoryPassage>();
 
             this.PassageHistory = new List<string>();
+
+			_callbacks = new CallbackList(this);
 		}
 
 		protected void Init()
@@ -104,6 +108,7 @@ namespace Cradle
 			InsertStack.Clear();
 			
 			CurrentPassage = null;
+			_callbacks.Reset();
 		}
 
 		void Start()
@@ -123,7 +128,11 @@ namespace Cradle
 				StoryState prev = _state;
 				_state = value;
 				if (prev != value && OnStateChanged != null)
+				{
+					_allowStateChanging = false;
 					OnStateChanged(value);
+					_allowStateChanging = true;
+				}
 			}
 		}
 
@@ -196,25 +205,36 @@ namespace Cradle
 						"The story is complete. Reset() must be called before it can be played again."
 					);
 			}
-			
-			// Indicate specified passage as next
-			_passageWaitingToEnter = passageName;
+
+			//===========================
+
+			_callbacks.Reset();
 
 			if (CurrentPassage != null)
 			{
 				this.State = StoryState.Exiting;
 
-				if (this.OnPassageExit != null)
-					this.OnPassageExit(this.CurrentPassage);
-
-				// invoke exit cues
-				CuesInvoke(CuesFind(CueType.Exit, reverse: true));
-
-				// Add the passage only now that we're leaving it
-				PassageHistory.Add(CurrentPassage.Name);
+				// Build a callback list for exiting
+				_callbacks
+					.Add(() =>
+					{
+						if (this.OnPassageExit != null)
+							this.OnPassageExit(this.CurrentPassage);
+					})
+					.Add(() =>
+					{
+						SendMessage("OnStoryPassageExit", this.CurrentPassage, SendMessageOptions.DontRequireReceiver);
+					})
+					.Add(CuesFind(CueType.Exit, reverse: true))
+					.Add(() =>
+					{
+						// Add the passage only now that we're leaving it
+						PassageHistory.Add(CurrentPassage.Name);
+					})
+					.OnComplete(() => Enter(passageName))
+					.Invoke();
 			}
-
-			if (this.State != StoryState.Paused)
+			else
 				Enter(passageName);
 		}
 
@@ -223,6 +243,9 @@ namespace Cradle
 		/// </summary>
 		public void Pause()
 		{
+			if (_allowStateChanging)
+				throw new InvalidOperationException("Can't change story state via an OnStateChanged event.");
+
 			if (this.State != StoryState.Playing && this.State != StoryState.Exiting)
 				throw new InvalidOperationException("Pause can only be called while a passage is playing or exiting.");
 
@@ -235,6 +258,9 @@ namespace Cradle
 		/// </summary>
 		public void Resume()
 		{
+			if (_allowStateChanging)
+				throw new InvalidOperationException("Can't change story state via an OnStateChanged event.");
+
 			if (this.State != StoryState.Paused)
 			{
 				throw new InvalidOperationException(
@@ -248,26 +274,15 @@ namespace Cradle
 						"The story is complete. Reset() must be called before it can be played again."
 					);
 			}
-						
-			// Either enter the next passage, or Execute if it was already entered
-			if (_passageWaitingToEnter != null) {
-				Enter(_passageWaitingToEnter);
-			}
-			else {
-				this.State = StoryState.Playing;
-				_timeAccumulated = Time.time - _timeChangedToPlay;
 
-				// The passage enter cue hasn't been invoked yet, probably because of a Pause() call in an OnPassageEnter event.
-				if (!_passageEnterCueInvoked)
-				{
-					CuesInvoke(CuesGet(this.CurrentPassage.Name, CueType.Enter));
-					_passageEnterCueInvoked = true;
-				}
+			this.State = StoryState.Playing;
+			_timeAccumulated = Time.time - _timeChangedToPlay;
 
-				// Continue un-pausing only if the passage enter cue didn't pause again
-				if (this.State == StoryState.Playing)
-					ExecuteCurrentThread();
-			}
+			// If a callback list is still in progress, keep invoking it
+			if (_callbacks != null && !_callbacks.Completed)
+				_callbacks.Invoke();
+			else if (_currentThread != null)
+				ExecuteCurrentThread();
 		}
 
 		public StoryPassage GetPassage(string passageName)
@@ -295,9 +310,7 @@ namespace Cradle
 		{
 			//this.SaveData = this.Save();
 
-			_passageWaitingToEnter = null;
-			_passageEnterCueInvoked = false;
-			_timeAccumulated = 0;
+			_timeAccumulated = 0f;
 			_timeChangedToPlay = Time.time;
 
 			this.InsertStack.Clear();
@@ -313,69 +326,86 @@ namespace Cradle
 			CurrentLinkInAction = null;
 
 			this.State = StoryState.Playing;
-			
-			// Invoke the general passage enter event
-			if (this.OnPassageEnter != null)
-				this.OnPassageEnter(passage);
 
-			// Story was paused, wait for it to resume
-			if (this.State == StoryState.Paused)
-				return;
-			else
-			{
-				CuesInvoke(CuesGet(passage.Name, CueType.Enter));
-				_passageEnterCueInvoked = true;
-				ExecuteCurrentThread();
-			}
+			_callbacks
+				.Reset()
+				.Add(() =>
+				{
+					// Invoke the general passage enter event
+					if (this.OnPassageEnter != null)
+						this.OnPassageEnter(passage);
+				})
+				.Add(() =>
+				{
+					SendMessage("OnStoryPassageEnter", this.CurrentPassage, SendMessageOptions.DontRequireReceiver);
+				})
+				.Add(CuesGet(passage.Name, CueType.Enter))
+				.OnComplete(() => ExecuteCurrentThread())
+				.Invoke();
 		}
 
 		/// <summary>
-		/// Executes the current thread by advancing its enumerator, sending its output and invoking cues.
+		/// Executes the current thread by advancing its enumerator, sending its output and invoking callbacks.
 		/// </summary>
 		void ExecuteCurrentThread()
 		{
 			Abort aborted = null;
 			UpdateCuesRefresh();
 
-			while (_currentThread.MoveNext())
+			// Find some output that isn't null
+			while (this.State == StoryState.Playing)
 			{
-				StoryOutput output = _currentThread.Current;
+				_callbacks.Reset();
 
-				// If output is not null, process it. Otherwise, just check if story was paused and continue
-				if (output != null)
+				StoryOutput output = null;
+				while (_currentThread.MoveNext())
 				{
-					// Abort this thread
-					if (output is Abort)
+					if (_currentThread.Current != null)
 					{
-						aborted = (Abort)output;
+						output = _currentThread.Current;
 						break;
 					}
-
-					OutputAdd(output);
-
-					// Let the handlers and cues kick in
-					if (output is EmbedPassage)
-					{
-						CuesInvoke(CuesGet(output.Name, CueType.Enter));
-						UpdateCuesRefresh();
-					}
-
-					// Send output
-					OutputSend(output);
-					CuesInvoke(CuesFind(CueType.Output), output);
 				}
 
-				// Story was paused, wait for it to resume
-				if (this.State == StoryState.Paused)
+				if (output == null)
+					break;
+
+				// Process the output
+				if (output is Abort)
 				{
-					return;
+					// Abort this thread
+					aborted = (Abort)output;
+					break;
+				}
+				else
+				{
+					OutputAdd(output);
+
+					// Send output, invoke callbacks
+					_callbacks
+						.Add(() => OutputSend(output))
+						.Add(CuesFind(CueType.Output), output);
+
+					// Notify cues of embedded passages
+					if (output is EmbedPassage)
+					{
+						_callbacks
+							.Add(CuesGet(output.Name, CueType.Enter))
+							.Add(() => UpdateCuesRefresh());
+					}
+
+					_callbacks.Invoke();
 				}
 			}
 
+			// Stop executing if story was paused
+			if (this.State == StoryState.Paused)
+				return;
+
+			// End the current passage - is has ended or an "abort" output was encountered
 			_currentThread.Dispose();
 			_currentThread = null;
 
-			
 			this.State = StoryState.Idle;
 
 			// Next passage, if any, will either be a goto or a link
@@ -384,25 +414,39 @@ namespace Cradle
 				CurrentLinkInAction != null ? CurrentLinkInAction.PassageName :
 				null;
 
-			// Invoke the general passage enter event
-			if (this.OnPassageDone != null)
-				this.OnPassageDone(this.CurrentPassage);
-
-			// Invoke the done cue - either for main or for a link
-			if (CurrentLinkInAction == null)
-			{
-				CuesInvoke(CuesFind(CueType.Done));
-			}
-			else
-			{
-				CuesInvoke(CuesFind(CueType.Done, CurrentLinkInAction.Name));
-				CurrentLinkInAction = null;
-				NumberOfLinksDone++;
-			}
-
-			// Now that the link is done, go to its passage
-			if (goToPassage != null)
-				GoTo(goToPassage);
+			_callbacks
+				.Reset()
+				.Add(() =>
+				{
+					// Invoke the general passage enter event
+					if (this.OnPassageDone != null)
+						this.OnPassageDone(this.CurrentPassage);
+				})
+				.Add(() =>
+				{
+					SendMessage("OnStoryPassageDone", this.CurrentPassage, SendMessageOptions.DontRequireReceiver);
+				})
+				.Add(() =>
+				{
+					// Invoke the done cue - either for main or for a link
+					if (CurrentLinkInAction == null)
+					{
+						CuesInvoke(CuesFind(CueType.Done));
+					}
+					else
+					{
+						CuesInvoke(CuesFind(CueType.Done, CurrentLinkInAction.Name));
+						CurrentLinkInAction = null;
+						NumberOfLinksDone++;
+					}
+				})
+				.OnComplete(() =>
+				{
+					// Now that the link is done, go to its passage
+					if (goToPassage != null)
+						GoTo(goToPassage);
+				})
+				.Invoke();	
 		}
 
 		/// <summary>
@@ -447,9 +491,6 @@ namespace Cradle
 				else
 					yield return output;
 			}
-
-			//foreach (TwineOutput scopeTag in ScopeOutputTags())
-			//	yield return scopeTag;
 		}
 
 		void OutputAdd(StoryOutput output)
@@ -530,7 +571,13 @@ namespace Cradle
 		protected StyleScope styleScope(Style style)
 		{
 			var group = new StyleGroup(style);
+
+			// Don't allow pausing story while sending a style group
+			_allowStateChanging = false;
+
 			OutputSend(group, add: true);
+
+			_allowStateChanging = true;
 
 			return styleScope(group);
 		}
@@ -597,6 +644,9 @@ namespace Cradle
 
 			// Resume story, this time with the actoin thread
 			this.State = StoryState.Playing;
+
+			if (this.OnLinkEnter != null)
+				this.OnLinkEnter(CurrentPassage, link);
 
 			// Invoke a link enter cue
 			CuesInvoke(CuesFind(CueType.Enter, CurrentLinkInAction.Name));
@@ -734,7 +784,7 @@ namespace Cradle
 			}
 		}
 
-		void CueInvoke(Cue cue, object[] args)
+		internal void CueInvoke(Cue cue, object[] args)
 		{
 			object result = null;
 			try { result = cue.method.Invoke(cue.target, args); }
@@ -937,4 +987,102 @@ namespace Cradle
 	//	public List<string> PassageHistory;
 	//	public Dictionary<string, StoryVar> Variables;
 	//}
+
+	class CallbackList
+	{
+		Story _story;
+		List<Action> _actions = new List<Action>();
+		int _current;
+		Action _onComplete;
+		
+
+		public CallbackList(Story story)
+		{
+			_story = story;
+			Reset();
+		}
+
+		public CallbackList Reset()
+		{
+			_actions.Clear();
+			_current = -1;
+			_onComplete = null;
+			return this;
+		}
+
+		public CallbackList Add(Action action)
+		{
+			if (Started)
+				throw new InvalidOperationException("Callback list has already been started");
+			_actions.Add(action);
+			return this;
+		}
+
+		public CallbackList Add(IEnumerable<Story.Cue> cues, params object[] args)
+		{
+			if (cues == null)
+				return this;
+
+			if (cues is Story.Cue[])
+			{
+				var ar = (Story.Cue[])cues;
+				for (int i = 0; i < ar.Length; i++)
+					_actions.Add(CueInvoker(ar[i], args));
+			}
+			else
+			{
+				foreach (Story.Cue cue in cues)
+					_actions.Add(CueInvoker(cue, args));
+			}
+			return this;
+		}
+
+		public CallbackList OnComplete(Action onComplete)
+		{
+			if (Started)
+				throw new InvalidOperationException("Callback list has already been started");
+			_onComplete = onComplete;
+			return this;
+		}
+
+		Action CueInvoker(Story.Cue cue, object[] args)
+		{
+			return () => _story.CueInvoke(cue, args);
+		}
+
+		public bool Started
+		{
+			get { return _current >= 0; }
+		}
+
+		public bool Completed
+		{
+			get { return _current >= _actions.Count; }
+		}
+
+		public CallbackList Invoke()
+		{
+			if (Completed)
+				throw new InvalidOperationException("Callback list is complete");
+
+			while (!Completed)
+			{			
+				if (_current < _actions.Count)
+					_current++;
+
+				if (Completed)
+					break;
+
+				_actions[_current].Invoke();
+
+				if (_story.State == StoryState.Paused)
+					return this;
+			}
+
+			if (_onComplete != null)
+				_onComplete.Invoke();
+
+			return this;
+		}
+	}
 }

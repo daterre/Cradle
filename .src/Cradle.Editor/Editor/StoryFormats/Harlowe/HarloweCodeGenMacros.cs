@@ -308,7 +308,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				};
 			}
 			else
-				actionTokens = hookToken.tokens;
+				actionTokens = new LexerToken[] { hookToken }; //hookToken.tokens;
 
 			transcoder.Code.Buffer.Append(transcoder.GenerateFragment(actionTokens));	
 
