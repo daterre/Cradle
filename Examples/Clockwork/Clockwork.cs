@@ -188,7 +188,7 @@ public partial class @Clockwork: Cradle.StoryFormats.Harlowe.HarloweStory
 
 	void passage1_Init()
 	{
-		this.Passages[@"Begin"] = new StoryPassage(@"Begin", new string[]{  }, passage1_Main);
+		this.Passages[@"Begin"] = new StoryPassage(@"Begin", new string[]{ "tag-test" }, passage1_Main);
 	}
 
 	IStoryThread passage1_Main()

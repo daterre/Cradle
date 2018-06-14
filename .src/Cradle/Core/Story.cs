@@ -51,9 +51,8 @@ namespace Cradle
         public List<string> PassageHistory {get; private set; }
 		public float PassageTime { get { return _timeAccumulated + (Time.time - _timeChangedToPlay); } }
 		//public StorySaveData SaveData { get; private set; }
-		public bool IsPausable { get { return _allowStateChanging; } }
+		public bool CanPause { get; internal set; }
 
-		bool _allowStateChanging = true;
 		StoryState _state = StoryState.Idle;
 		readonly CallbackList _callbacks;
 		IEnumerator<StoryOutput> _currentThread = null;
@@ -76,6 +75,7 @@ namespace Cradle
 		{
 			public MonoBehaviour target;
 			public MethodInfo method;
+			public int order;
 		}
 
 		private enum ThreadResult
@@ -109,7 +109,8 @@ namespace Cradle
 			InsertStack.Clear();
 			
 			CurrentPassage = null;
-			_callbacks.Reset();
+			CanPause = true;
+			_callbacks.Clear();
 		}
 
 		void Start()
@@ -130,9 +131,9 @@ namespace Cradle
 				_state = value;
 				if (prev != value && OnStateChanged != null)
 				{
-					_allowStateChanging = false;
+					CanPause = false;
 					OnStateChanged(value);
-					_allowStateChanging = true;
+					CanPause = true;
 				}
 			}
 		}
@@ -209,7 +210,7 @@ namespace Cradle
 
 			//===========================
 
-			_callbacks.Reset();
+			_callbacks.Clear();
 
 			if (CurrentPassage != null)
 			{
@@ -244,8 +245,8 @@ namespace Cradle
 		/// </summary>
 		public void Pause()
 		{
-			if (!_allowStateChanging)
-				throw new InvalidOperationException("Can't pause story right now. Check story.IsPausable.");
+			if (!CanPause)
+				throw new InvalidOperationException("Can't pause story right now. Check story.CanPause.");
 
 			if (this.State != StoryState.Playing && this.State != StoryState.Exiting)
 				throw new InvalidOperationException("Pause can only be called while a passage is playing or exiting.");
@@ -259,8 +260,8 @@ namespace Cradle
 		/// </summary>
 		public void Resume()
 		{
-			if (!_allowStateChanging)
-				throw new InvalidOperationException("Can't resume story right now. Check story.IsPausable.");
+			if (!CanPause)
+				throw new InvalidOperationException("Can't resume story right now. Check story.CanPause.");
 
 			if (this.State != StoryState.Paused)
 			{
@@ -331,7 +332,7 @@ namespace Cradle
 			this.State = StoryState.Playing;
 
 			_callbacks
-				.Reset()
+				.Clear()
 				.Add(() =>
 				{
 					// Invoke the general passage enter event
@@ -358,7 +359,7 @@ namespace Cradle
 			// Find some output that isn't null
 			while (this.State == StoryState.Playing)
 			{
-				_callbacks.Reset();
+				_callbacks.Clear();
 
 				StoryOutput output = null;
 				while (_currentThread.MoveNext())
@@ -416,40 +417,37 @@ namespace Cradle
 				aborted != null ? aborted.GoToPassage :
 				CurrentLinkInAction != null ? CurrentLinkInAction.PassageName :
 				null;
+			
+			
+					
+			// Invoke the done cue - either for main or for a link
+			if (CurrentLinkInAction == null)
+			{
+				// No need for a callback list now since story is idle
+				if (this.OnPassageDone != null)
+					this.OnPassageDone(this.CurrentPassage);
 
-			_callbacks
-				.Reset()
-				.Add(() =>
-				{
-					// Invoke the general passage enter event
-					if (this.OnPassageDone != null)
-						this.OnPassageDone(this.CurrentPassage);
-				})
-				.Add(() =>
-				{
-					SendMessage("OnStoryPassageDone", this.CurrentPassage, SendMessageOptions.DontRequireReceiver);
-				})
-				.Add(() =>
-				{
-					// Invoke the done cue - either for main or for a link
-					if (CurrentLinkInAction == null)
-					{
-						CuesInvoke(CuesFind(CueType.Done));
-					}
-					else
-					{
-						CuesInvoke(CuesFind(CueType.Done, CurrentLinkInAction.Name));
-						CurrentLinkInAction = null;
-						NumberOfLinksDone++;
-					}
-				})
-				.OnComplete(() =>
-				{
-					// Now that the link is done, go to its passage
-					if (goToPassage != null)
-						GoTo(goToPassage);
-				})
-				.Invoke();	
+				SendMessage("OnStoryPassageDone", this.CurrentPassage, SendMessageOptions.DontRequireReceiver);
+
+				CuesInvoke(CuesFind(CueType.Done));
+			}
+			else
+			{
+				// No need for a callback list now since story is idle
+				if (this.OnLinkDone != null)
+					this.OnLinkDone(this.CurrentPassage, CurrentLinkInAction);
+
+				SendMessage("OnStoryLinkDone", this.CurrentPassage, SendMessageOptions.DontRequireReceiver);
+
+				CuesInvoke(CuesFind(CueType.Done, CurrentLinkInAction.Name));
+
+				CurrentLinkInAction = null;
+				NumberOfLinksDone++;
+			}
+					
+			// Now that the link is done, go to its passage
+			if (goToPassage != null)
+				GoTo(goToPassage);
 		}
 
 		/// <summary>
@@ -459,9 +457,6 @@ namespace Cradle
 		{
 			foreach (StoryOutput output in thread)
 			{
-				//foreach (TwineOutput scopeTag in ScopeOutputTags())
-				//	yield return scopeTag;
-
 				if (output is Embed)
 				{
 					var embed = (Embed) output;
@@ -535,10 +530,10 @@ namespace Cradle
 		{
 			if (this.Output.Remove(output))
 			{
-				_allowStateChanging = false;
+				CanPause = false;
 				if (OnOutputRemoved != null)
 					OnOutputRemoved(output);
-				_allowStateChanging = true;
+				CanPause = true;
 				OutputUpdateIndexes(output.Index);
 			}
 		}
@@ -578,11 +573,11 @@ namespace Cradle
 			var group = new StyleGroup(style);
 
 			// Don't allow pausing story while sending a style group
-			_allowStateChanging = false;
+			CanPause = false;
 
 			OutputSend(group, add: true);
 
-			_allowStateChanging = true;
+			CanPause = true;
 
 			return styleScope(group);
 		}
@@ -647,14 +642,19 @@ namespace Cradle
 			// Prepare the fragment thread enumerator
 			_currentThread = CollapseThread(linkActionThread).GetEnumerator();
 
-			// Resume story, this time with the actoin thread
+			// Resume story, this time with the action thread
 			this.State = StoryState.Playing;
 
-			if (this.OnLinkEnter != null)
-				this.OnLinkEnter(CurrentPassage, link);
+			// Set up callbacks
+			_callbacks.Clear();
 
-			// Invoke a link enter cue
-			CuesInvoke(CuesFind(CueType.Enter, CurrentLinkInAction.Name));
+			if (this.OnLinkEnter != null)
+				_callbacks.Add (() => this.OnLinkEnter(CurrentPassage, link));
+
+			_callbacks
+				.Add(() => SendMessage("OnStoryLinkEnter", link, SendMessageOptions.DontRequireReceiver))
+				.Add(CuesFind(CueType.Enter, link.Name))
+				.Invoke();
 
 			if (this.State == StoryState.Playing)
 				ExecuteCurrentThread();
@@ -843,71 +843,103 @@ namespace Cradle
 			if (!_cueCache.TryGetValue(methodName, out cues))
 			{
 				MonoBehaviour[] targets = CueGetTargets();
-				var methodsFound = new List<MethodInfo>();
 
 				for (int i = 0; i < targets.Length; i++)
 				{
 					Type targetType = targets[i].GetType();
-					methodsFound.Clear();
 
-					// Get methods with attribute and sort by order
-					methodsFound.AddRange(targetType.GetMethods(_cueMethodFlags)
-						.Where(m => m.GetCustomAttributes(typeof(StoryCueAttribute), true)
-							.Cast<StoryCueAttribute>()
-							.Where(attr => attr.PassageName == passageName && attr.LinkName == linkName && attr.Cue == cueType)
-							.Count() > 0
-						)
-						.OrderBy(m => m.GetCustomAttributes(typeof(StoryCueAttribute), true)
-							.Cast<StoryCueAttribute>()
-							.FirstOrDefault()
-							.Order
-						)
-					);
+					// Get methods with attribute and keep them along with their order as meta data
+					MethodInfo[] methods = targetType.GetMethods(_cueMethodFlags);
+					for (int j = 0; j < methods.Length; j++)
+					{
+						MethodInfo m = methods[j];
+						var attributes = m.GetCustomAttributes(typeof(LinkCueAttribute), true)
+							.Cast<LinkCueAttribute>()
+							.Where(attr =>
+							{
+								// It's a match if link and cue type are what was asked for
+								bool relevant = attr.LinkName == linkName && attr.Cue == cueType;
+
+								// Passage and tag cues add additional constraints
+								if (attr is PassageCueAttribute)
+									relevant &= ((PassageCueAttribute)attr).PassageName == passageName;
+								else if (attr is TagCueAttribute)
+									relevant &= this.CurrentPassage.Tags.Contains(((TagCueAttribute)attr).TagName);
+								
+								return relevant;
+							});
+
+						if (attributes.Count() > 0 && CuesValidate(m, targetType, allowCoroutines))
+						{
+							if (cues == null)
+								cues = new List<Cue>();
+
+							// Keep it, it's valid
+							cues.Add(new Cue()
+							{
+								method = m,
+								target = targets[i],
+								order = attributes.Min(attr => attr.Order)
+							});
+						}
+					}
 
 					// Get the method by name (if valid)
 					if (_validPassageNameRegex.IsMatch(passageName))
 					{
-						MethodInfo methodByName = targetType.GetMethod(methodName, _cueMethodFlags);
+						MethodInfo m = targetType.GetMethod(methodName, _cueMethodFlags);
 
-						// Only add it if doesn't have a StoryCue attribute
-						if (methodByName != null && methodByName.GetCustomAttributes(typeof(StoryCueAttribute), true).Length == 0)
-							methodsFound.Add(methodByName);
-					}
-
-					// Now ensure that all methods are valid and add them as cues
-					foreach (MethodInfo method in methodsFound)
-					{
-						// Validate the found method
-						if (allowCoroutines)
+						// Only add it if doesn't have a cue attribute
+						if (m != null &&
+							m.GetCustomAttributes(typeof(LinkCueAttribute), true).Length == 0 &&
+							CuesValidate(m, targetType, allowCoroutines)
+							)
 						{
-							if (method.ReturnType != typeof(void) && !typeof(IEnumerator).IsAssignableFrom(method.ReturnType))
-							{
-								Debug.LogWarning(targetType.Name + "." + methodName + " must return void or IEnumerator in order to be used as a cue.");
-								continue;
-							}
-						}
-						else
-						{
-							if (method.ReturnType != typeof(void))
-							{
-								Debug.LogWarning(targetType.Name + "." + methodName + " must return void in order to be used as a cue.");
-								continue;
-							}
-						}
+							if (cues == null)
+								cues = new List<Cue>();
 
-						// Init the method list
-						if (cues == null)
-							cues = new List<Cue>();
-
-						cues.Add(new Cue() { method = method, target = targets[i] });
+							cues.Add(new Cue()
+							{
+								method = m,
+								target = targets[i],
+								order = 0
+							});
+						}
 					}
 				}
+
+				// Sort the cue list (duplicates it unforunately, but this is just a one-off)
+				if (cues != null)
+					cues = cues.OrderBy(cue => cue.order).ToList();
 
 				// Cache the method list even if it's null so we don't do another lookup next time around (lazy load)
 				_cueCache.Add(methodName, cues);
 			}
 
 			return cues;
+		}
+
+		bool CuesValidate(MethodInfo method, Type targetType, bool allowCoroutines)
+		{
+			// Validate the found method
+			if (allowCoroutines)
+			{
+				if (method.ReturnType != typeof(void) && !typeof(IEnumerator).IsAssignableFrom(method.ReturnType))
+				{
+					Debug.LogWarning(targetType.Name + "." + method.Name + " must return void or IEnumerator in order to be used as a cue.");
+					return false;
+				}
+			}
+			else
+			{
+				if (method.ReturnType != typeof(void))
+				{
+					Debug.LogWarning(targetType.Name + "." + method.Name + " must return void in order to be used as a cue.");
+					return false;
+				}
+			}
+
+			return true;
 		}
 
 		public void CuesClear()
@@ -1009,10 +1041,10 @@ namespace Cradle
 		public CallbackList(Story story)
 		{
 			_story = story;
-			Reset();
+			Clear();
 		}
 
-		public CallbackList Reset()
+		public CallbackList Clear()
 		{
 			_actions.Clear();
 			_current = -1;
