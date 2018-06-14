@@ -51,8 +51,9 @@ namespace Cradle
         public List<string> PassageHistory {get; private set; }
 		public float PassageTime { get { return _timeAccumulated + (Time.time - _timeChangedToPlay); } }
 		//public StorySaveData SaveData { get; private set; }
+		public bool IsPausable { get { return _allowStateChanging; } }
 
-		bool _allowStateChanging = false;
+		bool _allowStateChanging = true;
 		StoryState _state = StoryState.Idle;
 		readonly CallbackList _callbacks;
 		IEnumerator<StoryOutput> _currentThread = null;
@@ -243,8 +244,8 @@ namespace Cradle
 		/// </summary>
 		public void Pause()
 		{
-			if (_allowStateChanging)
-				throw new InvalidOperationException("Can't change story state via an OnStateChanged event.");
+			if (!_allowStateChanging)
+				throw new InvalidOperationException("Can't pause story right now. Check story.IsPausable.");
 
 			if (this.State != StoryState.Playing && this.State != StoryState.Exiting)
 				throw new InvalidOperationException("Pause can only be called while a passage is playing or exiting.");
@@ -258,8 +259,8 @@ namespace Cradle
 		/// </summary>
 		public void Resume()
 		{
-			if (_allowStateChanging)
-				throw new InvalidOperationException("Can't change story state via an OnStateChanged event.");
+			if (!_allowStateChanging)
+				throw new InvalidOperationException("Can't resume story right now. Check story.IsPausable.");
 
 			if (this.State != StoryState.Paused)
 			{
@@ -281,7 +282,9 @@ namespace Cradle
 			// If a callback list is still in progress, keep invoking it
 			if (_callbacks != null && !_callbacks.Completed)
 				_callbacks.Invoke();
-			else if (_currentThread != null)
+
+			// If present, continue the current thread as long as a callback didn't pause it
+			if (_currentThread != null && this.State == StoryState.Playing)
 				ExecuteCurrentThread();
 		}
 
@@ -391,7 +394,7 @@ namespace Cradle
 					{
 						_callbacks
 							.Add(CuesGet(output.Name, CueType.Enter))
-							.Add(() => UpdateCuesRefresh());
+							.OnComplete(() => UpdateCuesRefresh());
 					}
 
 					_callbacks.Invoke();
@@ -532,8 +535,10 @@ namespace Cradle
 		{
 			if (this.Output.Remove(output))
 			{
+				_allowStateChanging = false;
 				if (OnOutputRemoved != null)
 					OnOutputRemoved(output);
+				_allowStateChanging = true;
 				OutputUpdateIndexes(output.Index);
 			}
 		}
@@ -845,13 +850,19 @@ namespace Cradle
 					Type targetType = targets[i].GetType();
 					methodsFound.Clear();
 
-					// Get methods with attribute
+					// Get methods with attribute and sort by order
 					methodsFound.AddRange(targetType.GetMethods(_cueMethodFlags)
 						.Where(m => m.GetCustomAttributes(typeof(StoryCueAttribute), true)
 							.Cast<StoryCueAttribute>()
 							.Where(attr => attr.PassageName == passageName && attr.LinkName == linkName && attr.Cue == cueType)
 							.Count() > 0
-						));
+						)
+						.OrderBy(m => m.GetCustomAttributes(typeof(StoryCueAttribute), true)
+							.Cast<StoryCueAttribute>()
+							.FirstOrDefault()
+							.Order
+						)
+					);
 
 					// Get the method by name (if valid)
 					if (_validPassageNameRegex.IsMatch(passageName))
@@ -994,7 +1005,6 @@ namespace Cradle
 		List<Action> _actions = new List<Action>();
 		int _current;
 		Action _onComplete;
-		
 
 		public CallbackList(Story story)
 		{

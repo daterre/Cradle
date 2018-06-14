@@ -11,27 +11,29 @@ namespace Cradle
 		public string PassageName;
 		public string LinkName;
 		public CueType Cue;
+		public int Order = 0;
 
-		public StoryCueAttribute(string passageName, string cueName) :
-			this(passageName, null, cueName)
+		public StoryCueAttribute(string passageName, string cueName, int order = 0) :
+			this(passageName, null, cueName, order)
 		{
 		}
 
-		public StoryCueAttribute(string passageName, CueType cue) :
-			this(passageName, null, cue)
+		public StoryCueAttribute(string passageName, CueType cue, int order = 0) :
+			this(passageName, null, cue, order)
 		{
 		}
 
-		public StoryCueAttribute(string passageName, string linkName, string cueName):
-			this(passageName, linkName, (CueType)Enum.Parse(typeof(CueType), cueName))
+		public StoryCueAttribute(string passageName, string linkName, string cueName, int order = 0) :
+			this(passageName, linkName, (CueType)Enum.Parse(typeof(CueType), cueName), order)
 		{
 		}
 
-		public StoryCueAttribute(string passageName, string linkName, CueType cue)
+		public StoryCueAttribute(string passageName, string linkName, CueType cue, int order = 0)
 		{
 			this.PassageName = passageName;
 			this.LinkName = linkName;
 			this.Cue = cue;
+			this.Order = order;
 		}
 	}
 
