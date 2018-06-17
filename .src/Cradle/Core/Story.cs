@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using IStoryThread = System.Collections.Generic.IEnumerable<Cradle.StoryOutput>;
+using System.ComponentModel;
 
 namespace Cradle
 {
@@ -19,12 +20,19 @@ namespace Cradle
 
 	public enum CueType
 	{
-		Enter,
-		Exit,
-		Update,
+		PassageEnter,
+		PassageDone,
+		PassageUpdate,
+		PassageExit,
+		PassageAbort,
+		LinkBegin,
+		LinkDone,
 		Output,
-		Aborted,
-		Done
+		[Obsolete("Use PassageEnter for passages, LinkBegin for links")] [EditorBrowsable(EditorBrowsableState.Never)] Enter,
+		[Obsolete("Use PassageDone for passages, LinkDone for links")] [EditorBrowsable(EditorBrowsableState.Never)] Done,
+		[Obsolete("Use PassageExit instead")] [EditorBrowsable(EditorBrowsableState.Never)] Exit = PassageExit,
+		[Obsolete("Use PassageUpdate instead")] [EditorBrowsable(EditorBrowsableState.Never)] Update = PassageUpdate,
+		[Obsolete("Use PassageAbort instead")] [EditorBrowsable(EditorBrowsableState.Never)] Aborted = PassageAbort,
 	}
 
     public abstract class Story: MonoBehaviour
@@ -33,11 +41,11 @@ namespace Cradle
         public string StartPassage = "Start";
 		public List<GameObject> AdditionalCues;
 
+		public event Action<StoryState> OnStateChanged;
 		public event Action<StoryPassage> OnPassageEnter;
 		public event Action<StoryPassage> OnPassageDone;
 		public event Action<StoryPassage> OnPassageExit;
-		public event Action<StoryState> OnStateChanged;
-		public event Action<StoryPassage, StoryLink> OnLinkEnter;
+		public event Action<StoryPassage, StoryLink> OnLinkBegin;
 		public event Action<StoryPassage, StoryLink> OnLinkDone;
 		public event Action<StoryOutput> OnOutput;
 		public event Action<StoryOutput> OnOutputRemoved;
@@ -51,8 +59,9 @@ namespace Cradle
         public List<string> PassageHistory {get; private set; }
 		public float PassageTime { get { return _timeAccumulated + (Time.time - _timeChangedToPlay); } }
 		//public StorySaveData SaveData { get; private set; }
-		public bool CanPause { get; internal set; }
+		public bool CanBePaused { get { return _canPause && State == StoryState.Playing; } }
 
+		bool _canPause = true;
 		StoryState _state = StoryState.Idle;
 		readonly CallbackList _callbacks;
 		IEnumerator<StoryOutput> _currentThread = null;
@@ -65,6 +74,13 @@ namespace Cradle
 
 		protected Stack<int> InsertStack = new Stack<int>();
 
+		[Obsolete("Use Story.OnLinkBegin instead")]
+		public event Action<StoryPassage, StoryLink> OnLinkEnter
+		{
+			add { OnLinkBegin += value; }
+			remove { OnLinkBegin -= value; }
+		}
+
 		[Obsolete("Use Story.CurrentPassage.Name instead")]
 		public string CurrentPassageName { get { return CurrentPassage.Name; } }
 
@@ -76,6 +92,16 @@ namespace Cradle
 			public MonoBehaviour target;
 			public MethodInfo method;
 			public int order;
+			public CuePriority priority;
+			public StoryPassage passage;
+		}
+
+		internal enum CuePriority
+		{
+			Passage = 3,
+			Tag = 2,
+			Link = 1,
+			General = 0
 		}
 
 		private enum ThreadResult
@@ -109,7 +135,7 @@ namespace Cradle
 			InsertStack.Clear();
 			
 			CurrentPassage = null;
-			CanPause = true;
+			_canPause = true;
 			_callbacks.Clear();
 		}
 
@@ -131,9 +157,9 @@ namespace Cradle
 				_state = value;
 				if (prev != value && OnStateChanged != null)
 				{
-					CanPause = false;
+					_canPause = false;
 					OnStateChanged(value);
-					CanPause = true;
+					_canPause = true;
 				}
 			}
 		}
@@ -223,11 +249,7 @@ namespace Cradle
 						if (this.OnPassageExit != null)
 							this.OnPassageExit(this.CurrentPassage);
 					})
-					.Add(() =>
-					{
-						SendMessage("OnStoryPassageExit", this.CurrentPassage, SendMessageOptions.DontRequireReceiver);
-					})
-					.Add(CuesFind(CueType.Exit, reverse: true))
+					.Add(CuesFind(CueType.PassageExit, reverse: true))
 					.Add(() =>
 					{
 						// Add the passage only now that we're leaving it
@@ -245,8 +267,8 @@ namespace Cradle
 		/// </summary>
 		public void Pause()
 		{
-			if (!CanPause)
-				throw new InvalidOperationException("Can't pause story right now. Check story.CanPause.");
+			if (!_canPause)
+				throw new InvalidOperationException("Can't pause story right now. Check Story.CanBePaused first");
 
 			if (this.State != StoryState.Playing && this.State != StoryState.Exiting)
 				throw new InvalidOperationException("Pause can only be called while a passage is playing or exiting.");
@@ -260,9 +282,6 @@ namespace Cradle
 		/// </summary>
 		public void Resume()
 		{
-			if (!CanPause)
-				throw new InvalidOperationException("Can't resume story right now. Check story.CanPause.");
-
 			if (this.State != StoryState.Paused)
 			{
 				throw new InvalidOperationException(
@@ -339,11 +358,7 @@ namespace Cradle
 					if (this.OnPassageEnter != null)
 						this.OnPassageEnter(passage);
 				})
-				.Add(() =>
-				{
-					SendMessage("OnStoryPassageEnter", this.CurrentPassage, SendMessageOptions.DontRequireReceiver);
-				})
-				.Add(CuesGet(passage.Name, CueType.Enter))
+				.Add(CuesGet(passage, CueType.PassageEnter))
 				.OnComplete(() => ExecuteCurrentThread())
 				.Invoke();
 		}
@@ -386,15 +401,13 @@ namespace Cradle
 					OutputAdd(output);
 
 					// Send output, invoke callbacks
-					_callbacks
-						.Add(() => OutputSend(output))
-						.Add(CuesFind(CueType.Output), output);
+					OutputSend(output, callbacks: _callbacks);
 
 					// Notify cues of embedded passages
 					if (output is EmbedPassage)
 					{
 						_callbacks
-							.Add(CuesGet(output.Name, CueType.Enter))
+							.Add(CuesGet(GetPassage(output.Name), CueType.PassageEnter))
 							.OnComplete(() => UpdateCuesRefresh());
 					}
 
@@ -417,33 +430,29 @@ namespace Cradle
 				aborted != null ? aborted.GoToPassage :
 				CurrentLinkInAction != null ? CurrentLinkInAction.PassageName :
 				null;
-			
-			
-					
-			// Invoke the done cue - either for main or for a link
-			if (CurrentLinkInAction == null)
-			{
-				// No need for a callback list now since story is idle
-				if (this.OnPassageDone != null)
-					this.OnPassageDone(this.CurrentPassage);
 
-				SendMessage("OnStoryPassageDone", this.CurrentPassage, SendMessageOptions.DontRequireReceiver);
 
-				CuesInvoke(CuesFind(CueType.Done));
-			}
-			else
+
+			// Invoke link cues first, if available - then passage cues
+			// No need for a callback list now since story is idle
+
+			// Link cues
+			if (CurrentLinkInAction != null)
 			{
-				// No need for a callback list now since story is idle
 				if (this.OnLinkDone != null)
 					this.OnLinkDone(this.CurrentPassage, CurrentLinkInAction);
 
-				SendMessage("OnStoryLinkDone", this.CurrentPassage, SendMessageOptions.DontRequireReceiver);
-
-				CuesInvoke(CuesFind(CueType.Done, CurrentLinkInAction.Name));
-
-				CurrentLinkInAction = null;
+				CuesInvoke(CuesFind(CueType.LinkDone, CurrentLinkInAction.Name), CurrentLinkInAction);
 				NumberOfLinksDone++;
 			}
+			
+			// Passage cues
+			if (this.OnPassageDone != null)
+				this.OnPassageDone(this.CurrentPassage);
+
+			CuesInvoke(CuesFind(CueType.PassageDone));
+			
+			CurrentLinkInAction = null;
 					
 			// Now that the link is done, go to its passage
 			if (goToPassage != null)
@@ -514,7 +523,7 @@ namespace Cradle
 				InsertStack.Push(InsertStack.Pop() + 1);
 		}
 
-		void OutputSend(StoryOutput output, bool add = false)
+		void OutputSend(StoryOutput output, bool add = false, CallbackList callbacks = null)
 		{
 			if (_styleGroupStack.Count > 0)
 				output.StyleGroup = _styleGroupStack.Peek();
@@ -522,18 +531,31 @@ namespace Cradle
 			if (add)
 				OutputAdd(output);
 
-			if (OnOutput != null)
-				OnOutput(output);
+			var cues = CuesFind(CueType.Output, CurrentLinkInAction == null ? null : CurrentLinkInAction.Name);
+
+			if (callbacks != null)
+			{
+				if (OnOutput != null)
+					callbacks.Add(() => OnOutput(output));
+				callbacks.Add(cues, output);
+			}
+			else
+			{
+				if (OnOutput != null)
+					OnOutput(output);
+
+				CuesInvoke(cues, output);
+			}
 		}
 
 		protected void OutputRemove(StoryOutput output)
 		{
 			if (this.Output.Remove(output))
 			{
-				CanPause = false;
+				_canPause = false;
 				if (OnOutputRemoved != null)
 					OnOutputRemoved(output);
-				CanPause = true;
+				_canPause = true;
 				OutputUpdateIndexes(output.Index);
 			}
 		}
@@ -573,11 +595,11 @@ namespace Cradle
 			var group = new StyleGroup(style);
 
 			// Don't allow pausing story while sending a style group
-			CanPause = false;
+			_canPause = false;
 
 			OutputSend(group, add: true);
 
-			CanPause = true;
+			_canPause = true;
 
 			return styleScope(group);
 		}
@@ -648,12 +670,11 @@ namespace Cradle
 			// Set up callbacks
 			_callbacks.Clear();
 
-			if (this.OnLinkEnter != null)
-				_callbacks.Add (() => this.OnLinkEnter(CurrentPassage, link));
+			if (this.OnLinkBegin != null)
+				_callbacks.Add (() => this.OnLinkBegin(CurrentPassage, link));
 
 			_callbacks
-				.Add(() => SendMessage("OnStoryLinkEnter", link, SendMessageOptions.DontRequireReceiver))
-				.Add(CuesFind(CueType.Enter, link.Name))
+				.Add(CuesFind(CueType.LinkBegin, link.Name))
 				.Invoke();
 
 			if (this.State == StoryState.Playing)
@@ -725,32 +746,13 @@ namespace Cradle
 		void UpdateCuesRefresh()
 		{
 			// Get update cues for calling during update
-			_passageUpdateCues = CuesFind(CueType.Update, reverse: false, allowCoroutines: false).ToArray();
+			_passageUpdateCues = CuesFind(CueType.PassageUpdate, reverse: false, allowCoroutines: false).ToArray();
 		}
-
-		void CuesInvoke(IEnumerable<Cue> cues, params object[] args)
-		{
-			if (cues == null)
-				return;
-
-			if (cues is Cue[])
-			{
-				var ar = (Cue[]) cues;
-				for (int i = 0; i < ar.Length; i++)
-					CueInvoke(ar[i], args);
-			}
-			else
-			{
-				foreach (Cue cue in cues)
-					CueInvoke(cue, args);
-			}
-		}
-
 
 		IEnumerable<Cue> CuesFind(CueType cueType, string linkName = null, bool reverse = false, bool allowCoroutines = true)
 		{
 			// Get main passage's cues
-			List<Cue> mainCues = CuesGet(this.CurrentPassage.Name, cueType, linkName, allowCoroutines);
+			List<Cue> mainCues = CuesGet(this.CurrentPassage, cueType, linkName, allowCoroutines);
 
 			// Return them here only if not reversing
 			if (!reverse && mainCues != null)
@@ -772,8 +774,9 @@ namespace Cradle
 				EmbedPassage passageEmbed = this.Output[i] as EmbedPassage;
 				if (passageEmbed == null)
 					continue;
+				StoryPassage passage = GetPassage(passageEmbed.Name);
 
-				List<Cue> cues = CuesGet(passageEmbed.Name, cueType, linkName, allowCoroutines);
+				List<Cue> cues = CuesGet(passage, cueType, linkName, allowCoroutines);
 				if (cues != null)
 				{
 					for (int h = 0; h < cues.Count; h++)
@@ -786,6 +789,24 @@ namespace Cradle
 			{
 				for (int h = 0; h < mainCues.Count; h++)
 					yield return mainCues[h];
+			}
+		}
+
+		void CuesInvoke(IEnumerable<Cue> cues, params object[] args)
+		{
+			if (cues == null)
+				return;
+
+			if (cues is Cue[])
+			{
+				var ar = (Cue[])cues;
+				for (int i = 0; i < ar.Length; i++)
+					CueInvoke(ar[i], args);
+			}
+			else
+			{
+				foreach (Cue cue in cues)
+					CueInvoke(cue, args);
 			}
 		}
 
@@ -832,15 +853,22 @@ namespace Cradle
 			return _cueTargets;
 		}
 
-		List<Cue> CuesGet(string passageName, CueType cueType, string linkName = null, bool allowCoroutines = true)
+		bool CueStringCompare(string cueStr, string compare, bool regex)
 		{
-			string cueName = cueType.ToString();
+			if (!regex)
+				return cueStr == compare;
+			else
+				return Regex.IsMatch(compare, cueStr);
+		}
 
-			string methodName = passageName + "_" + (linkName != null ? linkName + "_" : null) + cueName;
-
+		List<Cue> CuesGet(StoryPassage passage, CueType cueType, string linkName = null, bool allowCoroutines = true)
+		{
 			List<Cue> cues = null;
 
-			if (!_cueCache.TryGetValue(methodName, out cues))
+			// Cache key for lookup
+			string cacheKey = passage.Name + ":::" + (linkName != null ? linkName + ":::" : null) + cueType.ToString();
+
+			if (!_cueCache.TryGetValue(cacheKey, out cues))
 			{
 				MonoBehaviour[] targets = CueGetTargets();
 
@@ -848,28 +876,41 @@ namespace Cradle
 				{
 					Type targetType = targets[i].GetType();
 
+					// -----------------------------------------
+					// 1. Attribute based lookup - the preferred way
+
 					// Get methods with attribute and keep them along with their order as meta data
 					MethodInfo[] methods = targetType.GetMethods(_cueMethodFlags);
 					for (int j = 0; j < methods.Length; j++)
 					{
 						MethodInfo m = methods[j];
-						var attributes = m.GetCustomAttributes(typeof(LinkCueAttribute), true)
-							.Cast<LinkCueAttribute>()
+						var attributes = m.GetCustomAttributes(typeof(CueAttribute), true)
+							.Cast<CueAttribute>()
 							.Where(attr =>
 							{
-								// It's a match if link and cue type are what was asked for
-								bool relevant = attr.LinkName == linkName && attr.Cue == cueType;
+								if (attr.CueType != cueType)
+									return false;
 
-								// Passage and tag cues add additional constraints
-								if (attr is PassageCueAttribute)
-									relevant &= ((PassageCueAttribute)attr).PassageName == passageName;
-								else if (attr is TagCueAttribute)
-									relevant &= this.CurrentPassage.Tags.Contains(((TagCueAttribute)attr).TagName);
-								
-								return relevant;
+								// If link is specified,  check if there is a match
+								// (ignored unless cue type is Output, LinkBegin or LinkDone)
+								if (linkName != null && !string.IsNullOrEmpty(attr.Link) && !CueStringCompare(attr.Link, linkName, attr.Regex))
+									return false;
+
+								// If tag is specified, check if it exists in the passage's tag
+								if (!string.IsNullOrEmpty(attr.Tag) && !passage.Tags.Contains(attr.Tag))
+									return false;
+
+								// If passage is specified, check if there is a match
+								if (!string.IsNullOrEmpty(attr.Passage) && !CueStringCompare(attr.Passage, passage.Name, attr.Regex))
+									return false;
+
+
+								return true;
 							});
 
-						if (attributes.Count() > 0 && CuesValidate(m, targetType, allowCoroutines))
+						CueAttribute attribute = attributes.OrderBy(attr => attr.Order).FirstOrDefault();
+
+						if (attribute != null && CueValidate(m, targetType, allowCoroutines))
 						{
 							if (cues == null)
 								cues = new List<Cue>();
@@ -879,47 +920,105 @@ namespace Cradle
 							{
 								method = m,
 								target = targets[i],
-								order = attributes.Min(attr => attr.Order)
+								order = attribute.Order,
+								passage = passage,
+								priority = 
+									!string.IsNullOrEmpty(attribute.Passage) ? CuePriority.Passage :
+									!string.IsNullOrEmpty(attribute.Tag) ? CuePriority.Tag :
+									!string.IsNullOrEmpty(attribute.Link) ? CuePriority.Link :
+									CuePriority.General
 							});
 						}
 					}
 
+					// -----------------------------------------
+					// 2. Name-based lookup - by passage name only
+
 					// Get the method by name (if valid)
-					if (_validPassageNameRegex.IsMatch(passageName))
+					if (_validPassageNameRegex.IsMatch(passage.Name))
 					{
-						MethodInfo m = targetType.GetMethod(methodName, _cueMethodFlags);
+						var methodNames = new List<string>();
 
-						// Only add it if doesn't have a cue attribute
-						if (m != null &&
-							m.GetCustomAttributes(typeof(LinkCueAttribute), true).Length == 0 &&
-							CuesValidate(m, targetType, allowCoroutines)
-							)
+						switch (cueType)
 						{
-							if (cues == null)
-								cues = new List<Cue>();
+							case CueType.PassageEnter:
+								methodNames.Add(string.Format("{0}_Enter", passage.Name));
+								break;
+							case CueType.PassageDone:
+								methodNames.Add(string.Format("{0}_Done", passage.Name));
+								break;
+							case CueType.PassageExit:
+								methodNames.Add(string.Format("{0}_Exit", passage.Name));
+								break;
+							case CueType.PassageUpdate:
+								methodNames.Add(string.Format("{0}_Update", passage.Name));
+								break;
+							case CueType.PassageAbort:
+								methodNames.Add(string.Format("{0}_Abort", passage.Name));
+								break;
+							case CueType.LinkBegin:
+								methodNames.Add(string.Format("{0}_LinkBegin", passage.Name));
+								methodNames.Add(string.Format("{0}_{1}_Begin", passage.Name, linkName));
+								break;
+							case CueType.LinkDone:
+								methodNames.Add(string.Format("{0}_LinkDone", passage.Name));
+								methodNames.Add(string.Format("{0}_{1}_Done", passage.Name, linkName));
+								break;
+							case CueType.Output:
+								methodNames.Add(string.Format("{0}_Output", passage.Name));
+								if (linkName != null)
+									methodNames.Add(string.Format("{0}_{1}_Output", passage.Name, linkName));
+								break;
+						}
 
-							cues.Add(new Cue()
+						for (int j = 0; j < methodNames.Count; j++)
+						{
+							MethodInfo m = targetType.GetMethod(methodNames[j], _cueMethodFlags);
+
+							// Only add it if doesn't have a cue attribute
+							if (m != null &&
+								m.GetCustomAttributes(typeof(CueAttribute), true).Length == 0 &&
+								CueValidate(m, targetType, allowCoroutines)
+								)
 							{
-								method = m,
-								target = targets[i],
-								order = 0
-							});
+								if (cues == null)
+									cues = new List<Cue>();
+
+								cues.Add(new Cue()
+								{
+									method = m,
+									target = targets[i],
+									order = 0,
+									passage = passage,
+									priority = CuePriority.Passage
+								});
+							}
 						}
 					}
 				}
 
-				// Sort the cue list (duplicates it unforunately, but this is just a one-off)
+				// Sort the cue list
 				if (cues != null)
-					cues = cues.OrderBy(cue => cue.order).ToList();
+					cues
+						.Sort((a, b) =>
+						{
+							// Order takes precedence
+							if (a.order != b.order)
+								return a.order.CompareTo(b.order);
+
+							// Compare priority
+							return
+								((int)a.priority).CompareTo((int)b.priority);
+						});
 
 				// Cache the method list even if it's null so we don't do another lookup next time around (lazy load)
-				_cueCache.Add(methodName, cues);
+				_cueCache.Add(cacheKey, cues);
 			}
 
 			return cues;
 		}
 
-		bool CuesValidate(MethodInfo method, Type targetType, bool allowCoroutines)
+		bool CueValidate(MethodInfo method, Type targetType, bool allowCoroutines)
 		{
 			// Validate the found method
 			if (allowCoroutines)

@@ -5,79 +5,58 @@ using System.Text;
 
 namespace Cradle
 {
-	#region Obsolete
-	[Obsolete("Use PassageCue, LinkCue or TagCue")]
 	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
-	public sealed class StoryCueAttribute : PassageCueAttribute
+	public class CueAttribute : Attribute
 	{
-		public StoryCueAttribute(string passageName, string cueName, int order = 0) :
-			this(passageName, null, cueName, order)
-		{
-		}
+		public CueType CueType { get; protected set; }
+		public string Passage { get; set; }
+		public string Link { get; set; }
+		public string Tag { get; set; }
+		public bool Regex { get; set; }
+		public int Order { get; set; }
 
-		public StoryCueAttribute(string passageName, CueType cue, int order = 0) :
-			this(passageName, null, cue, order)
+		public CueAttribute(CueType cueType)
 		{
-		}
-
-		public StoryCueAttribute(string passageName, string linkName, string cueName, int order = 0) :
-			this(passageName, linkName, (CueType)Enum.Parse(typeof(CueType), cueName), order)
-		{
-		}
-
-		public StoryCueAttribute(string passageName, string linkName, CueType cue, int order = 0):
-			base(passageName, linkName, cue, order)
-		{
-		}
-	}
-	#endregion
-
-	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
-	public class LinkCueAttribute : Attribute
-	{
-		public string LinkName;
-		public CueType Cue;
-		public int Order = 0;
-
-		public LinkCueAttribute(string linkName, CueType cue, int order = 0)
-		{
-			this.LinkName = linkName;
-			this.Cue = cue;
-			this.Order = order;
+			this.CueType = cueType;
+			this.Order = 0;
+			this.Regex = false;
 		}
 	}
 
+	[Obsolete("Use [Cue] attribute instead")]
 	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
-	public class PassageCueAttribute : LinkCueAttribute
+	public sealed class StoryCueAttribute : CueAttribute
 	{
-		public string PassageName;
-
-		public PassageCueAttribute(string passageName, CueType cue, int order = 0) :
-			this(passageName, null, cue, order)
+		public StoryCueAttribute(string passageName, string cueName) :
+			this(passageName, null, cueName)
 		{
 		}
 
-		public PassageCueAttribute(string passageName, string linkName, CueType cue, int order = 0):
-			base(linkName, cue, order)
-		{
-			this.PassageName = passageName;
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
-	public class TagCueAttribute : LinkCueAttribute
-	{
-		public string TagName;
-
-		public TagCueAttribute(string tagName, CueType cue, int order = 0) :
-			this(tagName, null, cue, order)
+		public StoryCueAttribute(string passageName, CueType cueType) :
+			this(passageName, null, cueType)
 		{
 		}
 
-		public TagCueAttribute(string tagName, string linkName, CueType cue, int order = 0):
-			base(linkName, cue, order)
+		public StoryCueAttribute(string passageName, string linkName, string cueName) :
+			this(passageName, linkName, (CueType)Enum.Parse(typeof(CueType), cueName))
 		{
-			this.TagName = tagName;
+		}
+
+		public StoryCueAttribute(string passageName, string linkName, CueType cueType):
+			base(cueType)
+		{
+			this.Passage = passageName;
+			this.Link = linkName;
+
+			switch (cueType)
+			{
+				case CueType.Enter:
+					this.CueType = string.IsNullOrEmpty(linkName) ? CueType.PassageEnter : CueType.LinkBegin;
+					break;
+				case CueType.Done:
+					this.CueType = string.IsNullOrEmpty(linkName) ? CueType.PassageDone : CueType.LinkDone;
+					break;
+			}
 		}
 	}
 
