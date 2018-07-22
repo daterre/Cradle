@@ -16,7 +16,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 	[InitializeOnLoad]
 	public class HarloweTranscoder : StoryFormatTranscoder
 	{
-		static Dictionary<string, HarloweCodeGenMacro> CodeGenMacros = new Dictionary<string, HarloweCodeGenMacro>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<string, HarloweCodeGenMacro> CodeGenMacros = new Dictionary<string, HarloweCodeGenMacro>(StringComparer.OrdinalIgnoreCase);
 		public GeneratedCode Code { get; private set; }
 		HarlowePassageData _input;
 		PassageCode _output;
@@ -173,6 +173,11 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 						case "tag":
 							Code.Indent();
 							GenerateHtmlTag(token.text, true);
+							break;
+
+						case "hr":
+							Code.Indent();
+							GenerateHtmlTag("hr", true);
 							break;
 
 						case "verbatim":

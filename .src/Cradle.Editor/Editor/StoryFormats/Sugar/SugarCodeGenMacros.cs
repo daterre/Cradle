@@ -70,6 +70,9 @@ namespace Cradle.Editor.StoryFormats.Sugar
 			MacroDef macroDef;
 			if (transcoder.Importer.Macros.TryGetValue(macro, out macroDef))
 			{
+				if (macroDef.HasOutput)
+					transcoder.Code.Buffer.Append("yield return ");
+
 				transcoder.Code.Buffer
 					.AppendFormat("{0}.{1}({2});", macroDef.Lib.Name, macroDef.Name, args)
 					.AppendLine();

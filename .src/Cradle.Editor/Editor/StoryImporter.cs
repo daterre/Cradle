@@ -106,7 +106,8 @@ namespace Cradle.Editor
 						macros[attr.TwineName ?? method.Name] = new MacroDef()
 						{
 							Name = method.Name,
-							Lib = macroLib
+							Lib = macroLib,
+							HasOutput = typeof(StoryOutput).IsAssignableFrom(method.ReturnType)
 						};
 					}
 
@@ -130,5 +131,6 @@ namespace Cradle.Editor
 	{
 		public string Name;
 		public MacroLib Lib;
+		public bool HasOutput;
 	}
 }

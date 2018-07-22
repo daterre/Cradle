@@ -459,6 +459,9 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				));
 			}
 
+			if (macroDef.HasOutput)
+				transcoder.Code.Buffer.Append("yield return ");
+
 			transcoder.Code.Buffer.AppendFormat("{0}.{1}(", macroDef.Lib.Name, HarloweTranscoder.EscapeReservedWord(macroDef.Name));
 			transcoder.GenerateExpression(macroToken.tokens, 1);
 			transcoder.Code.Buffer.Append(")");
