@@ -66,59 +66,73 @@ namespace Cradle.StoryFormats.Harlowe
 
 		protected EmbedFragment enchant(StoryVar reference, HarloweEnchantCommand command, Func<IStoryThread> fragment)
 		{
-            bool isHookRef = reference.Value is HarloweHookRef;
-            string str = isHookRef ? ((HarloweHookRef)reference.Value).HookName : reference.ToString();
-            List<HarloweEnchantment> enchantments = new List<HarloweEnchantment>();
+			return enchant(new StoryVar[] { reference }, command, fragment);
+		}
 
-			HarloweEnchantment lastHookEnchantment = null;
+		protected EmbedFragment enchant(StoryVar[] references, HarloweEnchantCommand command, Func<IStoryThread> fragment)
+		{
+			List<HarloweEnchantment> enchantments = new List<HarloweEnchantment>();
 
-            for (int i = 0; i < this.Output.Count; i++)
-            {
-				StoryOutput output = this.Output[i];
+			for (int r = 0; r < references.Length; r++)
+			{
+				StoryVar reference = references[r];
 
-                if (isHookRef)
-                {
-					// Check if matching hook found in the current group, otherwise skip
-					if (!(output is StyleGroup))
-						continue;
+				bool isHookRef = reference.Value is HarloweHookRef;
+				string str = isHookRef ? ((HarloweHookRef)reference.Value).HookName : reference.ToString();
 
-					var group = output as StyleGroup;
-					if (group.Style.Get<string>(HarloweStyleSettings.Hook) != str)
-						continue;
 
-					// Matching hook was found, but enchantment metadata is not up to date
-					if (lastHookEnchantment == null || lastHookEnchantment.HookGroup != group)
+				HarloweEnchantment lastHookEnchantment = null;
+
+				for (int i = 0; i < this.Output.Count; i++)
+				{
+					StoryOutput output = this.Output[i];
+
+					if (isHookRef)
 					{
-						lastHookEnchantment = new HarloweEnchantment() {
-							ReferenceType = HarloweEnchantReferenceType.Hook,
-							Command = command,
-							HookGroup = group,
-							Affected = new List<StoryOutput>()
-						};
-						enchantments.Add(lastHookEnchantment);
-					}
+						// Check if matching hook found in the current group, otherwise skip
+						if (!(output is StyleGroup))
+							continue;
 
-					// Add all outputs associated with this group
-					i++;
-					while (i < this.Output.Count && this.Output[i].BelongsToStyleGroup(group))
-					{
-						lastHookEnchantment.Affected.Add(this.Output[i]);
+						var group = output as StyleGroup;
+						if (group.Style.Get<string>(HarloweStyleSettings.Hook) != str)
+							continue;
+
+						// Matching hook was found, but enchantment metadata is not up to date
+						if (lastHookEnchantment == null || lastHookEnchantment.HookGroup != group)
+						{
+							lastHookEnchantment = new HarloweEnchantment()
+							{
+								ReferenceType = HarloweEnchantReferenceType.Hook,
+								Command = command,
+								HookGroup = group,
+								Affected = new List<StoryOutput>()
+							};
+							enchantments.Add(lastHookEnchantment);
+						}
+
+						// Add all outputs associated with this group
 						i++;
+						while (i < this.Output.Count && this.Output[i].BelongsToStyleGroup(group))
+						{
+							lastHookEnchantment.Affected.Add(this.Output[i]);
+							i++;
+						}
 					}
-                }
-                else if (output is StoryText)
-                {
-                    var occurences = new Regex(Regex.Escape(str));
-                    if (occurences.IsMatch(output.Text))
-                        enchantments.Add(new HarloweEnchantment {
-							ReferenceType = HarloweEnchantReferenceType.Text,
-							Command = command,
-							Affected = new List<StoryOutput>(){output},
-							Text = str,
-							Occurences = occurences
-						});
-                }
-            }
+					else if (output is StoryText)
+					{
+						var occurences = new Regex(Regex.Escape(str));
+						if (occurences.IsMatch(output.Text))
+							enchantments.Add(new HarloweEnchantment
+							{
+								ReferenceType = HarloweEnchantReferenceType.Text,
+								Command = command,
+								Affected = new List<StoryOutput>() { output },
+								Text = str,
+								Occurences = occurences
+							});
+					}
+				}
+			}
 
 			return new EmbedFragment(() => EnchantExecute(enchantments, fragment));
 		}

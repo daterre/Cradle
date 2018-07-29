@@ -17,13 +17,17 @@ namespace Cradle.StoryFormats.Harlowe
 
 			if (StoryVar.TryConvertTo<int>(position, out index))
 			{
-				if (index <= 0)
+				if (index < 0)
 				{
 					index = Math.Abs(index);
 					fromEnd = true;
 				}
-				else
+				else if (index > 0)
+				{
 					index -= 1;
+				}
+				else
+					return false;
 			}
 			else
 			{
@@ -38,15 +42,15 @@ namespace Cradle.StoryFormats.Harlowe
 				fromEnd = match.Groups["last"].Success;
 
 				if (match.Groups["index"].Success)
-					index = int.Parse(match.Groups["index"].Value) - 1;
+					index = int.Parse(match.Groups["index"].Value);
 				else if (fromEnd)
-					index = 0;
+					index = 1;
 				else
 					return false;
 			}
 
 			if (fromEnd)
-				index = total - 1 - index;
+				index = total - index;
 
 			return true;
 		}

@@ -77,11 +77,11 @@ namespace Cradle
 	[AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
 	public sealed class RuntimeMacroAttribute : Attribute
 	{
-		public readonly string TwineName;
+		public readonly string[] TwineNames;
 
-		public RuntimeMacroAttribute(string twineName)
+		public RuntimeMacroAttribute(params string[] twineNames)
 		{
-			this.TwineName = twineName;
+			this.TwineNames = twineNames;
 		}
 
 		public RuntimeMacroAttribute()

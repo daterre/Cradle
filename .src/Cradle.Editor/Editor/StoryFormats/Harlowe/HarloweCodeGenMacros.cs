@@ -82,8 +82,8 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 
 			transcoder.Code.Indentation++;
 
-			// Advance to hook
-			tokenIndex++;
+			// Advance to hook, skip whitespace
+			transcoder.AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
 
 			LexerToken hookToken = tokens[tokenIndex];
 			transcoder.GenerateBody(hookToken.tokens, false);
@@ -200,7 +200,9 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			}
 			else
 			{
-				tokenIndex++; // advance
+				// Advance to hook
+				transcoder.AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
+
 				LexerToken hookToken = tokens[tokenIndex];
 
 				transcoder.Code.Buffer.AppendFormat("() => enchantHook({0}, HarloweEnchantCommand.Replace, ",
@@ -256,8 +258,9 @@ namespace Cradle.Editor.StoryFormats.Harlowe
             transcoder.Code.Buffer.Append(", ");
             if (usage == MacroUsage.LineAndHook)
             {
-                tokenIndex++; // advance
-                LexerToken hookToken = tokens[tokenIndex];
+				transcoder.AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
+
+				LexerToken hookToken = tokens[tokenIndex];
                 transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
             }
             else
@@ -284,7 +287,10 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 
 			// Action
 			transcoder.Code.Buffer.Append(", ");
-			tokenIndex++; // advance
+
+			// Advance to hook
+			transcoder.AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
+
 			LexerToken hookToken = tokens[tokenIndex];
 			LexerToken[] actionTokens;
 
@@ -366,7 +372,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				transcoder.Code.Buffer.AppendLine();
 
 				// Advance to hook
-				tokenIndex++;
+				transcoder.AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
 				LexerToken hookToken = tokens[tokenIndex];
 
 				transcoder.Code.Indentation++;
@@ -412,7 +418,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			transcoder.Code.Buffer.Append(", ");
 			if (usage == MacroUsage.LineAndHook)
 			{
-				tokenIndex++; // advance
+				transcoder.AdvanceToNextNonWhitespaceToken(tokens, ref tokenIndex);
 				LexerToken hookToken = tokens[tokenIndex];
 				transcoder.Code.Buffer.Append(transcoder.GenerateFragment(hookToken.tokens));
 			}

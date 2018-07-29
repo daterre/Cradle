@@ -103,11 +103,17 @@ namespace Cradle.Editor
 							continue;
 
 						hasMethods = true;
-						macros[attr.TwineName ?? method.Name] = new MacroDef()
+						var macroDef = new MacroDef()
 						{
 							Name = method.Name,
 							Lib = macroLib
 						};
+
+						if (attr.TwineNames == null || attr.TwineNames.Length < 1)
+							macros[method.Name] = macroDef;
+						else
+							foreach (string twineName in attr.TwineNames)
+								macros[twineName] = macroDef;
 					}
 
 					if (hasMethods)

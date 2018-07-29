@@ -536,7 +536,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				Code.Buffer.Append (segment);
 		}
 
-		void AdvanceToNextNonWhitespaceToken(LexerToken[] tokens, ref int tokenIndex)
+		internal void AdvanceToNextNonWhitespaceToken(LexerToken[] tokens, ref int tokenIndex)
 		{
 			for (int t = tokenIndex + 1; t < tokens.Length; t++)
 			{
@@ -594,11 +594,11 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 			{
 				for (int t = tokenIndex + 1; t < tokens.Length; t++)
 				{
-					string ttype = (tokens[t].type);
+					string ttype = tokens[t].type;
 					if (ttype == tokenType)
 					{
-							index = t;
-							break;
+						index = t;
+						break;
 					}
 					else
 					{

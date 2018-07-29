@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Text.RegularExpressions;
 using Cradle;
 using System.Text;
 
@@ -33,9 +34,29 @@ namespace Cradle.StoryFormats.Harlowe
 		}
 
 		[RuntimeMacro]
-		public StoryVar count(StoryVar array, StoryVar item)
+		public StoryVar reversed(params StoryVar[] vals)
 		{
-			return array.ConvertValueTo<HarloweArray>().Values.Where(elem => elem == item).Count();
+			return new HarloweArray(vals.Reverse());
+		}
+
+		[RuntimeMacro]
+		public StoryVar count(StoryVar source, params StoryVar[] items)
+		{
+			int total = 0;
+			if (source.InnerType == typeof(HarloweArray))
+			{
+				HarloweArray array = source.ConvertValueTo<HarloweArray>();
+				for (int i = 0; i < items.Length; i++)
+					total += array.Values.Where(elem => elem == items[i]).Count();
+			}
+			else
+			{
+				string str = source.ConvertValueTo<string>();
+				for (int i = 0; i < items.Length; i++)
+					total += Regex.Matches(str, Regex.Escape(items[i])).Count;
+			}
+
+			return total;
 		}
 
 		[RuntimeMacro]
@@ -350,7 +371,7 @@ namespace Cradle.StoryFormats.Harlowe
 			return new StoryVar(str).GetMember(range(from, to));
 		}
 
-		[RuntimeMacro]
+		[RuntimeMacro("text", "str")]
 		public StoryVar text(params StoryVar[] vals)
 		{
 			var buffer = new StringBuilder();
