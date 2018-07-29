@@ -8,6 +8,12 @@ namespace Cradle.StoryFormats.Sugar
 {
 	public abstract class SugarStory: Story
 	{
+		public SugarStory()
+		{
+			StoryVar.RegisterTypeService<List<StoryVar>>(new SugarListService());
+			StoryVar.RegisterTypeService<Dictionary<string, StoryVar>>(new SugarDictionaryService());
+		}
+
 		protected override Func<IStoryThread> GetPassageThread(StoryPassage passage)
 		{
 			return () => GetPassageThreadWithHeaderAndFooter(passage.MainThread, this.PassageHistory.Count == 0);
