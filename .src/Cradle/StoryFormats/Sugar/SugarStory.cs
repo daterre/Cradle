@@ -142,110 +142,17 @@ namespace Cradle.StoryFormats.Sugar
 		}
 
 		// ................................
-		// Arrays
+		// Javascript alternatives
 
 		protected StoryVar array(params StoryVar[] vars)
 		{
 			return new StoryVar(new List<StoryVar>(vars));
 		}
 
-		protected StoryVar arrayGet(StoryVar arr, int index)
-		{
-			return arr.ConvertValueTo<List<StoryVar>>()[index];
-		}
-
-		protected StoryVar arraySet(StoryVar arr, int index, StoryVar value)
-		{
-			return arr.ConvertValueTo<List<StoryVar>>()[index] = value;
-		}
-
-		protected int arrayLength(StoryVar arr)
-		{
-			return arr.ConvertValueTo<List<StoryVar>>().Count;
-		}
-
-		protected int arrayIndexOf(StoryVar arr, StoryVar value)
-		{
-			return arr.ConvertValueTo<List<StoryVar>>().IndexOf(value);
-		}
-
-		protected void arrayAdd(StoryVar arr, StoryVar value)
-		{
-			arr.ConvertValueTo<List<StoryVar>>().Add(value);
-		}
-
-		protected void arrayInsert(StoryVar arr, int index, StoryVar value)
-		{
-			arr.ConvertValueTo<List<StoryVar>>().Insert(index, value);
-		}
-
-		protected StoryVar arrayDelete(StoryVar arr, params StoryVar[] values)
-		{
-			var newArr = new List<StoryVar>();
-			arr.ConvertValueTo<List<StoryVar>>().RemoveAll(v => {
-				bool remove = values.Contains(v);
-				if (remove)
-					newArr.Add(v);
-				return remove;
-			});
-
-			return new StoryVar(newArr);
-		}
-
-		protected StoryVar arrayDeleteAt(StoryVar arr, params int[] indices)
-		{
-			var curArr = arr.ConvertValueTo<List<StoryVar>>();
-			var newArr = new List<StoryVar>();
-			foreach (int index in indices.OrderByDescending(i => i))
-			{
-				newArr.Add(curArr[index]);
-				curArr.RemoveAt(index);
-			}
-
-			return new StoryVar(newArr);
-		}
-
-		protected bool arrayContains(StoryVar arr, StoryVar value, int position = 0)
-		{
-			if (position > 0)
-				return arr.ConvertValueTo<List<StoryVar>>().Skip(position).Contains(value);
-			else
-				return arr.ConvertValueTo<List<StoryVar>>().Contains(value);
-		}
-
-		protected bool arrayContainsAll(StoryVar arr, params StoryVar[] values)
-		{
-			var curArr = arr.ConvertValueTo<List<StoryVar>>();
-			return values.All(val => curArr.Contains(val));
-		}
-
-		protected bool arrayContainsAll(StoryVar arr, StoryVar valArray)
-		{
-			var valArr = valArray.InnerValue as List<StoryVar>;
-			if (valArr != null)
-				return arrayContainsAll(arr, valArr.ToArray());
-			else
-				return arrayContains(arr, valArray);
-		}
-
-		protected bool arrayContainsAny(StoryVar arr, params StoryVar[] values)
-		{
-			var curArr = arr.ConvertValueTo<List<StoryVar>>();
-			return values.Any(val => curArr.Contains(val));
-		}
-
-		protected int arrayCount(StoryVar arr, StoryVar value, int position = 0)
-		{
-			return arr.ConvertValueTo<List<StoryVar>>().Skip(position).Count(v => v == value);
-		}
-
-		// ................................
-		// Objects
-
 		protected StoryVar obj(params StoryVar[] vals)
 		{
 			if (vals.Length % 2 != 0)
-				throw new VarTypeException("To create an object you must pass an even number of parameters.");
+				throw new VarTypeException("To create an object map you must pass an even number of parameters.");
 
 			var dictionary = new Dictionary<string, StoryVar>();
 
@@ -253,39 +160,12 @@ namespace Cradle.StoryFormats.Sugar
 			{
 				string key;
 				if (!StoryVar.TryConvertTo<string>(vals[i], out key))
-					throw new VarTypeException("To create an object, every odd parameter (an entry name) must be a string.");
+					throw new VarTypeException("To create an object map, every odd parameter (an entry name) must be a string.");
 
 				dictionary[key] = vals[i + 1];
 			}
 
 			return new StoryVar(dictionary);
-		}
-
-		protected StoryVar objGet(StoryVar obj, string key)
-		{
-			StoryVar output = default(StoryVar);
-			obj.ConvertValueTo<Dictionary<string, StoryVar>>().TryGetValue(key, out output);
-			return output;
-		}
-
-		protected void objSet(StoryVar obj, string key, StoryVar value)
-		{
-			obj.ConvertValueTo<Dictionary<string, StoryVar>>()[key] = value;
-		}
-
-		protected void objDelete(StoryVar obj, string key)
-		{
-			obj.ConvertValueTo<Dictionary<string, StoryVar>>().Remove(key);
-		}
-
-		protected int objLength(StoryVar obj)
-		{
-			return obj.ConvertValueTo<Dictionary<string, StoryVar>>().Count;
-		}
-
-		protected bool objContains(StoryVar obj, string key)
-		{
-			return obj.ConvertValueTo<Dictionary<string, StoryVar>>().ContainsKey(key);
 		}
 	}
 }

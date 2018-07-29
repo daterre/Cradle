@@ -71,6 +71,9 @@
     <Compile Include="StoryFormats\Harlowe\VarTypes\HarloweStringService.cs" />
     <Compile Include="StoryFormats\Sugar\SugarStory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StoryFormats\Sugar\StoryVarExtensions.cs" />
+    <Compile Include="StoryFormats\Sugar\VarTypes\SugarDictionaryService.cs" />
+    <Compile Include="StoryFormats\Sugar\VarTypes\SugarListService.cs" />
   </ItemGroup>
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
