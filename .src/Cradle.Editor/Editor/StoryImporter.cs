@@ -77,8 +77,17 @@ namespace Cradle.Editor
 			foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
 			{
 				// Skip references external to the project
-				if (!string.IsNullOrEmpty(assembly.Location) && !Path.GetFullPath(assembly.Location).StartsWith(projectDir, StringComparison.OrdinalIgnoreCase))
+				try
+				{
+					if (!string.IsNullOrEmpty(assembly.Location) && !Path.GetFullPath(assembly.Location).StartsWith(projectDir, StringComparison.OrdinalIgnoreCase))
+						continue;
+				}
+				catch (NotSupportedException)
+				{
+					// On .NET 4+, the correct way to check this is Assembly.IsDynamic (otherwise NotSupportedException is thrown),
+					// but this doesn't exist in .NET 3.5 so a try catch block is used here for backward compatibility
 					continue;
+				}
 				
 				foreach(Type type in assembly.GetTypes())
 				{

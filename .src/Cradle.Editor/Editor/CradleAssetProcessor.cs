@@ -156,8 +156,19 @@ namespace Cradle.Editor
 						GenerateExecutable = false
 					};
 					foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-						if (!string.IsNullOrEmpty(assembly.Location))
-							compilerSettings.ReferencedAssemblies.Add(assembly.Location);
+					{
+						try
+						{
+							// On .NET 4+, the correct way to check this is Assembly.IsDynamic (otherwise NotSupportedException is thrown),
+							// but this doesn't exist in .NET 3.5 so a try catch block is used here for backward compatibility
+							if (!string.IsNullOrEmpty(assembly.Location))
+								compilerSettings.ReferencedAssemblies.Add(assembly.Location);
+						}
+						catch(NotSupportedException)
+						{
+							continue;
+						}
+					}
 
 					var results = importer.CodeDomProvider.CompileAssemblyFromSource(compilerSettings, output);
 
