@@ -188,6 +188,16 @@ namespace Cradle.StoryFormats.Harlowe
         {
             return new HarloweArray(Story.PassageHistory.Select(passageName => new StoryVar(passageName)));
         }
+	
+	        [RuntimeMacro]
+        public StoryVar passage()
+        {
+	        return new HarloweDatamap(
+		        "source", "Cradle can't show the source of the passage.",
+		        "name", Story.CurrentPassage.Name,
+		        "tags", sorted(Story.CurrentPassage.Tags)
+	        );
+        }
 
 		[RuntimeMacro]
         public StoryVar passage(string passageName)
