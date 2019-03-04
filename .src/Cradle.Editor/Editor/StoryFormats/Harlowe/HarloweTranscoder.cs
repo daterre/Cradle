@@ -551,7 +551,7 @@ namespace Cradle.Editor.StoryFormats.Harlowe
 				return;
 			}
 
-			throw new StoryFormatTranscodeException("There is an incomplete expession in your code. Does it work in the browser?");
+			throw new StoryFormatTranscodeException("There is an incomplete expression in your code. Does it work in the browser?");
 		}
 
 		bool IsWrapInVarRequired(LexerToken[] tokens, int tokenIndex)
