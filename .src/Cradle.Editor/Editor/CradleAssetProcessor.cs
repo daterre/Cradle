@@ -138,15 +138,24 @@ namespace Cradle.Editor
 						// Unity 5.4 and up
 						if (!Directory.Exists(monoBinPath))
 							monoBinPath = Path.Combine(EditorApplication.applicationContentsPath, "Mono/bin");
+							
+						// Unity 2019 sth. and up
+						if (!Directory.Exists(monoBinPath))
+							monoBinPath = Path.Combine(EditorApplication.applicationContentsPath, "MonoBleedingEdge/bin");
 
 						// Huh?
-						if (!Directory.Exists(monoBinPath))
+						if (!Directory.Exists(monoBinPath)) {
 							Debug.LogError("For some reason I can't find the Mono directory inside Unity.app. Please open an issue on github.com/daterre/Cradle");
+						} else {
+							string path = Environment.GetEnvironmentVariable("PATH");
+							List<string> paths = new List<string>(path.Split(':'));
 
-						Environment.SetEnvironmentVariable("PATH", string.Format("{0}:{1}",
-								Environment.GetEnvironmentVariable("PATH"),
-								monoBinPath
-							));
+							if(!paths.Contains(monoBinPath)) {
+							    paths.Add(monoBinPath);
+							    path = string.Join(":", paths);
+							    Environment.SetEnvironmentVariable("PATH", path);
+							}
+						}
 					}
 
 					// Detect syntax errors
