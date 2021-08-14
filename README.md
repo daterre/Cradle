@@ -401,8 +401,9 @@ Here is a complete example that plays/stops an audio source:
 
 ```c#
 using UnityEngine;
+using Cradle;
 
-public SoundEffectsMacros: Cradle.RuntimeMacros
+public class SoundEffectsMacros: Cradle.RuntimeMacros
 {
 	[RuntimeMacro]
 	public void sfxPlay(string soundName)
